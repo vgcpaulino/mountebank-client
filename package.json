@@ -1,36 +1,35 @@
 {
-  "name": "mountebank-client",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "jest --config jestconfig.json",
-    "compile": "tsc",
-    "build-start": "yarn compile && yarn start",
-    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
-    "lint": "tslint -p tsconfig.json",
-    "xxxxxxx": "",
-    "start": "node ./dist/main.js",
-    "watch": "tsc -w -p .",
-    "a": "npx ts-node -O \"{ compilerOptions\":{\"isolatedModules\":false }}\" app/app.ts",
-    "b": "npx ts-node --skipProject app/app.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/jest": "^29.5.0",
-    "@types/node": "^18.6.1",
-    "jest": "^28.1.3",
-    "prettier": "^2.8.7",
-    "ts-jest": "^29.1.0",
-    "ts-node": "^10.8.2",
-    "tslint": "^6.1.3",
-    "tslint-config-prettier": "^1.18.0",
-    "typescript": "^4.7.4"
-  },
-  "dependencies": {
-    "axios": "^0.27.2",
-    "mountebank": "^2.6.0"
-  }
+    "name": "mountebank-client",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "jest --config jestconfig.json",
+        "compile": "tsc",
+        "build-start": "yarn compile && yarn start",
+        "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+        "lint": "tslint -p tsconfig.json",
+        "xxxxxxx": "",
+        "start:js": "node ./dist/main.js",
+        "start": "ts-node ./src/main.ts",
+        "watch": "tsc -w -p ."
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/jest": "^29.5.0",
+        "@types/node": "^18.6.1",
+        "jest": "^28.1.3",
+        "prettier": "^2.8.7",
+        "ts-jest": "^29.1.0",
+        "ts-node": "^10.8.2",
+        "tslint": "^6.1.3",
+        "tslint-config-prettier": "^1.18.0",
+        "typescript": "^4.7.4"
+    },
+    "dependencies": {
+        "axios": "^0.27.2",
+        "mountebank": "^2.6.0"
+    }
 }
