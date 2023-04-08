@@ -1,4 +1,6 @@
 import { create } from 'mountebank/src/mountebank';
+import { addImposter } from '../client/mountebankClient';
+import { Imposter } from '../interfaces';
 
 export const startMountebank = async ({
     port = 2525,
@@ -8,7 +10,7 @@ export const startMountebank = async ({
 }: {
     port?: number;
     allowInjection?: boolean;
-    imposters?: any[];
+    imposters?: Imposter[];
     logLevel?: 'info' | 'debug' | 'error';
 }) => {
     const startOptions = {
@@ -39,7 +41,14 @@ export const startMountebank = async ({
     const server = create(startOptions);
 
     for (const imposter of imposters) {
-        const { port: imposterPort, protocol, schema, defaultStatusCode, stubs } = imposter;
+        const { port: imposterPort, protocol, name } = imposter;
+
+        await addImposter({
+            providerUrl: `http://localhost:${port}`,
+            port: imposterPort,
+            protocol,
+            name,
+        });
     }
 
     return server;
