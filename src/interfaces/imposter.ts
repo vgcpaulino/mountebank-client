@@ -5,8 +5,8 @@ export type ImposterProtocol = 'http' | 'https';
 
 export interface ImposterDefaultResponse {
     statusCode: number;
-    headers: ResponseRecord;
-    body: ResponseType;
+    headers?: ResponseRecord;
+    body?: ResponseType;
 }
 
 export interface Imposter {

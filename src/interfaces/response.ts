@@ -1,4 +1,4 @@
-import { ResponseRecord } from './types';
+import { ResponseRecord, ResponseType } from './types';
 
 export interface IsResponse {
     statusCode: number;
