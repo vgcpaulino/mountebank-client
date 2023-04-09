@@ -1,7 +1,9 @@
+import { Behavior } from './behavior';
 import { ResponseRecord, ResponseType } from './types';
 
 export interface IResponseBuilder extends Omit<IsResponse, 'statusCode'> {
     status: number;
+    wait?: number;
 }
 
 export interface IsResponse {
@@ -13,7 +15,7 @@ export interface IsResponse {
 export interface StandardResponse {
     is: IsResponse;
     repeat?: number;
-    behaviors?: any; // TODO: Add type of behaviors;
+    behaviors?: Behavior[];
 }
 
 export type Response = StandardResponse;

@@ -13,7 +13,7 @@ startMountebank({
             .addStub(
                 new StubBuilder()
                     .addPredicate(new PredicateBuilder({ operator: 'equals', path: '/hello' }).generate())
-                    .addResponse(new ResponseBuilder({ status: 200, body: 'Hello, world!' }).generate())
+                    .addResponse(new ResponseBuilder({ status: 200, body: 'Hello, world!', wait: 2000 }).generate())
             )
             .generate(),
     ],
@@ -21,5 +21,5 @@ startMountebank({
 
 setTimeout(() => {}, 5000);
 
-const stub = new StubBuilder().get('/welcome').response({ status: 200, body: { message: 'Welcome!' } });
+const stub = new StubBuilder().get('/welcome').response({ status: 200, body: { message: 'Welcome!' }, wait: 0 });
 addStub({ stub }).then(() => console.log('Adding Stub!'));
