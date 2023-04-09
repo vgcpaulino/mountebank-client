@@ -1,4 +1,4 @@
-import { startMountebank, addStub, ImposterBuilder, ResponseBuilder, PredicateBuilder } from './index';
+import { startMountebank, addStub, ImposterBuilder, ResponseBuilder, PredicateBuilder, StubBuilder } from './index';
 
 startMountebank({
     port: 2525,
@@ -10,19 +10,16 @@ startMountebank({
                 status: 404,
                 body: 'Not Found!',
             })
-            .addStub({
-                predicates: [new PredicateBuilder({ operator: 'equals', path: '/hello' }).generate()],
-                responses: [new ResponseBuilder({ status: 200, body: 'Hello, world!' }).generate()],
-            })
+            .addStub(
+                new StubBuilder()
+                    .addPredicate(new PredicateBuilder({ operator: 'equals', path: '/hello' }).generate())
+                    .addResponse(new ResponseBuilder({ status: 200, body: 'Hello, world!' }).generate())
+            )
             .generate(),
     ],
 }).then(() => console.log('Mountebank Running!'));
 
 setTimeout(() => {}, 5000);
 
-addStub({
-    stub: {
-        predicates: [new PredicateBuilder({ operator: 'equals', method: 'GET', path: '/welcome' }).generate()],
-        responses: [new ResponseBuilder({ status: 200, body: { message: 'Welcome!' } }).generate()],
-    },
-}).then(() => console.log('Adding Stub!'));
+const stub = new StubBuilder().get('/welcome').response({ status: 200, body: { message: 'Welcome!' } });
+addStub({ stub }).then(() => console.log('Adding Stub!'));

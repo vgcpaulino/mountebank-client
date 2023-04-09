@@ -1,5 +1,9 @@
 import { ResponseRecord, ResponseType } from './types';
 
+export interface IResponseBuilder extends Omit<IsResponse, 'statusCode'> {
+    status: number;
+}
+
 export interface IsResponse {
     statusCode: number;
     headers?: ResponseRecord;
