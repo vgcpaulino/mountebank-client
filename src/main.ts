@@ -1,4 +1,12 @@
-import { startMountebank, addStub, ImposterBuilder, ResponseBuilder, PredicateBuilder, StubBuilder } from './index';
+import {
+    startMountebank,
+    addStub,
+    ImposterBuilder,
+    ResponseBuilder,
+    PredicateBuilder,
+    StubBuilder,
+    Config,
+} from './index';
 
 startMountebank({
     port: 2525,
@@ -21,5 +29,36 @@ startMountebank({
 
 setTimeout(() => {}, 5000);
 
-const stub = new StubBuilder().get('/welcome').response({ status: 200, body: { message: 'Welcome!' }, wait: 0 });
+const decorateFunction = (config: Config) => {
+    config.logger.info('############## HERE!');
+};
+const stub = new StubBuilder().get('/welcome').response({ status: 200, body: { message: 'Welcome!' } });
+
+const stubDecorateFunction = new StubBuilder()
+    .get('/decorateFunction')
+    .response({ status: 200, body: { message: 'Welcome!' }, decorate: decorateFunction });
+
+const stubDecorateFunctionArr = new StubBuilder()
+    .get('/decorateFunctionArr')
+    .response({ status: 200, body: { message: 'Welcome!' }, decorate: [decorateFunction, decorateFunction] });
+
+const stubDecorateStr = new StubBuilder().get('/decorateStr').response({
+    status: 200,
+    body: { message: 'Welcome!' },
+    decorate: '(config) => { config.logger.info("###### Decorate String"); }',
+});
+
+const stubDecorateStrArr = new StubBuilder().get('/decorateStrArr').response({
+    status: 200,
+    body: { message: 'Welcome!' },
+    decorate: [
+        '(config) => { config.logger.info("###### Decorate String"); }',
+        '(config) => { config.logger.info("###### Decorate String"); }',
+    ],
+});
+
 addStub({ stub }).then(() => console.log('Adding Stub!'));
+addStub({ stub: stubDecorateFunction }).then(() => console.log('Adding Stub!'));
+addStub({ stub: stubDecorateFunctionArr }).then(() => console.log('Adding Stub!'));
+addStub({ stub: stubDecorateStr }).then(() => console.log('Adding Stub!'));
+addStub({ stub: stubDecorateStrArr }).then(() => console.log('Adding Stub!'));

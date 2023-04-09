@@ -1,9 +1,10 @@
 import { Behavior } from './behavior';
-import { ResponseRecord, ResponseType } from './types';
+import { DecorateFunctionType, ResponseRecord, ResponseType } from './types';
 
 export interface IResponseBuilder extends Omit<IsResponse, 'statusCode'> {
     status: number;
     wait?: number;
+    decorate?: string | string[] | DecorateFunctionType | DecorateFunctionType[];
 }
 
 export interface IsResponse {
