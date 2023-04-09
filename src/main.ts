@@ -1,4 +1,4 @@
-import { startMountebank, addStub, ResponseBuilder } from './index';
+import { startMountebank, addStub, ResponseBuilder, PredicateBuilder } from './index';
 
 startMountebank({
     port: 2525,
@@ -11,13 +11,7 @@ startMountebank({
             name: 'Example',
             stubs: [
                 {
-                    predicates: [
-                        {
-                            equals: {
-                                path: '/hello',
-                            },
-                        },
-                    ],
+                    predicates: [new PredicateBuilder({ operator: 'equals', path: '/hello' }).generate()],
                     responses: [new ResponseBuilder({ status: 200, body: 'Hello, world!' }).generate()],
                 },
             ],
@@ -29,13 +23,7 @@ setTimeout(() => {}, 5000);
 
 addStub({
     stub: {
-        predicates: [
-            {
-                equals: {
-                    path: '/welcome',
-                },
-            },
-        ],
+        predicates: [new PredicateBuilder({ operator: 'equals', method: 'GET', path: '/welcome' }).generate()],
         responses: [new ResponseBuilder({ status: 200, body: { message: 'Welcome!' } }).generate()],
     },
 }).then(() => console.log('Adding Stub!'));
