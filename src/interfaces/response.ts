@@ -1,5 +1,4 @@
-type ResponseRecord = Record<string, string | number | boolean>;
-type ResponseType = string | ResponseRecord;
+import { ResponseRecord } from './types';
 
 export interface IsResponse {
     statusCode: number;
