@@ -1,8 +1,4 @@
-import { StandardResponse, IsResponse } from '../interfaces';
-
-interface IResponseBuilder extends Omit<IsResponse, 'statusCode'> {
-    status: number;
-}
+import { StandardResponse, IsResponse, IResponseBuilder } from '../interfaces';
 
 export class ResponseBuilder {
     is: IsResponse;
