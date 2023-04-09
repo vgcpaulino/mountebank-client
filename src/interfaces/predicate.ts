@@ -4,5 +4,5 @@ export interface PredicateEquals {
 }
 
 export interface Predicate {
-    equals: any;
+    equals: PredicateEquals;
 }

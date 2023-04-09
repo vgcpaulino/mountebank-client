@@ -1,33 +1,38 @@
 import axios from 'axios';
 import { checkError } from './errorHelper';
-import { Stub } from '../interfaces';
+import { Stub, ImposterProtocol, ImposterDefaultResponse } from '../interfaces';
 
 const defaultProviderUrl = process.env['MOUNTEBANK_URL'] || 'http://localhost:2525';
 const defaultImposterPort = parseInt(process.env['MOUNTEBANK_IMPOSTER_DEFAULT_PORT'] || '') || 7117;
 
 interface IAddImposter {
     providerUrl: string;
-    port: number;
-    protocol: string;
+    port?: number;
+    protocol: ImposterProtocol;
     name?: string;
-    stubs?: any[];
+    defaultResponse?: ImposterDefaultResponse;
+    stubs?: Stub[];
 }
+
 export async function addImposter({
     providerUrl = defaultProviderUrl,
     port = defaultImposterPort,
     protocol = 'https',
     name = '',
+    defaultResponse = undefined,
     stubs = [],
 }: IAddImposter) {
     const body: {
         port: string | number;
-        protocol: string;
+        protocol: ImposterProtocol;
         name?: string;
-        stubs: any[];
+        defaultResponse?: ImposterDefaultResponse;
+        stubs: Stub[];
     } = {
         port,
         protocol,
         name,
+        defaultResponse,
         stubs,
     };
 

@@ -1,21 +1,20 @@
-import { startMountebank, addStub, ResponseBuilder, PredicateBuilder } from './index';
+import { startMountebank, addStub, ImposterBuilder, ResponseBuilder, PredicateBuilder } from './index';
 
 startMountebank({
     port: 2525,
     allowInjection: true,
     logLevel: 'debug',
     imposters: [
-        {
-            port: 7117,
-            protocol: 'http',
-            name: 'Example',
-            stubs: [
-                {
-                    predicates: [new PredicateBuilder({ operator: 'equals', path: '/hello' }).generate()],
-                    responses: [new ResponseBuilder({ status: 200, body: 'Hello, world!' }).generate()],
-                },
-            ],
-        },
+        new ImposterBuilder({ port: 7117, protocol: 'http', name: 'Example' })
+            .addDefaultReponse({
+                status: 404,
+                body: 'Not Found!',
+            })
+            .addStub({
+                predicates: [new PredicateBuilder({ operator: 'equals', path: '/hello' }).generate()],
+                responses: [new ResponseBuilder({ status: 200, body: 'Hello, world!' }).generate()],
+            })
+            .generate(),
     ],
 }).then(() => console.log('Mountebank Running!'));
 
