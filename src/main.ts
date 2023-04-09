@@ -1,4 +1,4 @@
-import { startMountebank, addStub } from './index';
+import { startMountebank, addStub, ResponseBuilder } from './index';
 
 startMountebank({
     port: 2525,
@@ -18,13 +18,7 @@ startMountebank({
                             },
                         },
                     ],
-                    responses: [
-                        {
-                            is: {
-                                body: 'Hello, world!',
-                            },
-                        },
-                    ],
+                    responses: [new ResponseBuilder({ status: 200, body: 'Hello, world!' }).generate()],
                 },
             ],
         },
@@ -42,12 +36,6 @@ addStub({
                 },
             },
         ],
-        responses: [
-            {
-                is: {
-                    body: 'Welcome!',
-                },
-            },
-        ],
+        responses: [new ResponseBuilder({ status: 200, body: { message: 'Welcome!' } }).generate()],
     },
 }).then(() => console.log('Adding Stub!'));
