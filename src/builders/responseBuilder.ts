@@ -1,9 +1,12 @@
-import { StandardResponse, IsResponse, IResponseBuilder } from '../interfaces';
+import { StandardResponse, IsResponse, IResponseBuilder, Behavior } from '../interfaces';
 
 export class ResponseBuilder {
     is: IsResponse;
+    behaviors: Behavior[];
 
-    constructor({ status, headers, body }: IResponseBuilder) {
+    constructor({ status, headers, body, wait }: IResponseBuilder) {
+        this.behaviors = [];
+
         const isAppJson = typeof body === 'object';
 
         if (isAppJson) {
@@ -18,6 +21,10 @@ export class ResponseBuilder {
             headers,
             body,
         };
+
+        if (wait) {
+            this.behaviors.push({ wait });
+        }
     }
 
     generate(): StandardResponse {
