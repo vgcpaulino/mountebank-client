@@ -27,8 +27,8 @@ export class StubBuilder {
         return this;
     }
 
-    response({ status, headers, body }: IResponseBuilder) {
-        this.responses.push(new ResponseBuilder({ status, headers, body }));
+    response({ status, headers, body, decorate }: IResponseBuilder) {
+        this.responses.push(new ResponseBuilder({ status, headers, body, decorate }));
         return this;
     }
 
