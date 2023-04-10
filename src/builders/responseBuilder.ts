@@ -3,8 +3,9 @@ import { StandardResponse, IsResponse, IResponseBuilder, Behavior } from '../int
 export class ResponseBuilder {
     is: IsResponse;
     behaviors: Behavior[];
+    repeat!: number;
 
-    constructor({ status, headers, body, wait, decorate }: IResponseBuilder) {
+    constructor({ status, headers, body, wait, decorate, repeat }: IResponseBuilder) {
         this.behaviors = [];
 
         const isAppJson = typeof body === 'object';
@@ -28,6 +29,10 @@ export class ResponseBuilder {
 
         if (wait) {
             this.behaviors.push({ wait });
+        }
+
+        if (repeat) {
+            this.repeat = repeat;
         }
     }
 

@@ -32,7 +32,10 @@ setTimeout(() => {}, 5000);
 const decorateFunction = (config: Config) => {
     config.logger.info('############## HERE!');
 };
-const stub = new StubBuilder().get('/welcome').response({ status: 200, body: { message: 'Welcome!' } });
+const stub = new StubBuilder()
+    .get('/welcome')
+    .response({ status: 200, body: { message: 'Welcome!' }, repeat: 1 })
+    .response({ status: 200, body: { message: 'Welcome 2!' }, repeat: 9999 });
 
 const stubDecorateFunction = new StubBuilder()
     .get('/decorateFunction')
