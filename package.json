@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "jest --config jestconfig.json",
+        "test": "jest --config jestconfig.js",
         "compile": "tsc",
         "build-start": "yarn compile && yarn start",
         "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
