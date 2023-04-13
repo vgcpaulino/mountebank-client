@@ -1,4 +1,4 @@
-import { Behavior, ICopyFromHeader, ICopyFromPath } from './behavior';
+import { Behavior, ICopyFromHeader, ICopyFromPathBody } from './behavior';
 import { DecorateFunctionType, ResponseRecord, ResponseType } from './types';
 
 export interface IResponseBuilder extends Omit<IsResponse, 'statusCode'> {
@@ -7,7 +7,8 @@ export interface IResponseBuilder extends Omit<IsResponse, 'statusCode'> {
     decorate?: string | string[] | DecorateFunctionType | DecorateFunctionType[];
     repeat?: number;
     copyFromHeader?: ICopyFromHeader;
-    copyFromPath?: ICopyFromPath;
+    copyFromPath?: ICopyFromPathBody;
+    copyFromBody?: ICopyFromPathBody;
 }
 
 export interface IsResponse {

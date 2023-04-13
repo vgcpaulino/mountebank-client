@@ -27,9 +27,18 @@ export class StubBuilder {
         return this;
     }
 
-    response({ status, headers, body, decorate, repeat, copyFromHeader, copyFromPath }: IResponseBuilder) {
+    response({
+        status,
+        headers,
+        body,
+        decorate,
+        repeat,
+        copyFromHeader,
+        copyFromPath,
+        copyFromBody,
+    }: IResponseBuilder) {
         this.responses.push(
-            new ResponseBuilder({ status, headers, body, decorate, repeat, copyFromHeader, copyFromPath })
+            new ResponseBuilder({ status, headers, body, decorate, repeat, copyFromHeader, copyFromPath, copyFromBody })
         );
         return this;
     }
