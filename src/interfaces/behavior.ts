@@ -3,6 +3,11 @@ export interface ICopyFromHeader {
     into: string;
 }
 
+export interface ICopyFromPath {
+    into: string;
+    using: CopyConfiguration;
+}
+
 interface CopyConfiguration {
     method: 'regex' | 'xpath' | 'jsonpath';
     selector: string;

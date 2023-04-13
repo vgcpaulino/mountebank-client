@@ -1,11 +1,19 @@
-import { StandardResponse, IsResponse, IResponseBuilder, Behavior, CopyBehavior } from '../interfaces';
+import {
+    StandardResponse,
+    IsResponse,
+    IResponseBuilder,
+    Behavior,
+    CopyBehavior,
+    ICopyFromHeader,
+    ICopyFromPath,
+} from '../interfaces';
 
 export class ResponseBuilder {
     is: IsResponse;
     behaviors: Behavior[];
     repeat!: number;
 
-    constructor({ status, headers, body, wait, decorate, repeat, copyFromHeader }: IResponseBuilder) {
+    constructor({ status, headers, body, wait, decorate, repeat, copyFromHeader, copyFromPath }: IResponseBuilder) {
         this.behaviors = [];
 
         const isAppJson = typeof body === 'object';
@@ -35,17 +43,8 @@ export class ResponseBuilder {
             this.repeat = repeat;
         }
 
-        if (copyFromHeader) {
-            const copyBehavior: CopyBehavior = {
-                from: { headers: copyFromHeader.name },
-                into: copyFromHeader.into,
-                using: {
-                    method: 'regex',
-                    selector: '.+',
-                },
-            };
-            this.behaviors.push({ copy: copyBehavior });
-        }
+        this.addCopyFromHeader(copyFromHeader);
+        this.addCopyFromPath(copyFromPath);
     }
 
     // TODO: Remove any;
@@ -68,6 +67,33 @@ export class ResponseBuilder {
                     }
                 });
         }
+    }
+
+    addCopyFromHeader(copyFromHeader?: ICopyFromHeader) {
+        if (copyFromHeader) {
+            const copyBehavior: CopyBehavior = {
+                from: { headers: copyFromHeader.name },
+                into: copyFromHeader.into,
+                using: {
+                    method: 'regex',
+                    selector: '.+',
+                },
+            };
+            this.behaviors.push({ copy: copyBehavior });
+        }
+        return this;
+    }
+
+    addCopyFromPath(copyFromPath?: ICopyFromPath) {
+        if (copyFromPath) {
+            const copyBehavior: CopyBehavior = {
+                from: 'path',
+                into: copyFromPath.into,
+                using: copyFromPath.using,
+            };
+            this.behaviors.push({ copy: copyBehavior });
+        }
+        return this;
     }
 
     addDecorate(decorate: string) {
