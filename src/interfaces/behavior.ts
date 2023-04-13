@@ -1,6 +1,7 @@
-export interface ICopyFromHeader {
+export interface ICopyFromHeaderQuery {
     name: string;
     into: string;
+    using?: CopyConfiguration;
 }
 
 export interface ICopyFromPathBody {

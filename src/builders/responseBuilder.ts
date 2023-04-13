@@ -1,7 +1,7 @@
 import {
     Behavior,
     CopyBehavior,
-    ICopyFromHeader,
+    ICopyFromHeaderQuery,
     ICopyFromPathBody,
     IResponseBuilder,
     IsResponse,
@@ -23,6 +23,7 @@ export class ResponseBuilder {
         copyFromHeader,
         copyFromPath,
         copyFromBody,
+        copyFromQuery,
     }: IResponseBuilder) {
         this.behaviors = [];
 
@@ -53,7 +54,8 @@ export class ResponseBuilder {
             this.repeat = repeat;
         }
 
-        this.addCopyFromHeader(copyFromHeader);
+        this.addCopyFromHeaderQuery({ type: 'headers', copyFrom: copyFromHeader });
+        this.addCopyFromHeaderQuery({ type: 'query', copyFrom: copyFromQuery });
         this.addCopyFromPathBody({ from: 'path', copyFrom: copyFromPath });
         this.addCopyFromPathBody({ from: 'body', copyFrom: copyFromBody });
     }
@@ -80,12 +82,12 @@ export class ResponseBuilder {
         }
     }
 
-    addCopyFromHeader(copyFromHeader?: ICopyFromHeader) {
-        if (copyFromHeader) {
+    addCopyFromHeaderQuery({ type, copyFrom }: { type: 'headers' | 'query'; copyFrom?: ICopyFromHeaderQuery }) {
+        if (copyFrom) {
             const copyBehavior: CopyBehavior = {
-                from: { headers: copyFromHeader.name },
-                into: copyFromHeader.into,
-                using: {
+                from: { [type]: copyFrom.name },
+                into: copyFrom.into,
+                using: copyFrom.using || {
                     method: 'regex',
                     selector: '.+',
                 },
