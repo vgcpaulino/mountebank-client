@@ -1,9 +1,5 @@
 import { Config, StubBuilder } from '../src';
 
-const decorateFunction = (config: Config) => {
-    config.logger.info('LOG!');
-};
-
 describe('StubBuilder', () => {
     test('With Repeat', async () => {
         const stub = new StubBuilder()
