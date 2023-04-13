@@ -3,7 +3,7 @@ export interface ICopyFromHeader {
     into: string;
 }
 
-export interface ICopyFromPath {
+export interface ICopyFromPathBody {
     into: string;
     using: CopyConfiguration;
 }

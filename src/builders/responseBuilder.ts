@@ -1,11 +1,11 @@
 import {
-    StandardResponse,
-    IsResponse,
-    IResponseBuilder,
     Behavior,
     CopyBehavior,
     ICopyFromHeader,
-    ICopyFromPath,
+    ICopyFromPathBody,
+    IResponseBuilder,
+    IsResponse,
+    StandardResponse,
 } from '../interfaces';
 
 export class ResponseBuilder {
@@ -13,7 +13,17 @@ export class ResponseBuilder {
     behaviors: Behavior[];
     repeat!: number;
 
-    constructor({ status, headers, body, wait, decorate, repeat, copyFromHeader, copyFromPath }: IResponseBuilder) {
+    constructor({
+        status,
+        headers,
+        body,
+        wait,
+        decorate,
+        repeat,
+        copyFromHeader,
+        copyFromPath,
+        copyFromBody,
+    }: IResponseBuilder) {
         this.behaviors = [];
 
         const isAppJson = typeof body === 'object';
@@ -44,7 +54,8 @@ export class ResponseBuilder {
         }
 
         this.addCopyFromHeader(copyFromHeader);
-        this.addCopyFromPath(copyFromPath);
+        this.addCopyFromPathBody({ from: 'path', copyFrom: copyFromPath });
+        this.addCopyFromPathBody({ from: 'body', copyFrom: copyFromBody });
     }
 
     // TODO: Remove any;
@@ -84,12 +95,12 @@ export class ResponseBuilder {
         return this;
     }
 
-    addCopyFromPath(copyFromPath?: ICopyFromPath) {
-        if (copyFromPath) {
+    addCopyFromPathBody({ from, copyFrom }: { from: 'path' | 'body'; copyFrom?: ICopyFromPathBody }) {
+        if (copyFrom) {
             const copyBehavior: CopyBehavior = {
-                from: 'path',
-                into: copyFromPath.into,
-                using: copyFromPath.using,
+                from,
+                into: copyFrom.into,
+                using: copyFrom.using,
             };
             this.behaviors.push({ copy: copyBehavior });
         }

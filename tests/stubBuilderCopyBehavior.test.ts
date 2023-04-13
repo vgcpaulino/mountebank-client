@@ -36,4 +36,23 @@ describe('StubBuilder - Copy Behavior', () => {
             },
         });
     });
+
+    test('From Body', () => {
+        const stub = new StubBuilder().get('/book/newBookName').response({
+            status: 200,
+            headers: { language: '${Language}' },
+            body: '["Movie 1", "Movie 2"]',
+            copyFromBody: { into: '${Language}', using: { method: 'jsonpath', selector: '$.language' } },
+        });
+        const { responses } = stub;
+
+        expect(responses[0].behaviors?.length).toBe(1);
+        expect(responses?.[0].behaviors?.[0]).toMatchObject({
+            copy: {
+                from: 'body',
+                into: '${Language}',
+                using: { method: 'jsonpath', selector: '$.language' },
+            },
+        });
+    });
 });
