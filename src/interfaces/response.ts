@@ -1,16 +1,26 @@
 import { Behavior, ICopyFromHeaderQuery, ICopyFromPathBody } from './behavior';
-import { DecorateFunctionType, ResponseRecord, ResponseType } from './types';
+import { DecorateFunctionType, ResponseRecord, ResponseType, ProxyModeTypes } from './types';
 
-export interface IResponseBuilder extends Omit<IsResponse, 'statusCode'> {
-    status: number;
-    wait?: number;
+interface CommonBuilder {
     decorate?: string | string[] | DecorateFunctionType | DecorateFunctionType[];
+}
+
+export interface IsResponseBuilder extends CommonBuilder, Omit<IsResponse, 'statusCode'> {
+    status?: number;
+    wait?: number;
     repeat?: number;
     copyFromHeader?: ICopyFromHeaderQuery;
     copyFromQuery?: ICopyFromHeaderQuery;
     copyFromPath?: ICopyFromPathBody;
     copyFromBody?: ICopyFromPathBody;
 }
+
+export interface ProxyResponseBuilder extends CommonBuilder {
+    url?: string;
+    proxyMode?: ProxyModeTypes;
+}
+
+export interface IResponseBuilder extends IsResponseBuilder, ProxyResponseBuilder {}
 
 export interface IsResponse {
     statusCode: number;
@@ -24,4 +34,15 @@ export interface StandardResponse {
     behaviors?: Behavior[];
 }
 
-export type Response = StandardResponse;
+export interface ProxyResponseOptions {
+    to: string;
+    mode: ProxyModeTypes;
+}
+
+export interface ProxyResponse {
+    proxy: ProxyResponseOptions;
+    repeat?: number;
+    behaviors?: Behavior[];
+}
+
+export type Response = StandardResponse | ProxyResponse;
