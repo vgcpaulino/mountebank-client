@@ -10,6 +10,7 @@ interface IAddImposter {
     port?: number;
     protocol: ImposterProtocol;
     name?: string;
+    schema?: string;
     defaultResponse?: ImposterDefaultResponse;
     stubs?: Stub[];
 }
@@ -19,6 +20,7 @@ export async function addImposter({
     port = defaultImposterPort,
     protocol = 'https',
     name = '',
+    schema = '',
     defaultResponse = undefined,
     stubs = [],
 }: IAddImposter) {
@@ -26,12 +28,14 @@ export async function addImposter({
         port: string | number;
         protocol: ImposterProtocol;
         name?: string;
+        schema?: string;
         defaultResponse?: ImposterDefaultResponse;
         stubs: Stub[];
     } = {
         port,
         protocol,
         name,
+        schema,
         defaultResponse,
         stubs,
     };

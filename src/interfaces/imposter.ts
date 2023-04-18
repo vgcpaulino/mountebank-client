@@ -1,7 +1,7 @@
 import { Stub } from './stub';
 import { ResponseType, ResponseRecord } from './types';
 
-export type ImposterProtocol = 'http' | 'https';
+export type ImposterProtocol = 'http' | 'https' | 'graphql';
 
 export interface ImposterDefaultResponse {
     statusCode: number;
@@ -14,5 +14,6 @@ export interface Imposter {
     protocol: ImposterProtocol;
     name?: string;
     defaultResponse?: ImposterDefaultResponse;
+    schema?: string;
     stubs?: Stub[];
 }

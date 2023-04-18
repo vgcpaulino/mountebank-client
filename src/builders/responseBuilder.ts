@@ -42,7 +42,6 @@ export class ResponseBuilder {
             this.handleProxyResponse({ url, proxyMode });
         }
 
-        console.log('#######', decorate);
         if (decorate) {
             this.handleDecorate(decorate);
         }

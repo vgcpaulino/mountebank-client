@@ -28,7 +28,7 @@ export const startMountebank = async ({
         'ip-whitelist': '*',
         mock: false,
         heroku: false,
-        protofile: 'libs/testing/mock-provider/protocols.json',
+        protofile: './protocols.json',
         origin: false,
         log: {
             level: logLevel,
@@ -41,13 +41,14 @@ export const startMountebank = async ({
     const server = create(startOptions);
 
     for (const imposter of imposters) {
-        const { port: imposterPort, protocol, name, defaultResponse, stubs } = imposter;
+        const { port: imposterPort, protocol, name, schema, defaultResponse, stubs } = imposter;
 
         await addImposter({
             providerUrl: `http://localhost:${port}`,
             port: imposterPort,
             protocol,
             name,
+            schema,
             defaultResponse,
             stubs,
         });
