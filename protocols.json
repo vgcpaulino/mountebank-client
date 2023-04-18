@@ -1,0 +1,5 @@
+{
+    "graphql": {
+        "createCommand": "node node_modules/mb-graphql/dist/index.js"
+    }
+}
