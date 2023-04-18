@@ -1,4 +1,4 @@
-import { Predicate, Response, IResponseBuilder } from '../interfaces';
+import { Predicate, Response, IResponseBuilder, IsResponseBuilder, ProxyResponseBuilder } from '../interfaces';
 import { addStub } from '../client/mountebankClient';
 import { PredicateBuilder } from './predicateBuilder';
 import { ResponseBuilder } from './responseBuilder';
@@ -27,6 +27,11 @@ export class StubBuilder {
         return this;
     }
 
+    post(path: string) {
+        this.predicates.push(new PredicateBuilder({ operator: 'equals', method: 'POST', path }));
+        return this;
+    }
+
     response({
         status,
         headers,
@@ -37,7 +42,7 @@ export class StubBuilder {
         copyFromPath,
         copyFromBody,
         copyFromQuery,
-    }: IResponseBuilder) {
+    }: IsResponseBuilder) {
         this.responses.push(
             new ResponseBuilder({
                 status,
@@ -49,8 +54,13 @@ export class StubBuilder {
                 copyFromPath,
                 copyFromBody,
                 copyFromQuery,
-            })
+            }).generate()
         );
+        return this;
+    }
+
+    proxyResponse({ url, proxyMode, decorate }: ProxyResponseBuilder) {
+        this.responses.push(new ResponseBuilder({ url, proxyMode, decorate }).generateProxy());
         return this;
     }
 

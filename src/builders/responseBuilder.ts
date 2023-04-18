@@ -6,10 +6,15 @@ import {
     IResponseBuilder,
     IsResponse,
     StandardResponse,
+    ProxyResponse,
+    ProxyResponseOptions,
+    ProxyResponseBuilder,
+    IsResponseBuilder,
 } from '../interfaces';
 
 export class ResponseBuilder {
-    is: IsResponse;
+    is!: IsResponse;
+    proxy!: ProxyResponseOptions;
     behaviors: Behavior[];
     repeat!: number;
 
@@ -24,24 +29,20 @@ export class ResponseBuilder {
         copyFromPath,
         copyFromBody,
         copyFromQuery,
+        url,
+        proxyMode,
     }: IResponseBuilder) {
         this.behaviors = [];
 
-        const isAppJson = typeof body === 'object';
-
-        if (isAppJson) {
-            headers = {
-                ...headers,
-                'content-type': 'application/json',
-            };
+        if (status) {
+            this.handleIsResponse({ status, headers, body });
         }
 
-        this.is = {
-            statusCode: status,
-            headers,
-            body,
-        };
+        if (url) {
+            this.handleProxyResponse({ url, proxyMode });
+        }
 
+        console.log('#######', decorate);
         if (decorate) {
             this.handleDecorate(decorate);
         }
@@ -58,6 +59,33 @@ export class ResponseBuilder {
         this.addCopyFromHeaderQuery({ type: 'query', copyFrom: copyFromQuery });
         this.addCopyFromPathBody({ from: 'path', copyFrom: copyFromPath });
         this.addCopyFromPathBody({ from: 'body', copyFrom: copyFromBody });
+    }
+
+    private handleIsResponse({ body, headers, status }: IsResponseBuilder) {
+        const isAppJson = typeof body === 'object';
+
+        if (isAppJson) {
+            headers = {
+                ...headers,
+                'content-type': 'application/json',
+            };
+        }
+
+        this.is = {
+            statusCode: status || 200, // TODO: Remove or operator;
+            headers,
+            body,
+        };
+
+        return this;
+    }
+
+    private handleProxyResponse({ url, proxyMode }: ProxyResponseBuilder) {
+        this.proxy = {
+            to: url || '', // TODO: Remove or operator;
+            mode: proxyMode || 'proxyAlways', // TODO: Remove or operator;,
+        };
+        return this;
     }
 
     // TODO: Remove any;
@@ -114,6 +142,19 @@ export class ResponseBuilder {
     }
 
     generate(): StandardResponse {
-        return this;
+        const isReponse: StandardResponse = {
+            is: this.is,
+            behaviors: this.behaviors,
+            repeat: this.repeat,
+        };
+        return isReponse;
+    }
+
+    generateProxy(): ProxyResponse {
+        const proxy: ProxyResponse = {
+            proxy: this.proxy,
+            behaviors: this.behaviors,
+        };
+        return proxy;
     }
 }
