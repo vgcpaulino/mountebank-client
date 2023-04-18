@@ -55,4 +55,23 @@ describe('StubBuilder - Copy Behavior', () => {
             },
         });
     });
+
+    test('From Query', () => {
+        const stub = new StubBuilder().get('/me').response({
+            status: 200,
+            body: 'Hi, ${name}!',
+            copyFromQuery: { name: 'name', into: '${name}', using: { method: 'regex', selector: 'MOUNT\\w+$' } },
+        });
+
+        const { responses } = stub;
+
+        expect(responses[0].behaviors?.length).toBe(1);
+        expect(responses?.[0].behaviors?.[0]).toMatchObject({
+            copy: {
+                from: { query: 'name' },
+                into: '${name}',
+                using: { method: 'regex', selector: 'MOUNT\\w+$' },
+            },
+        });
+    });
 });
