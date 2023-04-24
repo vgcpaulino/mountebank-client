@@ -60,7 +60,7 @@ const stubCreateUser = new StubBuilder()
     });
 
 export const imposter = new ImposterBuilder({
-    port: 7117,
+    port: 4000,
     protocol: 'graphql',
     name: 'Example',
     schema: graphQLSchema,

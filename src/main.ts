@@ -8,14 +8,14 @@ import {
     Config,
 } from './index';
 
-import { graphQLSchema } from './helpers/graphqlSchema';
+import { imposter as imposterHttp } from './helpers/imposterHttp';
 import { imposter as imposterGraphQL } from './helpers/imposterGraphQL';
 
 startMountebank({
     port: 2525,
     allowInjection: true,
     logLevel: 'debug',
-    imposters: [imposterGraphQL],
+    imposters: [imposterHttp, imposterGraphQL],
 }).then(() => console.log('Mountebank Running!'));
 
 setTimeout(() => {}, 5000);

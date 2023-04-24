@@ -2,9 +2,10 @@ import { Predicate, Response, IsResponseBuilder, ProxyResponseBuilder } from '..
 import { addStub } from '../client/mountebankClient';
 import { PredicateBuilder } from './predicateBuilder';
 import { ResponseBuilder } from './responseBuilder';
-import { ResponseRecord } from '../interfaces/types';
+import { OperatorTypes, ResponseRecord } from '../interfaces/types';
 
 interface Options {
+    operator?: OperatorTypes;
     query?: ResponseRecord | string;
     mutation?: string;
     args?: Record<string, string | number | boolean>;
@@ -34,8 +35,8 @@ export class StubBuilder {
         return this;
     }
 
-    get(path: string) {
-        this.predicates.push(new PredicateBuilder({ operator: 'equals', method: 'GET', path }));
+    get(path: string, { operator = 'equals' }: Options = {}) {
+        this.predicates.push(new PredicateBuilder({ operator, method: 'GET', path }));
         return this;
     }
 
