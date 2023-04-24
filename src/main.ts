@@ -9,12 +9,13 @@ import {
 } from './index';
 
 import { graphQLSchema } from './helpers/graphqlSchema';
+import { imposter as imposterGraphQL } from './helpers/imposterGraphQL';
 
 startMountebank({
     port: 2525,
     allowInjection: true,
     logLevel: 'debug',
-    imposters: [new ImposterBuilder({ port: 7117, protocol: 'graphql', name: 'Example', schema: graphQLSchema })],
+    imposters: [imposterGraphQL],
 }).then(() => console.log('Mountebank Running!'));
 
 setTimeout(() => {}, 5000);

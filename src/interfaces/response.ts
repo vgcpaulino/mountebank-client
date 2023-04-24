@@ -1,5 +1,5 @@
 import { Behavior, ICopyFromHeaderQuery, ICopyFromPathBody } from './behavior';
-import { DecorateFunctionType, ResponseRecord, ResponseType, ProxyModeTypes } from './types';
+import { DecorateFunctionType, ResponseRecord, ProxyModeTypes } from './types';
 
 interface CommonBuilder {
     decorate?: string | string[] | DecorateFunctionType | DecorateFunctionType[];
@@ -25,7 +25,8 @@ export interface IResponseBuilder extends IsResponseBuilder, ProxyResponseBuilde
 export interface IsResponse {
     statusCode: number;
     headers?: ResponseRecord;
-    body?: ResponseType;
+    body?: unknown;
+    data?: unknown;
 }
 
 export interface StandardResponse {
