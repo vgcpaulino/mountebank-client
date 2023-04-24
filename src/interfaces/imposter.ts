@@ -1,12 +1,12 @@
 import { Stub } from './stub';
-import { ResponseType, ResponseRecord } from './types';
+import { ResponseRecord } from './types';
 
 export type ImposterProtocol = 'http' | 'https' | 'graphql';
 
 export interface ImposterDefaultResponse {
     statusCode: number;
     headers?: ResponseRecord;
-    body?: ResponseType;
+    body?: unknown;
 }
 
 export interface Imposter {

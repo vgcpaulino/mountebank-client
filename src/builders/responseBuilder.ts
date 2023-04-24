@@ -22,6 +22,7 @@ export class ResponseBuilder {
         status,
         headers,
         body,
+        data,
         wait,
         decorate,
         repeat,
@@ -35,7 +36,7 @@ export class ResponseBuilder {
         this.behaviors = [];
 
         if (status) {
-            this.handleIsResponse({ status, headers, body });
+            this.handleIsResponse({ status, headers, body, data });
         }
 
         if (url) {
@@ -60,7 +61,7 @@ export class ResponseBuilder {
         this.addCopyFromPathBody({ from: 'body', copyFrom: copyFromBody });
     }
 
-    private handleIsResponse({ body, headers, status }: IsResponseBuilder) {
+    private handleIsResponse({ body, headers, status, data }: IsResponseBuilder) {
         const isAppJson = typeof body === 'object';
 
         if (isAppJson) {
@@ -74,6 +75,7 @@ export class ResponseBuilder {
             statusCode: status || 200, // TODO: Remove or operator;
             headers,
             body,
+            data,
         };
 
         return this;
