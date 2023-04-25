@@ -4,8 +4,8 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "jest --config jestconfig.js",
-        "test:list": "jest --config jestconfig.js --listTests",
+        "test": "jest --config jest.config.js",
+        "test:list": "jest --config jest.config.js --listTests",
         "compile": "tsc",
         "build-start": "yarn compile && yarn start",
         "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
