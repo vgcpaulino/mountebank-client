@@ -1,13 +1,16 @@
 import { StubBuilder } from '../../src';
+import { OperatorTypes } from '../../src/interfaces/types';
 
 describe('StubBuilder', () => {
-    test('Operator GET equals', () => {
-        const stub = new StubBuilder().get('/').response({ status: 200 });
+    const operators: OperatorTypes[] = ['equals', 'endsWith', 'startsWith'];
 
+    test.each(operators)('GET method with %s operator', (operator) => {
+        const options = operator === 'equals' ? undefined : { operator };
+        const stub = new StubBuilder().get('/', options).response({ status: 200 });
         const { predicates } = stub;
         expect(predicates.length).toBe(1);
         expect(predicates[0]).toMatchObject({
-            equals: {
+            [operator]: {
                 method: 'GET',
                 path: '/',
                 query: undefined,
@@ -17,14 +20,14 @@ describe('StubBuilder', () => {
         });
     });
 
-    test('Operator GET endsWtih', () => {
-        const stub = new StubBuilder().get('/', { operator: 'endsWith' }).response({ status: 200 });
-
+    test.each(operators)('POST method with %s operator', (operator) => {
+        const options = operator === 'equals' ? undefined : { operator };
+        const stub = new StubBuilder().post('/', options).response({ status: 200 });
         const { predicates } = stub;
         expect(predicates.length).toBe(1);
         expect(predicates[0]).toMatchObject({
-            endsWith: {
-                method: 'GET',
+            [operator]: {
+                method: 'POST',
                 path: '/',
                 query: undefined,
                 mutation: undefined,
@@ -33,14 +36,46 @@ describe('StubBuilder', () => {
         });
     });
 
-    test('Operator GET startsWith', () => {
-        const stub = new StubBuilder().get('/', { operator: 'startsWith' }).response({ status: 200 });
-
+    test.each(operators)('PATCH method with %s operator', (operator) => {
+        const options = operator === 'equals' ? undefined : { operator };
+        const stub = new StubBuilder().patch('/', options).response({ status: 200 });
         const { predicates } = stub;
         expect(predicates.length).toBe(1);
         expect(predicates[0]).toMatchObject({
-            startsWith: {
-                method: 'GET',
+            [operator]: {
+                method: 'PATCH',
+                path: '/',
+                query: undefined,
+                mutation: undefined,
+                args: undefined,
+            },
+        });
+    });
+
+    test.each(operators)('DELETE method with %s operator', (operator) => {
+        const options = operator === 'equals' ? undefined : { operator };
+        const stub = new StubBuilder().delete('/', options).response({ status: 200 });
+        const { predicates } = stub;
+        expect(predicates.length).toBe(1);
+        expect(predicates[0]).toMatchObject({
+            [operator]: {
+                method: 'DELETE',
+                path: '/',
+                query: undefined,
+                mutation: undefined,
+                args: undefined,
+            },
+        });
+    });
+
+    test.each(operators)('OPTIONS method with %s operator', (operator) => {
+        const options = operator === 'equals' ? undefined : { operator };
+        const stub = new StubBuilder().options('/', options).response({ status: 200 });
+        const { predicates } = stub;
+        expect(predicates.length).toBe(1);
+        expect(predicates[0]).toMatchObject({
+            [operator]: {
+                method: 'OPTIONS',
                 path: '/',
                 query: undefined,
                 mutation: undefined,

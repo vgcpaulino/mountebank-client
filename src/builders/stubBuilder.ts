@@ -40,8 +40,28 @@ export class StubBuilder {
         return this;
     }
 
-    post(path: string) {
-        this.predicates.push(new PredicateBuilder({ operator: 'equals', method: 'POST', path }));
+    post(path: string, { operator = 'equals' }: Options = {}) {
+        this.predicates.push(new PredicateBuilder({ operator, method: 'POST', path }));
+        return this;
+    }
+
+    put(path: string, { operator = 'equals' }: Options = {}) {
+        this.predicates.push(new PredicateBuilder({ operator, method: 'PUT', path }));
+        return this;
+    }
+
+    patch(path: string, { operator = 'equals' }: Options = {}) {
+        this.predicates.push(new PredicateBuilder({ operator, method: 'PATCH', path }));
+        return this;
+    }
+
+    delete(path: string, { operator = 'equals' }: Options = {}) {
+        this.predicates.push(new PredicateBuilder({ operator, method: 'DELETE', path }));
+        return this;
+    }
+
+    options(path: string, { operator = 'equals' }: Options = {}) {
+        this.predicates.push(new PredicateBuilder({ operator, method: 'OPTIONS', path }));
         return this;
     }
 
