@@ -1,4 +1,4 @@
-import { Config, StubBuilder } from '../src';
+import { Config, StubBuilder } from '../../src';
 
 describe('StubBuilder', () => {
     test('With Repeat', async () => {

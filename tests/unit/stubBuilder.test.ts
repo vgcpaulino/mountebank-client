@@ -1,4 +1,4 @@
-import { Config, StubBuilder } from '../src';
+import { Config, StubBuilder } from '../../src';
 
 const decorateFunction = (config: Config) => {
     config.logger.info('LOG!');
