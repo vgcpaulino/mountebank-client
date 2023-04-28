@@ -1,5 +1,5 @@
-import { StubBuilder } from '../../src';
-import { OperatorTypes } from '../../src/interfaces/types';
+import { StubBuilder } from '../../../src';
+import { OperatorTypes } from '../../../src/interfaces/types';
 
 describe('StubBuilder', () => {
     const operators: OperatorTypes[] = ['equals', 'endsWith', 'startsWith'];

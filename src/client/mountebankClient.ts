@@ -6,7 +6,7 @@ const defaultProviderUrl = process.env['MOUNTEBANK_URL'] || 'http://localhost:25
 const defaultImposterPort = parseInt(process.env['MOUNTEBANK_IMPOSTER_DEFAULT_PORT'] || '') || 7117;
 
 interface IAddImposter {
-    providerUrl: string;
+    providerUrl?: string;
     port?: number;
     protocol: ImposterProtocol;
     name?: string;

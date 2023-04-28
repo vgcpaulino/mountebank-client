@@ -1,5 +1,5 @@
-import { StubBuilder } from '../../src';
-import { ProxyModeTypes } from '../../src/interfaces/types';
+import { StubBuilder } from '../../../src';
+import { ProxyModeTypes } from '../../../src/interfaces/types';
 
 describe('StubBuilder', () => {
     test.each(['proxyTransparent', 'proxyAlways', 'proxyOnce'])('Proxy Response with mode %s', (mode) => {

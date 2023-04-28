@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.json",
+    "include": ["lib", "tests", "index.d.ts", "global.d.ts"],
+    "ts-node": {
+        "files": true,
+        "compilerOptions": {
+            "noImplicitAny": false
+        }
+    }
+}

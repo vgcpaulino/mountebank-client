@@ -1,3 +1,4 @@
+import { addImposter } from '../client/mountebankClient';
 import { Stub, Imposter, ImposterProtocol, ImposterDefaultResponse } from '../interfaces';
 
 export interface IImposterBuilder {
@@ -41,7 +42,15 @@ export class ImposterBuilder {
         return this;
     }
 
-    generate(): Imposter {
+    async addImposter() {
+        await addImposter({
+            port: this.port,
+            protocol: this.protocol,
+            name: this.name,
+            schema: this.schema,
+            stubs: this.stubs,
+            defaultResponse: this.defaultResponse,
+        });
         return this;
     }
 }
