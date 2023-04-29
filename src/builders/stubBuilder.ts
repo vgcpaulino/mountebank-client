@@ -13,7 +13,7 @@ interface Options {
 }
 
 export class StubBuilder {
-    stubID!: string;
+    stubID: string;
     imposterPort?: number;
     predicates: Predicate[];
     responses: Response[];
