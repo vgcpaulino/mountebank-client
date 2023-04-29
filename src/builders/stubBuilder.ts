@@ -1,8 +1,9 @@
 import { Predicate, Response, IsResponseBuilder, ProxyResponseBuilder } from '../interfaces';
-import { addStub } from '../client/mountebankClient';
+import { addStub, deleteStubByID } from '../client/mountebankClient';
 import { PredicateBuilder } from './predicateBuilder';
 import { ResponseBuilder } from './responseBuilder';
 import { OperatorTypes, ResponseRecord } from '../interfaces/types';
+import { randomUUID } from 'crypto';
 
 interface Options {
     operator?: OperatorTypes;
@@ -12,10 +13,14 @@ interface Options {
 }
 
 export class StubBuilder {
+    stubID!: string;
+    imposterPort?: number;
     predicates: Predicate[];
     responses: Response[];
 
-    constructor() {
+    constructor({ imposterPort }: { imposterPort?: number } = {}) {
+        this.stubID = randomUUID();
+        this.imposterPort = imposterPort;
         this.predicates = [];
         this.responses = [];
     }
@@ -100,7 +105,12 @@ export class StubBuilder {
     }
 
     async addStub() {
-        await addStub({ stub: this });
+        await addStub({ imposterPort: this.imposterPort, stub: this });
+        return this;
+    }
+
+    async deleteStub() {
+        await deleteStubByID({ imposterPort: this.imposterPort, stubID: this.stubID });
         return this;
     }
 }

@@ -8,6 +8,7 @@ describe('StubBuilder', () => {
         const options = operator === 'equals' ? undefined : { operator };
         const stub = new StubBuilder().get('/', options).response({ status: 200 });
         const { predicates } = stub;
+
         expect(predicates.length).toBe(1);
         expect(predicates[0]).toMatchObject({
             [operator]: {
@@ -24,6 +25,7 @@ describe('StubBuilder', () => {
         const options = operator === 'equals' ? undefined : { operator };
         const stub = new StubBuilder().post('/', options).response({ status: 200 });
         const { predicates } = stub;
+
         expect(predicates.length).toBe(1);
         expect(predicates[0]).toMatchObject({
             [operator]: {
@@ -40,6 +42,7 @@ describe('StubBuilder', () => {
         const options = operator === 'equals' ? undefined : { operator };
         const stub = new StubBuilder().patch('/', options).response({ status: 200 });
         const { predicates } = stub;
+
         expect(predicates.length).toBe(1);
         expect(predicates[0]).toMatchObject({
             [operator]: {
@@ -56,6 +59,7 @@ describe('StubBuilder', () => {
         const options = operator === 'equals' ? undefined : { operator };
         const stub = new StubBuilder().delete('/', options).response({ status: 200 });
         const { predicates } = stub;
+
         expect(predicates.length).toBe(1);
         expect(predicates[0]).toMatchObject({
             [operator]: {
@@ -72,6 +76,7 @@ describe('StubBuilder', () => {
         const options = operator === 'equals' ? undefined : { operator };
         const stub = new StubBuilder().options('/', options).response({ status: 200 });
         const { predicates } = stub;
+
         expect(predicates.length).toBe(1);
         expect(predicates[0]).toMatchObject({
             [operator]: {

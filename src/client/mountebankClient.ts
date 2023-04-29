@@ -45,6 +45,14 @@ export async function addImposter({
     checkError({ errorCode: 'ADD_IMPOSTER', response });
 }
 
+export async function getImposter({ providerUrl = defaultProviderUrl, port = defaultImposterPort } = {}) {
+    const response = await axios.get(`${providerUrl}/imposters/${port}`, { validateStatus: null });
+
+    checkError({ errorCode: 'GET_IMPOSTER', response });
+
+    return response.data;
+}
+
 export async function addStub({
     providerUrl = defaultProviderUrl,
     imposterPort = defaultImposterPort,
@@ -64,6 +72,49 @@ export async function addStub({
     checkError({ errorCode: 'ADD_STUB', response });
 }
 
+export async function deleteStubByID({
+    providerUrl = defaultProviderUrl,
+    imposterPort = defaultImposterPort,
+    stubID,
+}: {
+    providerUrl?: string;
+    imposterPort?: number;
+    stubID?: string;
+} = {}) {
+    const response = await getImposter({ providerUrl, port: imposterPort });
+    const stub = response.stubs.find((s: Stub) => s.stubID === stubID);
+    const stubIndex = getStubIndex(stub);
+
+    return deleteStubByIndex({ providerUrl, imposterPort, stubIndex });
+}
+
+export async function deleteStubByIndex({
+    providerUrl = defaultProviderUrl,
+    imposterPort = defaultImposterPort,
+    stubIndex,
+}: {
+    providerUrl?: string;
+    imposterPort?: number;
+    stubIndex?: string;
+} = {}) {
+    const response = await axios.delete(`${providerUrl}/imposters/${imposterPort}/stubs/${stubIndex}`, {
+        validateStatus: null,
+    });
+
+    checkError({ errorCode: 'DELETE_STUB', response });
+
+    return response.data;
+}
+
 const stringify = (object: Record<any, any>) => {
     return JSON.stringify(object);
 };
+
+function getStubIndex(stub: Stub) {
+    const href = stub._links?.self.href;
+    if (href) {
+        // TODO: substr is deprecated;
+        return href.substr(href.lastIndexOf('/') + 1);
+    }
+    return undefined;
+}

@@ -9,6 +9,7 @@ describe('ImposterBuilder', () => {
             name: 'GraphQL',
             schema: graphQLSchema,
         };
+
         const imposter = new ImposterBuilder(config);
 
         expect(imposter.port).toBe(config.port);

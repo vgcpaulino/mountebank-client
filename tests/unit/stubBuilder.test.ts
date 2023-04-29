@@ -9,8 +9,8 @@ describe('StubBuilder', () => {
         const stubDecorateFunction = new StubBuilder()
             .get('/decorateFunction')
             .response({ status: 200, body: { message: 'Welcome!' }, decorate: decorateFunction });
-        const { responses } = stubDecorateFunction;
 
+        const { responses } = stubDecorateFunction;
         expect(responses.length).toBe(1);
         expect(responses[0].behaviors?.length).toBe(1);
 
@@ -22,8 +22,8 @@ describe('StubBuilder', () => {
         const stubDecorateFunction = new StubBuilder()
             .get('/decorateFunction')
             .response({ status: 200, body: { message: 'Welcome!' }, decorate: [decorateFunction, decorateFunction] });
-        const { responses } = stubDecorateFunction;
 
+        const { responses } = stubDecorateFunction;
         expect(responses.length).toBe(1);
         expect(responses[0].behaviors?.length).toBe(2);
 
@@ -39,8 +39,8 @@ describe('StubBuilder', () => {
             status: 200,
             decorate: '(config) => { config.logger.info("Decorate String"); }',
         });
-        const { responses } = stubDecorateFunction;
 
+        const { responses } = stubDecorateFunction;
         expect(responses.length).toBe(1);
         expect(responses[0].behaviors?.length).toBe(1);
 
@@ -56,8 +56,8 @@ describe('StubBuilder', () => {
                 '(config) => { config.logger.info("Decorate String"); }',
             ],
         });
-        const { responses } = stubDecorateFunction;
 
+        const { responses } = stubDecorateFunction;
         expect(responses.length).toBe(1);
         expect(responses[0].behaviors?.length).toBe(2);
 

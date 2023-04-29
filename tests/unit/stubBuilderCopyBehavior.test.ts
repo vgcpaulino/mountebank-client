@@ -7,6 +7,7 @@ describe('StubBuilder - Copy Behavior', () => {
             headers: { Origin: '${Origin}' },
             copyFromHeader: { name: 'Origin', into: '${Origin}' },
         });
+
         const { responses } = stub;
 
         expect(responses[0].behaviors?.length).toBe(1);
@@ -25,6 +26,7 @@ describe('StubBuilder - Copy Behavior', () => {
             body: { id: '${userId}' },
             copyFromPath: { into: '${userId}', using: { method: 'regex', selector: '\\d+' } },
         });
+
         const { responses } = stub;
 
         expect(responses[0].behaviors?.length).toBe(1);
@@ -44,6 +46,7 @@ describe('StubBuilder - Copy Behavior', () => {
             body: '["Movie 1", "Movie 2"]',
             copyFromBody: { into: '${Language}', using: { method: 'jsonpath', selector: '$.language' } },
         });
+
         const { responses } = stub;
 
         expect(responses[0].behaviors?.length).toBe(1);

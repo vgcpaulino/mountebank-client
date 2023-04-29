@@ -24,6 +24,9 @@
             "disableOptimisticBPs": true,
             "windows": {
                 "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+            },
+            "env": {
+                "DEBUG": "jest"
             }
         },
         {
@@ -37,6 +40,9 @@
             "disableOptimisticBPs": true,
             "windows": {
                 "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+            },
+            "env": {
+                "DEBUG": "jest"
             }
         }
     ]
