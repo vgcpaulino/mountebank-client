@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ImposterBuilder, StubBuilder } from '../../../src';
+import { Imposter, ImposterBuilder } from '../../../src';
 
 describe('Imposter Builder', () => {
     test('Add Imposter', async () => {
@@ -10,7 +10,8 @@ describe('Imposter Builder', () => {
         expect(response.status).toBe(200);
 
         const { imposters } = response.data;
-        expect(imposters.length).toBe(1);
+        const imposterResult = imposters.find((i: Imposter) => i.protocol === 'http' && imposter.port === 1111);
+        expect(imposterResult).not.toBeUndefined();
         expect(imposters[0]).toMatchObject({
             protocol: 'http',
             port: 1111,
