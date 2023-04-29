@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { checkError } from './errorHelper';
-import { Stub, ImposterProtocol, ImposterDefaultResponse } from '../interfaces';
+import { Stub, ImposterProtocol, ImposterDefaultResponse, Imposter } from '../interfaces';
 
 const defaultProviderUrl = process.env['MOUNTEBANK_URL'] || 'http://localhost:2525';
 const defaultImposterPort = parseInt(process.env['MOUNTEBANK_IMPOSTER_DEFAULT_PORT'] || '') || 7117;
@@ -88,6 +88,34 @@ export async function deleteStubByID({
     return deleteStubByIndex({ providerUrl, imposterPort, stubIndex });
 }
 
+export async function deleteStubsByID({
+    providerUrl = defaultProviderUrl,
+    imposterPort = defaultImposterPort,
+    stubIDs,
+}: {
+    providerUrl?: string;
+    imposterPort?: number;
+    stubIDs?: string[];
+} = {}) {
+    if (!stubIDs) {
+        return;
+    }
+
+    let previousReponse: Imposter | undefined;
+    for (const stubID of stubIDs) {
+        if (!previousReponse) {
+            previousReponse = await deleteStubByID({ providerUrl, imposterPort, stubID });
+        } else {
+            const stub = previousReponse.stubs?.find((s) => s.stubID === stubID);
+            if (stub) {
+                const stubIndex = getStubIndex(stub);
+                previousReponse = await deleteStubByIndex({ providerUrl, imposterPort, stubIndex });
+            }
+        }
+    }
+    return previousReponse;
+}
+
 export async function deleteStubByIndex({
     providerUrl = defaultProviderUrl,
     imposterPort = defaultImposterPort,
@@ -113,8 +141,8 @@ const stringify = (object: Record<any, any>) => {
 function getStubIndex(stub: Stub) {
     const href = stub._links?.self.href;
     if (href) {
-        // TODO: substr is deprecated;
-        return href.substr(href.lastIndexOf('/') + 1);
+        const index = href.lastIndexOf('/');
+        return href.slice(index + 1, href.length);
     }
     return undefined;
 }
