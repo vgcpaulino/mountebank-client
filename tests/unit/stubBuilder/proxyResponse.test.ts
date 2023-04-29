@@ -10,6 +10,7 @@ describe('StubBuilder', () => {
         });
 
         const { responses } = stub;
+
         expect(responses.length).toBe(1);
         expect(stub.responses[0]).toMatchObject({
             proxy: {

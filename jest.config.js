@@ -24,6 +24,7 @@ module.exports = {
             globalSetup: '<rootDir>/tests/config/globalSetup.ts',
             globalTeardown: '<rootDir>/tests/config/globalTeardown.ts',
             preset: 'ts-jest',
+            setupFilesAfterEnv: ['<rootDir>/tests/config/setupAfterEnv.ts'],
             testEnvironment: 'node',
             testMatch: ['<rootDir>/tests/integration/**/*.test.ts'],
             transform: {

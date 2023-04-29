@@ -5,6 +5,7 @@ describe('StubBuilder', () => {
         const stub = new StubBuilder()
             .get('/decorateFunction')
             .response({ status: 200, body: { message: 'Welcome!' }, repeat: 999 });
+
         const { responses } = stub;
 
         expect(responses.length).toBe(1);
@@ -15,6 +16,7 @@ describe('StubBuilder', () => {
         const stub = new StubBuilder()
             .get('/decorateFunction')
             .response({ status: 200, body: { message: 'Welcome!' } });
+
         const { responses } = stub;
 
         expect(responses.length).toBe(1);
