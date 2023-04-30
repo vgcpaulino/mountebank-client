@@ -29,6 +29,7 @@ export interface IsResponse {
     data?: unknown;
 }
 
+// TODO: Still needed?
 export interface StandardResponse {
     is: IsResponse;
     repeat?: number;
@@ -40,10 +41,16 @@ export interface ProxyResponseOptions {
     mode: ProxyModeTypes;
 }
 
+// TODO: Still needed?
 export interface ProxyResponse {
     proxy: ProxyResponseOptions;
     repeat?: number;
     behaviors?: Behavior[];
 }
 
-export type Response = StandardResponse | ProxyResponse;
+export interface Response {
+    is?: IsResponse;
+    proxy?: ProxyResponseOptions;
+    repeat?: number;
+    behaviors?: Behavior[];
+}

@@ -35,8 +35,8 @@ export class StubBuilder {
         return this;
     }
 
-    any({ query, mutation, args }: Options) {
-        this.predicates.push(new PredicateBuilder({ operator: 'equals', query, mutation, args }));
+    any({ operator = 'equals', query, mutation, args }: Options) {
+        this.predicates.push(new PredicateBuilder({ operator, query, mutation, args }));
         return this;
     }
 
@@ -96,6 +96,11 @@ export class StubBuilder {
                 copyFromQuery,
             }).generate()
         );
+        return this;
+    }
+
+    multipleResponses(responses: IsResponseBuilder[]) {
+        responses.forEach((r: IsResponseBuilder) => this.response(r));
         return this;
     }
 

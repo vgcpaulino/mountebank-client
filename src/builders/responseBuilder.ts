@@ -66,8 +66,8 @@ export class ResponseBuilder {
 
         if (isAppJson) {
             headers = {
-                ...headers,
                 'content-type': 'application/json',
+                ...headers,
             };
         }
 
