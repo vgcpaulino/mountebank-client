@@ -1,9 +1,9 @@
 import { Predicate, PredicateEquals } from '../interfaces';
-import { OperatorTypes, ResponseRecord } from '../interfaces/types';
+import { OperatorTypes, RequestMethodsTypes, ResponseRecord } from '../interfaces/types';
 
 interface IPredicateBuilder {
     operator: OperatorTypes;
-    method?: string;
+    method?: RequestMethodsTypes;
     path?: string;
     query?: ResponseRecord | string;
     mutation?: string;
@@ -14,6 +14,7 @@ export class PredicateBuilder {
     equals!: PredicateEquals;
     endsWith!: PredicateEquals;
     startsWith!: PredicateEquals;
+    // contains!: PredicateEquals; // TODO: This operator is used in TCP protocols;
 
     constructor({ operator, method, path, query, mutation, args }: IPredicateBuilder) {
         this[operator] = {
