@@ -1,5 +1,5 @@
-import { Stub } from './stub';
 import { ResponseRecord } from './types';
+import { Stub } from './stub';
 
 export type ImposterProtocol = 'http' | 'https' | 'graphql';
 

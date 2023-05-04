@@ -1,8 +1,8 @@
-import { Predicate, Response, IsResponseBuilder, ProxyResponseBuilder } from '../interfaces';
-import { addStub, deleteStubByID } from '../client/mountebankClient';
+import { IsResponseBuilder, Predicate, ProxyResponseBuilder, Response } from '../interfaces';
+import { OperatorTypes, ResponseRecord } from '../interfaces/types';
 import { PredicateBuilder } from './predicateBuilder';
 import { ResponseBuilder } from './responseBuilder';
-import { OperatorTypes, ResponseRecord } from '../interfaces/types';
+import { addStub, deleteStubByID } from '../client/mountebankClient';
 import { randomUUID } from 'crypto';
 
 interface Options {
@@ -115,7 +115,10 @@ export class StubBuilder {
     }
 
     async deleteStub() {
-        await deleteStubByID({ imposterPort: this.imposterPort, stubID: this.stubID });
+        await deleteStubByID({
+            imposterPort: this.imposterPort,
+            stubID: this.stubID,
+        });
         return this;
     }
 }

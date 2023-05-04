@@ -1,12 +1,13 @@
 import { AxiosResponse } from 'axios';
 
-type errorCodeTypes = 'ADD_IMPOSTER' | 'GET_IMPOSTER' | 'ADD_STUB' | 'DELETE_STUB';
+type errorCodeTypes = 'ADD_IMPOSTER' | 'GET_IMPOSTER' | 'ADD_STUB' | 'DELETE_STUB' | 'GET_LOGS';
 
 const errorCodeTypesStatusOnSuccess = {
     ADD_IMPOSTER: 201,
     GET_IMPOSTER: 200,
     ADD_STUB: 200,
     DELETE_STUB: 200,
+    GET_LOGS: 200,
 };
 
 export function checkError({ errorCode, response }: { errorCode: errorCodeTypes; response: AxiosResponse }) {

@@ -1,6 +1,6 @@
+import { Imposter, LogLevel } from '../interfaces';
+import { addImposter, addStub } from '../client/mountebankClient';
 import { create } from 'mountebank/src/mountebank';
-import { addImposter } from '../client/mountebankClient';
-import { Imposter } from '../interfaces';
 
 export const startMountebank = async ({
     port = 2525,
@@ -11,7 +11,7 @@ export const startMountebank = async ({
     port?: number;
     allowInjection?: boolean;
     imposters?: Imposter[];
-    logLevel?: 'info' | 'debug' | 'error';
+    logLevel?: LogLevel;
 }) => {
     const startOptions = {
         debug: false,
@@ -28,12 +28,15 @@ export const startMountebank = async ({
         'ip-whitelist': '*',
         mock: false,
         heroku: false,
-        protofile: './protocols.json',
+        protofile: 'libs/testing/mock-provider/protocols.json',
         origin: false,
         log: {
             level: logLevel,
             transports: {
-                console: { colorize: true, format: 'MockProvider: %level: %message' },
+                console: {
+                    colorize: true,
+                    format: 'MockProvider: %level: %message',
+                },
                 file: { path: 'mb.log', format: 'json' },
             },
         },
@@ -41,15 +44,14 @@ export const startMountebank = async ({
     const server = create(startOptions);
 
     for (const imposter of imposters) {
-        const { port: imposterPort, protocol, name, schema, defaultResponse, stubs } = imposter;
+        const { port: imposterPort, protocol, schema, stubs } = imposter;
 
+        // TODO: Mock-Provider: Implement a function to add all imposters in a single request;
         await addImposter({
             providerUrl: `http://localhost:${port}`,
             port: imposterPort,
             protocol,
-            name,
             schema,
-            defaultResponse,
             stubs,
         });
     }

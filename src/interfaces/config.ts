@@ -29,4 +29,5 @@ export interface Config {
     logger: Logger;
     request: Request;
     response: Response;
+    state: any;
 }

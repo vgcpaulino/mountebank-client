@@ -5,11 +5,11 @@ import {
     ICopyFromPathBody,
     IResponseBuilder,
     IsResponse,
-    StandardResponse,
-    ProxyResponse,
-    ProxyResponseOptions,
-    ProxyResponseBuilder,
     IsResponseBuilder,
+    ProxyResponse,
+    ProxyResponseBuilder,
+    ProxyResponseOptions,
+    StandardResponse,
 } from '../interfaces';
 
 export class ResponseBuilder {
@@ -35,12 +35,12 @@ export class ResponseBuilder {
     }: IResponseBuilder) {
         this.behaviors = [];
 
-        if (status) {
-            this.handleIsResponse({ status, headers, body, data });
-        }
-
         if (url) {
             this.handleProxyResponse({ url, proxyMode });
+        }
+
+        if (!url) {
+            this.handleIsResponse({ status, headers, body, data });
         }
 
         if (decorate) {
@@ -55,7 +55,10 @@ export class ResponseBuilder {
             this.repeat = repeat;
         }
 
-        this.addCopyFromHeaderQuery({ type: 'headers', copyFrom: copyFromHeader });
+        this.addCopyFromHeaderQuery({
+            type: 'headers',
+            copyFrom: copyFromHeader,
+        });
         this.addCopyFromHeaderQuery({ type: 'query', copyFrom: copyFromQuery });
         this.addCopyFromPathBody({ from: 'path', copyFrom: copyFromPath });
         this.addCopyFromPathBody({ from: 'body', copyFrom: copyFromBody });
@@ -72,7 +75,7 @@ export class ResponseBuilder {
         }
 
         this.is = {
-            statusCode: status || 200, // TODO: Remove or operator;
+            statusCode: status,
             headers,
             body,
             data,
@@ -83,8 +86,8 @@ export class ResponseBuilder {
 
     private handleProxyResponse({ url, proxyMode }: ProxyResponseBuilder) {
         this.proxy = {
-            to: url || '', // TODO: Remove or operator;
-            mode: proxyMode || 'proxyAlways', // TODO: Remove or operator;,
+            to: url || '',
+            mode: proxyMode || 'proxyAlways',
         };
         return this;
     }
