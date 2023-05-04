@@ -1,6 +1,6 @@
-import axios from 'axios';
+import { Imposter, ImposterDefaultResponse, ImposterProtocol, LogLevel, Stub } from '../interfaces';
 import { checkError } from './errorHelper';
-import { Stub, ImposterProtocol, ImposterDefaultResponse, Imposter } from '../interfaces';
+import axios from 'axios';
 
 const defaultProviderUrl = process.env['MOUNTEBANK_URL'] || 'http://localhost:2525';
 const defaultImposterPort = parseInt(process.env['MOUNTEBANK_IMPOSTER_DEFAULT_PORT'] || '') || 7117;
@@ -40,13 +40,21 @@ export async function addImposter({
         stubs,
     };
 
-    const response = await axios.post(`${providerUrl}/imposters`, stringify(body), { validateStatus: null });
+    const response = await axios.post(`${providerUrl}/imposters`, stringify(body), {
+        validateStatus: null,
+    });
+
+    if (response.status === 400) {
+        return;
+    }
 
     checkError({ errorCode: 'ADD_IMPOSTER', response });
 }
 
 export async function getImposter({ providerUrl = defaultProviderUrl, port = defaultImposterPort } = {}) {
-    const response = await axios.get(`${providerUrl}/imposters/${port}`, { validateStatus: null });
+    const response = await axios.get(`${providerUrl}/imposters/${port}`, {
+        validateStatus: null,
+    });
 
     checkError({ errorCode: 'GET_IMPOSTER', response });
 
@@ -57,6 +65,7 @@ export async function addStub({
     providerUrl = defaultProviderUrl,
     imposterPort = defaultImposterPort,
     stub,
+    defaultHeaders = true,
 }: {
     providerUrl?: string;
     imposterPort?: string | number;
@@ -104,12 +113,20 @@ export async function deleteStubsByID({
     let previousReponse: Imposter | undefined;
     for (const stubID of stubIDs) {
         if (!previousReponse) {
-            previousReponse = await deleteStubByID({ providerUrl, imposterPort, stubID });
+            previousReponse = await deleteStubByID({
+                providerUrl,
+                imposterPort,
+                stubID,
+            });
         } else {
             const stub = previousReponse.stubs?.find((s) => s.stubID === stubID);
             if (stub) {
                 const stubIndex = getStubIndex(stub);
-                previousReponse = await deleteStubByIndex({ providerUrl, imposterPort, stubIndex });
+                previousReponse = await deleteStubByIndex({
+                    providerUrl,
+                    imposterPort,
+                    stubIndex,
+                });
             }
         }
     }
@@ -132,6 +149,17 @@ export async function deleteStubByIndex({
     checkError({ errorCode: 'DELETE_STUB', response });
 
     return response.data;
+}
+
+export async function getLogs({ providerUrl = defaultProviderUrl } = {}) {
+    const response = await axios.get(`${providerUrl}/logs`, {
+        validateStatus: null,
+    });
+
+    checkError({ errorCode: 'GET_LOGS', response });
+
+    const logs: { level: LogLevel; message: string; timestamp: string }[] = response.data?.logs;
+    return logs;
 }
 
 const stringify = (object: Record<any, any>) => {

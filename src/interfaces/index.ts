@@ -4,3 +4,4 @@ export * from './imposter';
 export * from './response';
 export * from './predicate';
 export * from './stub';
+export * from './types';

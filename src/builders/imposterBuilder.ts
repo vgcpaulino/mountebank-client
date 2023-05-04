@@ -1,5 +1,5 @@
+import { Imposter, ImposterDefaultResponse, ImposterProtocol, Stub } from '../interfaces';
 import { addImposter } from '../client/mountebankClient';
-import { Stub, Imposter, ImposterProtocol, ImposterDefaultResponse } from '../interfaces';
 
 export interface IImposterBuilder {
     port: number;
