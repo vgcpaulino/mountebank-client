@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  mock-provider:
+    image: mock-provider
+    build:
+      context: .
+      dockerfile: dockerfile
+      target: mock-provider
+    ports:
+      - 2525:2525
+      - 2526:2526
+  tests-unit:
+    image: tests-unit
+    build:
+      context: .
+      dockerfile: dockerfile
+      target: tests-unit
+  tests-integration:
+    image: tests-integration
+    build:
+      context: .
+      dockerfile: dockerfile
+      target: tests-integration
+    depends_on:
+      - mock-provider

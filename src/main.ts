@@ -13,10 +13,11 @@ import { imposter as imposterGraphQL } from './helpers/imposterGraphQL';
 
 startMountebank({
     port: 2525,
+    portDeleteService: 2526,
     allowInjection: true,
-    logLevel: 'debug',
+    logLevel: 'warn',
     imposters: [imposterHttp, imposterGraphQL],
-}).then(() => console.log('Mountebank Running!'));
+}).then(() => console.log(`Mock Provider listening at port 2525!`));
 
 setTimeout(() => {}, 5000);
 

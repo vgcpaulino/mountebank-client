@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ImposterBuilder, StubBuilder } from '../../../src';
+import { ImposterBuilder, StubBuilder, getImposter } from '../../../src';
 
 describe('Stub Builder', () => {
     beforeAll(async () => {
@@ -18,17 +18,16 @@ describe('Stub Builder', () => {
 
         await stub.addStub();
 
-        const response = await axios.get('http://localhost:2525/imposters/1112');
-        expect(response.status).toBe(200);
-        expect(response.data.port).toBe(1112);
+        const response = await getImposter({ port: 1112 });
 
-        const { stubs } = response.data;
+        expect(response.port).toBe(1112);
+
+        const { stubs } = response;
         const stubResponse = stubs[0];
         expect(stubResponse.stubID).not.toBeUndefined();
 
         await stub.deleteStub();
-        const responseAfterDelete = await axios.get('http://localhost:2525/imposters/1112');
-        expect(responseAfterDelete.status).toBe(200);
-        expect(responseAfterDelete.data.stubs.length).toBe(0);
+        const responseAfterDelete = await getImposter({ port: 1112 });
+        expect(responseAfterDelete.stubs.length).toBe(0);
     });
 });

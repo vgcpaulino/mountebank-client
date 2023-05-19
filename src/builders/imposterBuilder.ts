@@ -42,6 +42,11 @@ export class ImposterBuilder {
         return this;
     }
 
+    addStubs(stubs: Stub[]) {
+        this.stubs.push(...stubs);
+        return this;
+    }
+
     async addImposter() {
         await addImposter({
             port: this.port,

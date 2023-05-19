@@ -51,6 +51,16 @@ export async function addImposter({
     checkError({ errorCode: 'ADD_IMPOSTER', response });
 }
 
+export async function getImposters({ providerUrl = defaultProviderUrl } = {}) {
+    const response = await axios.get(`${providerUrl}/imposters`, {
+        validateStatus: null,
+    });
+
+    checkError({ errorCode: 'GET_IMPOSTERS', response });
+
+    return response.data;
+}
+
 export async function getImposter({ providerUrl = defaultProviderUrl, port = defaultImposterPort } = {}) {
     const response = await axios.get(`${providerUrl}/imposters/${port}`, {
         validateStatus: null,
@@ -166,7 +176,7 @@ const stringify = (object: Record<any, any>) => {
     return JSON.stringify(object);
 };
 
-function getStubIndex(stub: Stub) {
+export function getStubIndex(stub: Stub) {
     const href = stub._links?.self.href;
     if (href) {
         const index = href.lastIndexOf('/');

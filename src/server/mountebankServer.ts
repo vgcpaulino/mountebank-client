@@ -1,14 +1,17 @@
 import { Imposter, LogLevel } from '../interfaces';
 import { addImposter, addStub } from '../client/mountebankClient';
 import { create } from 'mountebank/src/mountebank';
+import { deleteService } from './deleteService';
 
 export const startMountebank = async ({
     port = 2525,
+    portDeleteService,
     allowInjection = true,
     imposters = [],
     logLevel = 'info',
 }: {
     port?: number;
+    portDeleteService?: number;
     allowInjection?: boolean;
     imposters?: Imposter[];
     logLevel?: LogLevel;
@@ -28,7 +31,7 @@ export const startMountebank = async ({
         'ip-whitelist': '*',
         mock: false,
         heroku: false,
-        protofile: 'libs/testing/mock-provider/protocols.json',
+        protofile: './protocols.json',
         origin: false,
         log: {
             level: logLevel,
@@ -42,6 +45,10 @@ export const startMountebank = async ({
         },
     };
     const server = create(startOptions);
+
+    if (portDeleteService) {
+        deleteService({ port: portDeleteService, logLevel });
+    }
 
     for (const imposter of imposters) {
         const { port: imposterPort, protocol, schema, stubs } = imposter;
