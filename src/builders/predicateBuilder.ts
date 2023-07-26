@@ -15,6 +15,7 @@ export class PredicateBuilder {
     endsWith!: PredicateEquals;
     startsWith!: PredicateEquals;
     contains!: PredicateEquals;
+    matches!: PredicateEquals;
 
     constructor({ operator, method, path, query, mutation, args }: IPredicateBuilder) {
         this[operator] = {
