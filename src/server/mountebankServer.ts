@@ -28,7 +28,7 @@ export const startMountebank = async ({
         'ip-whitelist': '*',
         mock: false,
         heroku: false,
-        protofile: 'libs/testing/mock-provider/protocols.json',
+        protofile: './protocols.json',
         origin: false,
         log: {
             level: logLevel,

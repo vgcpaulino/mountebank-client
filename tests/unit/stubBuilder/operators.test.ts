@@ -2,7 +2,7 @@ import { StubBuilder } from '../../../src';
 import { OperatorTypes } from '../../../src/interfaces/types';
 
 describe('StubBuilder', () => {
-    const operators: OperatorTypes[] = ['equals', 'endsWith', 'startsWith'];
+    const operators: OperatorTypes[] = ['equals', 'endsWith', 'startsWith', 'matches'];
 
     test.each(operators)('GET method with %s operator', (operator) => {
         const options = operator === 'equals' ? undefined : { operator };
