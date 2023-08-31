@@ -40,8 +40,9 @@ export const startMountebank = async ({
                 file: { path: 'mb.log', format: 'json' },
             },
         },
+        impostersRepository: 'impostersRepo.js',
     };
-    const server = create(startOptions);
+    const server = await create(startOptions);
 
     for (const imposter of imposters) {
         const { port: imposterPort, protocol, schema, stubs } = imposter;
