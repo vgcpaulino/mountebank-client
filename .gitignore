@@ -107,6 +107,4 @@ dist
 # Misc
 temp/*
 lib/*
-.vscode
-!.vscode/tasks.json
-!.vscode/launch.json
+dist/*
