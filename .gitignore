@@ -110,3 +110,6 @@ lib/*
 .vscode
 !.vscode/tasks.json
 !.vscode/launch.json
+
+examples/*
+pack-install/*

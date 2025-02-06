@@ -28,7 +28,7 @@ export class ImposterBuilder {
         this.stubs = [];
     }
 
-    addDefaultReponse({ status, headers, body }: IDefaultReponse) {
+    addDefaultResponse({ status, headers, body }: IDefaultReponse) {
         this.defaultResponse = {
             statusCode: status,
             headers,
