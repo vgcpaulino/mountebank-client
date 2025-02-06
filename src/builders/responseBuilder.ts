@@ -88,6 +88,7 @@ export class ResponseBuilder {
         this.proxy = {
             to: url || '',
             mode: proxyMode || 'proxyAlways',
+            addWaitBehavior: true
         };
         return this;
     }

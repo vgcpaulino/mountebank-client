@@ -9,8 +9,21 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "typeRoots": ["./node_modules/@types", "./src/types"]
     },
-    "include": ["src/**/*", "index.d.ts"],
-    "exclude": ["node_modules", "**/__tests__/*", "**/temp/*", "src/main.ts", "src/helpers/**/*"]
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/__tests__/*",
+        "**/tests/**/*",
+        "**/temp/*",
+        "dist",
+        "examples/**/*",
+        "jest.config.js",
+        "**/*.test.ts",
+        "**/*.spec.ts"
+    ]
 }

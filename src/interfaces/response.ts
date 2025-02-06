@@ -18,6 +18,7 @@ export interface IsResponseBuilder extends CommonBuilder, Omit<IsResponse, 'stat
 export interface ProxyResponseBuilder extends CommonBuilder {
     url?: string;
     proxyMode?: ProxyModeTypes;
+    wait?: number;
 }
 
 export interface IResponseBuilder extends IsResponseBuilder, ProxyResponseBuilder {}
@@ -39,6 +40,7 @@ export interface StandardResponse {
 export interface ProxyResponseOptions {
     to: string;
     mode: ProxyModeTypes;
+    addWaitBehavior: boolean;
 }
 
 // TODO: Still needed?
