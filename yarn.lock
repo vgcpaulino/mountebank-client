@@ -795,10 +795,10 @@
     ejs "2.7.4"
     fs-extra "9.0.1"
 
-"@mbtest/mountebank@2.9.6-beta.10697":
-  version "2.9.6-beta.10697"
-  resolved "https://registry.yarnpkg.com/@mbtest/mountebank/-/mountebank-2.9.6-beta.10697.tgz#1efafa75d4ac0ddaa69247df599727c2be74fe60"
-  integrity sha512-x2DrEK2/p6rcat7YxgmRuVjQ9Bc2Y8eQENLN1yROeXJEyYKoWzH4v7ji4FMbtN9LrbsozZDFX8l2gyHFUkLn2g==
+"@mbtest/mountebank@^2.9.5":
+  version "2.9.5"
+  resolved "https://registry.yarnpkg.com/@mbtest/mountebank/-/mountebank-2.9.5.tgz#61a8be04349b7fbb2eba3c78f46bd5d0da5f38f5"
+  integrity sha512-MB04OH0cDt0dBGp49Jjv4pqLBluqRRwv39NPh1HYyho6pm55UPb5Y4ps58SjCsmXxDxzlJkculRpHCG5NvhVfg==
   dependencies:
     "@xmldom/xmldom" "0.9.12"
     cors "2.8.6"
@@ -808,7 +808,7 @@
     escape-html "1.0.3"
     express "5.1.0"
     fs-extra "11.2.0"
-    http-proxy-agent "9.1.0"
+    http-proxy-agent "7.0.0"
     https-proxy-agent "7.0.6"
     jsonpath-plus "10.4.0"
     mailparser "3.9.28"
@@ -1344,12 +1344,7 @@ acorn@^8.11.0, acorn@^8.4.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.14.0.tgz#063e2c70cac5fb4f6467f0b11152e04c682795b0"
   integrity sha512-cl669nCJTZBsL97OF4kUQm5g5hC2uihk0NxY3WENAC0TYdILVkAyHymAntgxGkl7K+t0cXIrH5siy5S4XkFycA==
 
-agent-base@9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/agent-base/-/agent-base-9.0.0.tgz#ec9efb08314e1e75b0852d74aabf9a387f99834e"
-  integrity sha512-TQf59BsZnytt8GdJKLPfUZ54g/iaUL2OWDSFCCvMOhsHduDQxO8xC4PNeyIkVcA5KwL2phPSv0douC0fgWzmnA==
-
-agent-base@^7.1.2:
+agent-base@^7.1.0, agent-base@^7.1.2:
   version "7.1.4"
   resolved "https://registry.yarnpkg.com/agent-base/-/agent-base-7.1.4.tgz#e3cd76d4c548ee895d3c3fd8dc1f6c5b9032e7a8"
   integrity sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==
@@ -3209,14 +3204,13 @@ http-errors@^2.0.0, http-errors@^2.0.1, http-errors@~2.0.1:
     statuses "~2.0.2"
     toidentifier "~1.0.1"
 
-http-proxy-agent@9.1.0:
-  version "9.1.0"
-  resolved "https://registry.yarnpkg.com/http-proxy-agent/-/http-proxy-agent-9.1.0.tgz#fd8b39dcb58ac8046139e5f4ea80de78e8beaf7b"
-  integrity sha512-2NxoveTT58mjYT4n3RPTEfCZGLMbidoO8XEieXfpSYxu+PQJ1qpx4ypwH6N+uF9twBPIvRRgvkvW5HUTYWENig==
+http-proxy-agent@7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/http-proxy-agent/-/http-proxy-agent-7.0.0.tgz#e9096c5afd071a3fce56e6252bb321583c124673"
+  integrity sha512-+ZT+iBxVUQ1asugqnD6oWoRiS25AkjNfG085dKJGtGxkdwLQrMKU5wJr2bOOFAXzKcTuqq+7fZlTMgG3SRfIYQ==
   dependencies:
-    agent-base "9.0.0"
+    agent-base "^7.1.0"
     debug "^4.3.4"
-    proxy-agent-negotiate "1.1.0"
 
 https-proxy-agent@7.0.6:
   version "7.0.6"
@@ -4705,11 +4699,6 @@ proxy-addr@~2.0.7:
   dependencies:
     forwarded "0.2.0"
     ipaddr.js "1.9.1"
-
-proxy-agent-negotiate@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/proxy-agent-negotiate/-/proxy-agent-negotiate-1.1.0.tgz#de7d37aede9d71e74346125d6f484fac8092b615"
-  integrity sha512-N8IBcM3UgCVzz2L2Lqv8DVntDnnC8/hiV4nEDUPkqq72TPUgYWjQc+bdZlBPZK9LzPAvOY//gAt0S0DApoOXWQ==
 
 proxy-from-env@^1.1.0:
   version "1.1.0"

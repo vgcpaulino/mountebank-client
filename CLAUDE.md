@@ -19,8 +19,9 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
     time (it pulls in ES-module-only packages that Jest can't load); `startMountebank` loads it lazily.
 - **Test helpers:** a runner-agnostic core (start / reset / stop) plus thin Jest and Playwright helpers as
   optional entry points. The core must not import Jest or Playwright.
-- **mountebank package:** `@mbtest/mountebank` (the old `mountebank` package stopped at 2.9.1). A local clone for
-  reading its source can live in `temp/mountebank` (git-ignored); never import from it.
+- **mountebank package:** `@mbtest/mountebank` (the old `mountebank` package stopped at 2.9.1). Stay on its latest
+  stable release; no betas. A local clone for reading its source can live in `temp/mountebank` (git-ignored);
+  never import from it.
 - **Runtime:** Node 20.19+ (mountebank's own minimum); `.nvmrc` pins 22 for development. Use the built-in `fetch`;
   do not add HTTP client libraries (axios is being removed).
 

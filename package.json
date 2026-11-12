@@ -57,7 +57,7 @@
         "typescript": "^4.7.4"
     },
     "dependencies": {
-        "@mbtest/mountebank": "2.9.6-beta.10697",
+        "@mbtest/mountebank": "^2.9.5",
         "axios": "^0.27.2",
         "mb-graphql": "^0.1.11"
     }
