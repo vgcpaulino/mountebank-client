@@ -1,6 +1,6 @@
 ---
 name: mountebank-setup
-description: Run a mountebank server for tests that use the mountebank-client package and connect the client to it. Covers Docker, the mb CLI, starting mountebank in-process with startMountebank, the MOUNTEBANK_URL setting, Jest global setup, Playwright webServer, keeping tests isolated, and troubleshooting connection refused, ignored imposters, stubs on the wrong port and disabled injection. Use when setting up or debugging the test infrastructure around mountebank-client.
+description: Run a mountebank server for tests that use the mountebank-client package and connect the client to it. Covers Docker, the mb CLI, starting mountebank in-process with startMountebank, the MOUNTEBANK_URL setting, Jest global setup, Playwright webServer, keeping tests isolated, and troubleshooting connection refused, port conflicts, stubs on the wrong port and disabled injection. Use when setting up or debugging the test infrastructure around mountebank-client.
 ---
 
 # Running mountebank for mountebank-client
@@ -20,8 +20,8 @@ Notes:
 - With Docker, **publish every imposter port** too (`-p 8080:8080` above), not only 2525.
 - `--allowInjection` is required for `decorate` functions (see **mountebank-decorate**). Without it, mountebank
   rejects any stub that uses `decorate` with a 400 ("JavaScript injection is not allowed unless mb is run with the
-  --allowInjection flag"): `StubBuilder.addStub()` throws, but `ImposterBuilder.addImposter()` currently ignores
-  the 400, so the imposter is silently not created. Only enable injection on servers that untrusted networks can't
+  --allowInjection flag"), and `StubBuilder.addStub()` / `ImposterBuilder.addImposter()` throw a `MountebankError`
+  with that message. Only enable injection on servers that untrusted networks can't
   reach, because it runs arbitrary JavaScript.
 - `chaos` works on any mountebank version because, by default, it's implemented as an injected `decorate`, so it
   also needs `--allowInjection`. Only `chaos: { implementation: 'native' }` needs mountebank 2.9.6+ (not released
@@ -117,8 +117,8 @@ from any IP, and reads `./protocols.json` (relative to the working directory) fo
 
 - One imposter port per test file. Jest and Playwright run files in parallel; files that share an imposter share its
   stubs.
-- Imposters you create live until you delete them or the server stops. Recreating one on a port that is still in use
-  is silently ignored (see **mountebank-stubs**), so either delete it first or keep it for the whole run.
+- Imposters you create live until you delete them or the server stops. Creating one on a port that is still in use
+  throws, so either `deleteImposter({ port })` first or keep it for the whole run.
 - Per-test stubs: create them in the test, `await stub.deleteStub()` in `afterEach`.
 - `config.state` used by `decorate` lives on the imposter and survives between tests. Reset it by recreating the
   imposter.
@@ -129,14 +129,14 @@ from any IP, and reads `./protocols.json` (relative to the working directory) fo
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `ECONNREFUSED ...:2525`                                  | Server not started, or still starting. Wait for the port (jest-dev-server / `webServer`).   |
 | `ECONNREFUSED ...:<imposter port>`                       | Imposter never created, or (Docker) its port isn't published.                              |
-| Old stubs answer; new imposter options have no effect    | An imposter already existed on that port; `addImposter()` ignored the 400. Delete it first. |
 | `addStub()` works but requests don't match it            | Stub went to port 7117: pass `imposterPort`. Or a broader stub earlier in the list wins.    |
 | `200` with an empty body                                 | No stub matched and there's no default response. Add `addDefaultResponse()`.               |
 | "JavaScript injection is not allowed" / imposter with `decorate` or `chaos` missing | Server started without `--allowInjection`.                      |
 | `Unrecognized behavior: "chaos"`                         | `implementation: 'native'` on mountebank older than 2.9.6. Drop the option.               |
 | `decorate` stub answers 500 / log shows `injection X=>`  | The function throws or uses outer variables (see **mountebank-decorate**).        |
-| `deleteStub()` throws `TypeError`                        | The stub was already gone. Delete each stub once.                                           |
-| `EADDRINUSE` / port already in use                       | Another mountebank or imposter on that port. Stop it, or use different ports.               |
+| `MountebankError` "no stub with ID …"                    | The stub was already deleted, or the imposter was recreated. Delete each stub once.        |
+| `MountebankError` "port … is already in use"             | An imposter already exists on that port: `deleteImposter({ port })` first, or use another. |
+| `EADDRINUSE` when starting mountebank                    | Another mountebank (or other process) on 2525. Stop it, or use different ports.            |
 
 Two calls answer most questions:
 

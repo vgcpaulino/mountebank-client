@@ -10,12 +10,13 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] `StubBuilder.response()` dropped the `wait` option, so it never reached mountebank.
 - [ ] `startMountebank` writes `mb.pid` and `mb.log` into the consumer's working directory and allows connections from
       any IP (`ipWhitelist: ['*']`). Make them options with safe defaults (no files, local only).
-- [ ] `addImposter` silently returns on a 400 (e.g. port already in use). Surface it as an error.
-- [ ] `deleteStubByID` crashes when the stub ID isn't found (`getStubIndex(undefined)`).
+- [x] `addImposter` silently returns on a 400 (e.g. port already in use). Surface it as an error.
+- [x] `deleteStubByID` crashes when the stub ID isn't found (`getStubIndex(undefined)`).
 - [ ] `StubBuilder.addStub()` uses the default port (7117) unless `imposterPort` is passed; stubs aren't tied to the
       imposter they belong to.
-- [ ] Error messages: `DELETE_STUB` and `GET_LOGS` fall through to `'GENERIC ERROR!'`, and `ADD_IMPOSTER` drops the
+- [x] Error messages: `DELETE_STUB` and `GET_LOGS` fall through to `'GENERIC ERROR!'`, and `ADD_IMPOSTER` drops the
       status and response body. Add a dedicated error type with operation, status and mountebank's message.
+      (`MountebankError`.)
 - [ ] `yarn test:integration` passes but Jest doesn't exit ("Jest did not exit one second after...") when its output
       isn't a terminal (redirected, CI), and the `yarn start` mountebank server it spawned is left running. Look at
       `tests/config/globalTeardown.ts` (jest-dev-server only kills `yarn`, not the `ts-node-dev` child).
@@ -49,7 +50,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 - [ ] Replace the global functions plus env-var defaults with a client instance, e.g.
       `createClient({ url })` → `client.imposter(8080).stub(...)`.
-- [ ] Add imposter lifecycle: delete one imposter, delete all, get all, replace all stubs on an imposter.
+- [ ] Add imposter lifecycle: delete all, get all, replace all stubs on an imposter. (Delete one: `deleteImposter`.)
 - [ ] Add request recording and verification (`recordRequests`, read an imposter's recorded `requests`, helpers to
       assert "was called with ...").
 - [ ] Make naming consistent: friendly names everywhere (`status` → `statusCode` mapping already exists; audit the
@@ -86,8 +87,8 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       they exist.)
 - [x] Document the `decorate` limitation: the function is sent as source text and can't use outer variables or imports.
 - [x] Agent Skills in `skills/` (stubs, setup, decorate, GraphQL, faults) plus a Claude Code plugin manifest.
-- [ ] Keep `skills/` in sync with the API redesign (section 4) and the bug fixes in section 1: several skills
-      describe current pitfalls (silent 400 on `addImposter`, default port 7117, `deleteStub` crash) as workarounds.
+- [ ] Keep `skills/` in sync with the API redesign (section 4) and the bug fixes in section 1: the skills
+      still describe the default port 7117 pitfall as a workaround.
 - [x] Ship `skills/` in the npm package, so users can install the skills matching their installed version
       (`npx skills add ./node_modules/mountebank-client`, or `npx skills experimental_sync`).
 

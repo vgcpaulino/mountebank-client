@@ -23,8 +23,8 @@ mountebank must load the plugin through a protofile. Install `mb-graphql` next t
 - `startMountebank()` reads `./protocols.json` from the **current working directory**, so run it from the folder that
   holds the file.
 
-Without the protofile, creating a `graphql` imposter fails (and `addImposter()` currently doesn't report the 400; see
-**mountebank-stubs**).
+Without the protofile, creating a `graphql` imposter fails and `addImposter()` throws a `MountebankError` with
+mountebank's message.
 
 ## Imposter
 
