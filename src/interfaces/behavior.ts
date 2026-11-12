@@ -66,6 +66,7 @@ export interface Chaos {
 export interface Behavior {
     wait?: number;
     chaos?: ChaosBehavior;
-    decorate?: any;
+    /** Source text of a `decorate` function; the builder converts functions with `toString()`. */
+    decorate?: string;
     copy?: CopyBehavior;
 }

@@ -15,7 +15,11 @@ async function runDecorate(source: string, response: DecorateResponse) {
 function decorateFor(chaos: Chaos, status = 200): string {
     const stub = new StubBuilder().get('/orders').response({ status, body: { ok: true }, chaos });
     const behaviors = stub.responses[0].behaviors ?? [];
-    return behaviors[behaviors.length - 1].decorate;
+    const { decorate } = behaviors[behaviors.length - 1];
+    if (decorate === undefined) {
+        throw new Error("the last behavior isn't a decorate");
+    }
+    return decorate;
 }
 
 describe('StubBuilder - chaos, native implementation (mountebank 2.9.6+)', () => {

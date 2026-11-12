@@ -3,6 +3,14 @@ import * as os from 'os';
 import * as path from 'path';
 import { resolveProtofile } from '../../../src/server/protocols';
 
+function readCommand(file: string | undefined) {
+    if (file === undefined) {
+        throw new Error('expected a protocols file');
+    }
+    const protocols = JSON.parse(fs.readFileSync(file, 'utf8')) as { graphql: { createCommand: string } };
+    return protocols.graphql.createCommand;
+}
+
 describe('resolveProtofile', () => {
     let dir: string;
     let cwd: string;
@@ -56,8 +64,7 @@ describe('resolveProtofile', () => {
         });
 
         expect(file).toBe(path.join(tempDir, 'mountebank-client-2600-protocols.json'));
-        const command = (JSON.parse(fs.readFileSync(file as string, 'utf8')) as { graphql: { createCommand: string } })
-            .graphql.createCommand;
+        const command = readCommand(file);
         const node = process.execPath.includes(' ') ? 'node' : process.execPath;
         expect(command).toBe(`${node} /deps/mb-graphql/index.js`);
         expect(fs.existsSync(path.join(cwd, 'protocols.json'))).toBe(false); // nothing written into the project
@@ -67,8 +74,7 @@ describe('resolveProtofile', () => {
         const entry = '/My Projects/node_modules/mb-graphql/dist/index.js';
         const file = resolveProtofile({ port: 2601, cwd, tempDir, resolveGraphql: graphqlAt(entry) });
 
-        const command = (JSON.parse(fs.readFileSync(file as string, 'utf8')) as { graphql: { createCommand: string } })
-            .graphql.createCommand;
+        const command = readCommand(file);
         const wrapper = path.join(tempDir, 'mountebank-client-2601-mb-graphql.js');
         expect(command.endsWith(` ${wrapper}`)).toBe(true);
         expect(fs.readFileSync(wrapper, 'utf8')).toBe(`require(${JSON.stringify(entry)});\n`);
