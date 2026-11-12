@@ -68,3 +68,10 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 - [ ] Write the README: what it is, install, quick start for client and server, builders, test helpers.
 - [ ] Document the `decorate` limitation: the function is sent as source text and can't use outer variables or imports.
+
+## 8. Examples
+
+- [ ] "Fuzzy network" example: proxy to a real backend and add a random delay between a min and max to each
+      response, so responses come back out of order. Useful for seeing how an app behaves when several requests are
+      in flight and a later one finishes first (stale data, extra re-renders, race conditions). The random delay
+      likely needs mountebank's `wait` behavior as an injected function, which requires `allowInjection`.
