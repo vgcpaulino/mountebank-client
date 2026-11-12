@@ -68,7 +68,26 @@ yarn format             # Prettier: single quotes, 4-space indent, 120 columns
 
 When port 2525 is already taken (a dev server, or a run from another worktree), shift every test port instead of
 stopping the other process: `MB_TEST_PORT_OFFSET=1000 yarn test:integration` runs the server on 3525 and imposter
-1111 on 2111. Work in a git worktree when the main checkout has someone else's uncommitted changes.
+1111 on 2111.
+
+## Worktrees
+
+- Work in a git worktree under `temp/` (git-ignored), e.g. `git worktree add -b fix/x temp/wt-x origin/main`, when
+  the main checkout has someone else's uncommitted changes or another task is in progress there.
+- **Remove the worktree once its PR is merged.** Confirm the merge first (`gh pr view <number> --json state` says
+  `MERGED`), then:
+
+  ```bash
+  git worktree remove temp/wt-x   # refuses if the worktree has uncommitted or untracked changes
+  git branch -d fix/x             # -d refuses if the branch isn't merged
+  git worktree prune
+  ```
+
+  If either command refuses, stop and ask instead of forcing it (never `--force` or `-D`): the worktree or branch
+  has work that isn't on `main`.
+- With stacked PRs, keep a worktree until every PR from its branches is merged; a worktree that switched branches
+  (e.g. from #35's branch to #36's) is removed after the last one. Delete each merged local branch with `git branch -d`.
+- Leave the remote branches alone unless asked to delete them.
 
 ## Keeping the skills in sync
 
