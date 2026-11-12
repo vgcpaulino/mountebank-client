@@ -25,6 +25,15 @@ describe('Mountebank Client', () => {
         await imposter.delete();
     });
 
+    test('createImposter without a port returns the port mountebank picked', async () => {
+        const imposter = await mb.createImposter({ protocol: 'http' });
+
+        expect(imposter.port).toEqual(expect.any(Number));
+        expect((await imposter.get()).port).toBe(imposter.port);
+
+        await imposter.delete();
+    });
+
     test('addStubs adds in order, and deleteStub takes a StubBuilder or its ID', async () => {
         const port = testPort(1125);
         const kept = new StubBuilder().get('/example').response({ status: 200 });

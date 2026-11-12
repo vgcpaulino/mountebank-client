@@ -20,7 +20,7 @@ randomness.
 ## Fixed delay
 
 ```ts
-new StubBuilder({ imposterPort }).get('/slow').response({ status: 200, body: { ok: true }, wait: 3000 });
+new StubBuilder().get('/slow').response({ status: 200, body: { ok: true }, wait: 3000 });
 ```
 
 `wait` is in milliseconds and applies to every response from that entry.
@@ -28,7 +28,7 @@ new StubBuilder({ imposterPort }).get('/slow').response({ status: 200, body: { o
 ## Deterministic retries
 
 ```ts
-new StubBuilder({ imposterPort })
+new StubBuilder()
     .get('/flaky')
     .multipleResponses([
         { status: 503, body: { error: 'unavailable' }, repeat: 2 }, // calls 1 and 2
@@ -46,7 +46,7 @@ default for `startMountebank`, or `mb --allowInjection`): by default the builder
 `decorate` function.
 
 ```ts
-new StubBuilder({ imposterPort })
+new StubBuilder()
     .get('/orders')
     .response({
         status: 200,
@@ -76,7 +76,7 @@ new StubBuilder({ imposterPort })
 ## Make unmocked calls fail loudly
 
 ```ts
-new ImposterBuilder({ port: imposterPort, protocol: 'http' })
+new ImposterBuilder({ port: 8080, protocol: 'http' })
     .addDefaultResponse({ status: 599, body: { error: 'no stub matched this request' } });
 ```
 
@@ -85,7 +85,7 @@ A distinctive status makes a missing stub obvious in the test failure instead of
 ## Proxying to a real backend
 
 ```ts
-new StubBuilder({ imposterPort })
+new StubBuilder()
     .get('/api', { operator: 'startsWith' })
     .proxyResponse({ url: 'https://staging.example.com', proxyMode: 'proxyAlways' });
 ```

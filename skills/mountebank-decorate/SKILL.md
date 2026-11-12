@@ -67,7 +67,7 @@ import { Config } from 'mountebank-client';
     config.request.body;     // a STRING: JSON.parse it yourself
     config.response;         // the response built from the stub: { statusCode, headers, body }
     config.state;            // mutable object kept between requests (see below)
-    config.logger.info('...'); // goes to mountebank's log (read it with getLogs())
+    config.logger.info('...'); // goes to mountebank's log (read it with client.getLogs())
 };
 ```
 
@@ -84,7 +84,7 @@ field name, `statusCode`, not the builder's `status`.
 it to fake a small stateful API:
 
 ```ts
-new StubBuilder({ imposterPort })
+new StubBuilder()
     .post('/todos')
     .response({
         status: 201,
@@ -104,7 +104,7 @@ new StubBuilder({ imposterPort })
         },
     });
 
-new StubBuilder({ imposterPort })
+new StubBuilder()
     .get('/todos/', { operator: 'startsWith' })
     .response({
         status: 200,
@@ -119,11 +119,11 @@ new StubBuilder({ imposterPort })
 
 - Always initialise state defensively (`config.state.todos ??= {}`): the first request finds it empty.
 - State survives between tests. Recreate the imposter when a test needs a clean slate: `useImposters` (Jest),
-  `withImposters` (Playwright) or `resetImposters` do that before each test.
+  `withImposters` (Playwright) or `client.resetImposters(imposters)` do that before each test.
 
 ## Debugging
 
-1. `getLogs()` (or mountebank's console output). A failing function logs `injection X=> <error>` plus the full source
+1. `createClient().getLogs()` (or mountebank's console output). A failing function logs `injection X=> <error>` plus the full source
    mountebank received.
 2. `ReferenceError: x is not defined` almost always means the function used something from outside its body.
 3. `SyntaxError` usually means a TypeScript-only construct survived, or the source was cut. Check the source in the

@@ -9,6 +9,33 @@ Changes since 1.0.2.
 
 ### Breaking
 
+- **A client object replaces the standalone functions.** Create one with `createClient({ url })` (default:
+  `MOUNTEBANK_URL`, then `http://localhost:2525`), and send everything through it. The builders now only describe
+  imposters and stubs; they no longer talk to mountebank. The `providerUrl` option and the default imposter port
+  (7117, `MOUNTEBANK_IMPOSTER_DEFAULT_PORT`) are gone: every call names its imposter's port. To migrate:
+
+  | 1.0.2                                                   | Now                                                    |
+  | ------------------------------------------------------- | ------------------------------------------------------ |
+  | `await imposterBuilder.addImposter()`                   | `const imposter = await mb.createImposter(imposterBuilder)` |
+  | `addImposter({ port, protocol, stubs, ... })`           | `mb.createImposter(new ImposterBuilder({ port, protocol }).addStubs(stubs))` (or a plain object) |
+  | `new StubBuilder({ imposterPort })` … `.addStub()`      | `mb.imposter(port).addStub(new StubBuilder()…)`        |
+  | `stub.deleteStub()`                                     | `mb.imposter(port).deleteStub(stub)`                   |
+  | `addStub({ imposterPort, stub })`                       | `mb.imposter(port).addStub(stub)`                      |
+  | `deleteStubByID({ imposterPort, stubID })`              | `mb.imposter(port).deleteStub(stubID)`                 |
+  | `deleteStubsByID({ imposterPort, stubIDs })`            | `deleteStub` for each ID                               |
+  | `deleteStubByIndex({ imposterPort, stubIndex })`        | `deleteStub` with the `StubBuilder` or its ID          |
+  | `getImposter({ port })`                                 | `mb.imposter(port).get()`                              |
+  | `getLogs()`                                             | `mb.getLogs()`                                         |
+  | `{ providerUrl }` on any call                           | `createClient({ url })`                                |
+
+  where `const mb = createClient()`. `deleteStub` throws when the stub isn't there (see below).
+- **Interfaces are renamed** to drop the `I…` / `Is…` / `…Types` styles: `IsResponseBuilder` → `ResponseOptions`,
+  `ProxyResponseBuilder` → `ProxyOptions`, `IResponseBuilder` → `ResponseBuilderOptions`, `IImposterBuilder` →
+  `ImposterOptions`, `ICopyFromHeaderQuery` → `CopyFromHeaderOrQuery`, `ICopyFromPathBody` → `CopyFromPathOrBody`,
+  `OperatorTypes` → `Operator`, `RequestMethodsTypes` → `HttpMethod`, `ProxyModeTypes` → `ProxyMode`,
+  `DecorateFunctionType` → `DecorateFunction`, `ProxyResponseOptions` → `ProxyConfig`, `StandardResponse` →
+  `IsResponseDefinition`, `ProxyResponse` → `ProxyResponseDefinition`. `ResponseType` is removed. Only code that
+  names these types needs updating.
 - **Starting mountebank moved to `mountebank-client/server`.** Import `startMountebank` and `setupMountebank` from
   there; the package root no longer exports them.
 - **mountebank isn't installed with the package any more.** `@mbtest/mountebank` and `mb-graphql` are now optional peer
@@ -20,11 +47,10 @@ Changes since 1.0.2.
   package gets no more releases. If your project installs or imports `mountebank` itself, switch to
   `@mbtest/mountebank`.
 - **Node.js 20.19 or later is required** (`engines`), which is mountebank's own minimum.
-- **Creating an imposter now throws when mountebank rejects it.** Before, `addImposter()` / `ImposterBuilder.addImposter()`
-  quietly ignored a 400 response, for example a port already in use, and the old imposter stayed. They now throw a
-  `MountebankError`. To recreate an imposter, call `deleteImposter({ port })` first.
+- **Creating an imposter now throws when mountebank rejects it.** Before, `addImposter()` quietly ignored a 400
+  response, for example a port already in use, and the old imposter stayed. `createImposter()` throws a
+  `MountebankError`. To recreate an imposter, call `mb.imposter(port).delete()` first, or `mb.resetImposters([...])`.
 - **Deleting a stub that isn't there now throws a `MountebankError`** ("no stub with ID …") instead of a `TypeError`.
-  `deleteStubsByID` throws at the first ID it can't find, where it used to skip the rest silently.
 - **All client errors are `MountebankError`s, with new messages.** For example, "Creating the imposter failed (HTTP 400):
   port 8080 is already in use (EADDRINUSE)…" replaces "ERROR: Imposter was NOT created!" and "GENERIC ERROR!". Code
   that matched on the old message text needs updating; check `error.operation` and `error.status` instead.
@@ -34,11 +60,9 @@ Changes since 1.0.2.
 - **`startMountebank` no longer writes `./mb.log`.** The log now goes to the system temp folder
   (`mountebank-client-<port>.log`), and `getLogs()` keeps working. Pass `logFile: '<path>'` to choose the file, or
   `logFile: false` for none.
-- **Only the package root can be imported.** `package.json` now has `exports`, so deep imports such as
-  `mountebank-client/dist/builders` fail with `ERR_PACKAGE_PATH_NOT_EXPORTED`. Import everything from
-  `mountebank-client` instead. The dev-only `dist/start` file (shipped in 1.0.2) is no longer published.
-- **`addStub()` no longer accepts `defaultHeaders`.** It never did anything; TypeScript callers that pass it get a type
-  error now. Remove the option.
+- **Only the package's entry points can be imported.** `package.json` now has `exports`, so deep imports such as
+  `mountebank-client/dist/builders` fail with `ERR_PACKAGE_PATH_NOT_EXPORTED`. Import from `mountebank-client` (or
+  `/server`, `/jest`, `/playwright`) instead. The dev-only `dist/start` file (shipped in 1.0.2) is no longer published.
 - **`startMountebank({ allowInjection: false })` is now honored.** It was ignored before, and injection was always on.
   If you passed `false` but use `decorate` or `chaos`, remove the option.
 
@@ -49,22 +73,25 @@ Changes since 1.0.2.
   - By default it works on any mountebank version through an injected `decorate`, so injection must be allowed.
     `implementation: 'native'` uses mountebank's own behavior instead (2.9.6+).
   - On a proxy, `chaos` defaults the mode to `proxyTransparent`, and rejects `proxyOnce`.
-- **Request recording:** `recordRequests: true` on `ImposterBuilder` (and `addImposter`), plus `getRequests()` to read
-  what an imposter received and `clearRequests()` to forget it.
+- **Request recording:** `recordRequests: true` on `ImposterBuilder`, plus `mb.imposter(port).getRequests(filter?)` to
+  read what an imposter received and `clearRequests()` to forget it.
   - `getRequests()` filters by method, path, query, headers, JSON body, or GraphQL operation and arguments.
   - It throws if the imposter received requests without recording them.
 - **Test runner helpers:**
   - `mountebank-client/jest`: `jestGlobalSetup`, `jestGlobalTeardown` and `useImposters`.
   - `mountebank-client/playwright`: `playwrightGlobalSetup` and `withImposters`.
-  - For any runner: `resetImposters` and `waitForMountebank` from the package root, and `setupMountebank` from
-    `mountebank-client/server`.
+  - For any runner: `mb.resetImposters(imposters)`, `waitForMountebank` from the package root, and `setupMountebank`
+    (whose handle has a `client`) from `mountebank-client/server`.
+  - `useImposters` and `withImposters` take an optional `client`; by default they use `createClient()`.
 
   They start mountebank once per run (or use an external server) and recreate the imposters before each test.
-- **Imposter lifecycle:** `getImposters()` lists every imposter, `deleteImposters()` removes them all, and
-  `replaceStubs()` swaps all stubs of an imposter at once.
+- **Imposter lifecycle:** `mb.getImposters()` lists every imposter, `mb.deleteImposters()` removes them all,
+  `mb.imposter(port).replaceStubs(stubs)` swaps all stubs of an imposter at once, `addStubs(stubs)` adds several, and
+  `delete()` deletes one imposter (doing nothing when there's none).
+- **`createImposter` accepts a plain imposter object without a `port`**: mountebank picks a free one, and the returned
+  handle has it.
 - **`allowCORS`** option on imposters.
 - **`ImposterBuilder.addStubs()`.**
-- **`deleteImposter({ port })`**, which does nothing when there's no imposter.
 - **`MountebankError`** is exported, with `operation`, `status` and mountebank's `errors`.
 - **`startMountebank` options** `logFile` and `allowRemoteConnections`.
 - **Agent Skills** for coding agents, in `skills/`, including `mountebank-requests` for verifying calls. They are shipped in the package and installable with
@@ -75,19 +102,17 @@ Changes since 1.0.2.
 - **No more axios dependency.** The client uses Node's built-in `fetch`, so the package depends only on
   `@mbtest/mountebank` and `mb-graphql`. When mountebank can't be reached at all, calls now throw a `MountebankError`
   ("… can't reach mountebank at http://localhost:2525 (ECONNREFUSED)") instead of axios's network error.
-- **`getImposter()`, `deleteStubByID()`, `deleteStubsByID()` and `deleteStubByIndex()` return a typed
-  `ImposterDetails`** (the imposter plus `numberOfRequests`, `recordRequests` and `requests`) instead of `any`.
+- **`mb.imposter(port).get()` returns a typed `ImposterDetails`** (the imposter plus `numberOfRequests`,
+  `recordRequests` and `requests`) instead of `any`, and `getLogs()` returns typed `MountebankLog` entries.
 - **`decorate` accepts a mixed array** of functions and strings (`DecorateInput`).
-
 - **`package.json` has `repository`, `homepage` and `bugs`**, so npm links back to GitHub.
 
-- **Stubs remember their imposter's port.** `ImposterBuilder.addStub()` / `addStubs()` give a `StubBuilder` without an
-  `imposterPort` the imposter's port, so a later `stub.deleteStub()` reaches that imposter instead of port 7117.
 - **Importing the package no longer loads mountebank.** It's loaded only when `startMountebank` runs, so the package
   can be imported in Jest.
 
 ### Fixed
 
+- **`startMountebank({ imposters })` keeps each imposter's `name`.** It was dropped before.
 - **`startMountebank`'s `server.close()` now also stops the imposters.** mountebank's own `close()` stops only its
   API server, so the imposters (and `mb-graphql` processes) kept the Node process alive.
 - **`startMountebank` startup race:** it now waits for the server to listen before creating imposters.
