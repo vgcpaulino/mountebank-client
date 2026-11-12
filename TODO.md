@@ -16,6 +16,9 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       imposter they belong to.
 - [ ] Error messages: `DELETE_STUB` and `GET_LOGS` fall through to `'GENERIC ERROR!'`, and `ADD_IMPOSTER` drops the
       status and response body. Add a dedicated error type with operation, status and mountebank's message.
+- [ ] `yarn test:integration` passes but Jest doesn't exit ("Jest did not exit one second after...") when its output
+      isn't a terminal (redirected, CI), and the `yarn start` mountebank server it spawned is left running. Look at
+      `tests/config/globalTeardown.ts` (jest-dev-server only kills `yarn`, not the `ts-node-dev` child).
 
 ## 2. Packaging (blocks publishing)
 

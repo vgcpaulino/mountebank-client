@@ -59,6 +59,10 @@ yarn test:integration   # starts a real mountebank server on port 2525; port mus
 yarn format             # Prettier: single quotes, 4-space indent, 120 columns
 ```
 
+When port 2525 is already taken (a dev server, or a run from another worktree), shift every test port instead of
+stopping the other process: `MB_TEST_PORT_OFFSET=1000 yarn test:integration` runs the server on 3525 and imposter
+1111 on 2111. Work in a git worktree when the main checkout has someone else's uncommitted changes.
+
 ## Definition of done
 
 A change is done only when **all** of these hold:
@@ -73,6 +77,9 @@ If any of these can't be run, say so explicitly rather than claiming the change 
 ## What Claude may do without asking
 
 - **Allowed:** create feature branches, commit to them, push them and open pull requests.
+- **Allowed:** merge your own pull request into `main` (through GitHub, never by pushing to `main`) when it breaks
+  none of the "Never" rules below and every check in the Definition of done has passed **locally** first. Always
+  run them yourself before merging; don't rely on CI alone.
 - **Ask first:** adding, removing or upgrading dependencies; changing `package.json` metadata (name, version,
   license, entry points); deleting files that aren't clearly generated.
 - **Never:** commit or push to `main`, force-push, publish to npm, or bump versions for a release.
