@@ -26,6 +26,9 @@ Changes since 1.0.2.
 - **`startMountebank` no longer writes `./mb.log`.** The log now goes to the system temp folder
   (`mountebank-client-<port>.log`), and `getLogs()` keeps working. Pass `logFile: '<path>'` to choose the file, or
   `logFile: false` for none.
+- **Only the package root can be imported.** `package.json` now has `exports`, so deep imports such as
+  `mountebank-client/dist/builders` fail with `ERR_PACKAGE_PATH_NOT_EXPORTED`. Import everything from
+  `mountebank-client` instead. The dev-only `dist/start` file (shipped in 1.0.2) is no longer published.
 - **`startMountebank({ allowInjection: false })` is now honored.** It was ignored before, and injection was always on.
   If you passed `false` but use `decorate` or `chaos`, remove the option.
 
@@ -45,6 +48,8 @@ Changes since 1.0.2.
   `npx skills add vgcpaulino/mountebank-client` or as a Claude Code plugin.
 
 ### Changed
+
+- **`package.json` has `repository`, `homepage` and `bugs`**, so npm links back to GitHub.
 
 - **Stubs remember their imposter's port.** `ImposterBuilder.addStub()` / `addStubs()` give a `StubBuilder` without an
   `imposterPort` the imposter's port, so a later `stub.deleteStub()` reaches that imposter instead of port 7117.

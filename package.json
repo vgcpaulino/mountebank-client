@@ -4,6 +4,13 @@
     "description": "A TypeScript Client for Mountebank API",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+    },
     "files": [
         "dist",
         "skills",
@@ -38,6 +45,14 @@
         "typescript"
     ],
     "author": "Vinicius Gabriel Cabral Paulino",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/vgcpaulino/mountebank-client.git"
+    },
+    "homepage": "https://github.com/vgcpaulino/mountebank-client#readme",
+    "bugs": {
+        "url": "https://github.com/vgcpaulino/mountebank-client/issues"
+    },
     "license": "MIT",
     "engines": {
         "node": ">=20.19"
