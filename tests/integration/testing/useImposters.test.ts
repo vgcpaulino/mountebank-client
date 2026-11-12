@@ -1,5 +1,12 @@
-import axios from 'axios';
-import { getImposters, getRequests, ImposterBuilder, setupMountebank, StubBuilder, waitForMountebank } from '../../../src';
+import { http } from '../../helpers/http';
+import {
+    getImposters,
+    getRequests,
+    ImposterBuilder,
+    setupMountebank,
+    StubBuilder,
+    waitForMountebank,
+} from '../../../src';
 import { useImposters } from '../../../src/testing/jest';
 import { mountebankUrl, testPort } from '../../config/ports';
 
@@ -14,17 +21,17 @@ describe('useImposters (Jest)', () => {
     test('a test can add stubs and make requests', async () => {
         await new StubBuilder({ imposterPort: port }).get('/extra').response({ status: 200, body: 'extra' }).addStub();
 
-        expect((await axios.get(`http://localhost:${port}/extra`)).data).toBe('extra');
-        expect((await axios.get(`http://localhost:${port}/users/1`)).data).toEqual({ id: 1 });
+        expect((await http.get(`http://localhost:${port}/extra`)).data).toBe('extra');
+        expect((await http.get(`http://localhost:${port}/users/1`)).data).toEqual({ id: 1 });
         expect(await getRequests({ imposterPort: port })).toHaveLength(2);
     });
 
     test('the next test starts from the definition again: no extra stub, no recorded requests', async () => {
         expect(await getRequests({ imposterPort: port })).toEqual([]);
 
-        const extra = await axios.get(`http://localhost:${port}/extra`, { validateStatus: null });
+        const extra = await http.get(`http://localhost:${port}/extra`);
         expect(extra.status).toBe(404);
-        expect((await axios.get(`http://localhost:${port}/users/1`)).data).toEqual({ id: 1 });
+        expect((await http.get(`http://localhost:${port}/users/1`)).data).toEqual({ id: 1 });
     });
 });
 

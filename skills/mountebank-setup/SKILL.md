@@ -161,7 +161,7 @@ Defaults to know:
 
 | Symptom                                                  | Likely cause and fix                                                                        |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `ECONNREFUSED ...:2525`                                  | Server not started, or still starting. Start it in global setup (`jestGlobalSetup` / `playwrightGlobalSetup`), or `waitForMountebank` for an external one. |
+| `MountebankError` "can't reach mountebank at … (ECONNREFUSED)" | Server not started, or still starting. Start it in global setup (`jestGlobalSetup` / `playwrightGlobalSetup`), or `waitForMountebank` for an external one. |
 | `ECONNREFUSED ...:<imposter port>`                       | Imposter never created, or (Docker) its port isn't published.                              |
 | `addStub()` works but requests don't match it            | A stub created on its own went to port 7117: pass `imposterPort`. Or a broader stub earlier in the list wins. |
 | `ECONNREFUSED` / blocked connection from a container or other host | `startMountebank` accepts only local connections by default: pass `allowRemoteConnections: true`. |

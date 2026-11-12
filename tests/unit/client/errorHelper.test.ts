@@ -1,7 +1,6 @@
-import { AxiosResponse } from 'axios';
 import { checkError, MountebankError } from '../../../src/client/errorHelper';
 
-const response = (status: number, data?: unknown) => ({ status, data } as AxiosResponse);
+const response = (status: number, data?: unknown) => ({ status, data });
 
 describe('checkError', () => {
     test('does nothing on the expected success status', () => {

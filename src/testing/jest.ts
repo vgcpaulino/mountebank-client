@@ -43,7 +43,7 @@ export function jestGlobalSetup(options: SetupMountebankOptions = {}) {
 export function jestGlobalTeardown() {
     return async () => {
         const handle = (globalThis as Record<string, unknown>)[handleKey] as MountebankHandle | undefined;
-        delete (globalThis as Record<string, unknown>)[handleKey];
+        (globalThis as Record<string, unknown>)[handleKey] = undefined;
         await handle?.stop();
     };
 }

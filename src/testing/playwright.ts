@@ -43,14 +43,20 @@ export function playwrightGlobalSetup(options: SetupMountebankOptions = {}) {
  * test('shows the user', async ({ page }) => { ... });
  * ```
  */
-export function withImposters<T extends {}, W extends {}>(test: TestType<T, W>, imposters: ImposterBuilder[]) {
-    // Playwright requires the first parameter to be an object destructuring pattern (it reads the fixture's source).
-    // eslint-disable-next-line no-empty-pattern
-    const fixture = async ({}: Record<string, never>, use: (value: ImposterBuilder[]) => Promise<void>) => {
-        await resetImposters(imposters);
-        await use(imposters);
-    };
-    // The cast only bridges this project's TypeScript 4.7 and newer Playwright fixture typings; the returned
-    // TestType is still typed with the `imposters` fixture.
-    return test.extend<{ imposters: ImposterBuilder[] }>({ imposters: [fixture, { auto: true }] } as never);
+export function withImposters<T extends object, W extends object>(test: TestType<T, W>, imposters: ImposterBuilder[]) {
+    // Playwright's fixture type is a conditional type over the caller's own fixtures (T, W), which TypeScript can't
+    // resolve inside a generic function. Extend the base TestType instead, where the fixture is fully type-checked,
+    // and give the result the caller's fixtures back.
+    const extended = (test as unknown as TestType<object, object>).extend<{ imposters: ImposterBuilder[] }>({
+        imposters: [
+            // Playwright reads the fixture's source and requires an object destructuring pattern here.
+            // eslint-disable-next-line no-empty-pattern
+            async ({}, use) => {
+                await resetImposters(imposters);
+                await use(imposters);
+            },
+            { auto: true },
+        ],
+    });
+    return extended as unknown as TestType<T & { imposters: ImposterBuilder[] }, W>;
 }

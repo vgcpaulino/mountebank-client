@@ -5,7 +5,7 @@ const decorateFunction = (config: Config) => {
 };
 
 describe('StubBuilder', () => {
-    test('Decorate - Accepts Function', async () => {
+    test('Decorate - Accepts Function', () => {
         const stubDecorateFunction = new StubBuilder()
             .get('/decorateFunction')
             .response({ status: 200, body: { message: 'Welcome!' }, decorate: decorateFunction });
@@ -18,7 +18,7 @@ describe('StubBuilder', () => {
         expect(behavior).toMatchObject({ decorate: "(config) => {\n    config.logger.info('LOG!');\n}" });
     });
 
-    test('Decorate - Accepts Function Array', async () => {
+    test('Decorate - Accepts Function Array', () => {
         const stubDecorateFunction = new StubBuilder()
             .get('/decorateFunction')
             .response({ status: 200, body: { message: 'Welcome!' }, decorate: [decorateFunction, decorateFunction] });
@@ -34,7 +34,7 @@ describe('StubBuilder', () => {
         expect(behavior2).toMatchObject({ decorate: "(config) => {\n    config.logger.info('LOG!');\n}" });
     });
 
-    test('Decorate - Accepts String', async () => {
+    test('Decorate - Accepts String', () => {
         const stubDecorateFunction = new StubBuilder().get('/decorateFunction').response({
             status: 200,
             decorate: '(config) => { config.logger.info("Decorate String"); }',
@@ -48,7 +48,7 @@ describe('StubBuilder', () => {
         expect(behavior?.decorate).toBe('(config) => { config.logger.info("Decorate String"); }');
     });
 
-    test('Decorate - Accepts String Array', async () => {
+    test('Decorate - Accepts String Array', () => {
         const stubDecorateFunction = new StubBuilder().get('/decorateFunction').response({
             status: 200,
             decorate: [

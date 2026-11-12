@@ -6,7 +6,7 @@ test.describe('Suite', () => {
         await stubsUser().addStubs();
     });
 
-    test('Test 1', async ({ page }) => {
+    test('Test 1', async () => {
         // ....
     });
 });

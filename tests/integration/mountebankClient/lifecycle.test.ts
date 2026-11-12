@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { http } from '../../helpers/http';
 import { ChildProcess, spawn } from 'child_process';
 import { addImposter as createImposter, deleteImposters, getImposters, replaceStubs, StubBuilder } from '../../../src';
 import { testPort } from '../../config/ports';
@@ -15,7 +15,7 @@ let server: ChildProcess;
 async function waitForServer() {
     for (let i = 0; i < 100; i++) {
         try {
-            await axios.get(`${providerUrl}/config`);
+            await http.get(`${providerUrl}/config`);
             return;
         } catch {
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -41,7 +41,7 @@ describe('Imposter lifecycle', () => {
     test('getImposters lists every imposter with its request count', async () => {
         await addImposter(portA, 'orders');
         await addImposter(portB);
-        await axios.get(`http://localhost:${portA}/`, { validateStatus: null });
+        await http.get(`http://localhost:${portA}/`);
 
         const imposters = await getImposters({ providerUrl });
 
@@ -67,12 +67,12 @@ describe('Imposter lifecycle', () => {
 
         await replaceStubs({ providerUrl, imposterPort: portA, stubs: [pong] });
 
-        const response = await axios.get(`http://localhost:${portA}/ping`);
+        const response = await http.get(`http://localhost:${portA}/ping`);
         expect(response.data).toBe('pong');
         expect(pong.imposterPort).toBe(portA);
 
         await replaceStubs({ providerUrl, imposterPort: portA, stubs: [] });
-        expect((await axios.get(`http://localhost:${portA}/ping`)).data).toBe('');
+        expect((await http.get(`http://localhost:${portA}/ping`)).data).toBe('');
     });
 });
 

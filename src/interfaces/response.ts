@@ -1,8 +1,11 @@
 import { Behavior, Chaos, ICopyFromHeaderQuery, ICopyFromPathBody } from './behavior';
 import { DecorateFunctionType, ProxyModeTypes, ResponseRecord } from './types';
 
+/** A decorate function, its source as a string, or several of them (applied in order). */
+export type DecorateInput = string | DecorateFunctionType | (string | DecorateFunctionType)[];
+
 interface CommonBuilder {
-    decorate?: string | string[] | DecorateFunctionType | DecorateFunctionType[];
+    decorate?: DecorateInput;
     chaos?: Chaos;
 }
 

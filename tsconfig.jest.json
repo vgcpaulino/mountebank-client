@@ -1,6 +1,9 @@
 {
     "extends": "./tsconfig.json",
-    "include": ["tests", "src/types", "global.d.ts"],
+    "compilerOptions": {
+        "types": ["node", "jest"]
+    },
+    "include": ["tests", "src/types"],
     "ts-node": {
         "files": true,
         "compilerOptions": {

@@ -1,5 +1,12 @@
-import axios from 'axios';
-import { clearRequests, deleteImposter, getRequests, ImposterBuilder, MountebankError, StubBuilder } from '../../../src';
+import { http } from '../../helpers/http';
+import {
+    clearRequests,
+    deleteImposter,
+    getRequests,
+    ImposterBuilder,
+    MountebankError,
+    StubBuilder,
+} from '../../../src';
 import { graphQLSchema } from '../../helpers/graphqlSchema';
 import { testPort } from '../../config/ports';
 
@@ -25,8 +32,8 @@ describe('Recorded requests', () => {
     });
 
     test('records what the app sent, with the JSON body parsed', async () => {
-        await axios.get(`http://localhost:${recordingPort}/orders?page=2`, { headers: { 'X-Request-Id': 'abc' } });
-        await axios.post(`http://localhost:${recordingPort}/orders`, { item: 'book', quantity: 2 });
+        await http.get(`http://localhost:${recordingPort}/orders?page=2`, { headers: { 'X-Request-Id': 'abc' } });
+        await http.post(`http://localhost:${recordingPort}/orders`, { item: 'book', quantity: 2 });
 
         const requests = await getRequests({ imposterPort: recordingPort });
 
@@ -37,9 +44,9 @@ describe('Recorded requests', () => {
     });
 
     test('filters by method, path, headers, query and body', async () => {
-        await axios.post(`http://localhost:${recordingPort}/orders`, { item: 'book', quantity: 2 });
-        await axios.post(`http://localhost:${recordingPort}/orders`, { item: 'pen', quantity: 1 });
-        await axios.get(`http://localhost:${recordingPort}/orders?page=2`, { headers: { 'X-Request-Id': 'abc' } });
+        await http.post(`http://localhost:${recordingPort}/orders`, { item: 'book', quantity: 2 });
+        await http.post(`http://localhost:${recordingPort}/orders`, { item: 'pen', quantity: 1 });
+        await http.get(`http://localhost:${recordingPort}/orders?page=2`, { headers: { 'X-Request-Id': 'abc' } });
 
         const books = await getRequests({
             imposterPort: recordingPort,
@@ -57,7 +64,7 @@ describe('Recorded requests', () => {
     });
 
     test('clearRequests forgets what was recorded', async () => {
-        await axios.get(`http://localhost:${recordingPort}/anything`);
+        await http.get(`http://localhost:${recordingPort}/anything`);
         expect(await getRequests({ imposterPort: recordingPort })).toHaveLength(1);
 
         await clearRequests({ imposterPort: recordingPort });
@@ -68,23 +75,35 @@ describe('Recorded requests', () => {
     test('an imposter that does not record returns [] until it receives a request, then throws', async () => {
         expect(await getRequests({ imposterPort: silentPort })).toEqual([]);
 
-        await axios.get(`http://localhost:${silentPort}/anything`, { validateStatus: null });
+        await http.get(`http://localhost:${silentPort}/anything`);
 
-        const error = await getRequests({ imposterPort: silentPort }).catch((e) => e);
+        const error = (await getRequests({ imposterPort: silentPort }).catch((e: unknown) => e)) as MountebankError;
         expect(error).toBeInstanceOf(MountebankError);
         expect(error.message).toContain(`received 1 request(s) but doesn't record them`);
         expect(error.message).toContain('recordRequests: true');
     });
 
     test('records GraphQL operations, filterable by operationName and args', async () => {
-        await new ImposterBuilder({ port: graphqlPort, protocol: 'graphql', schema: graphQLSchema, recordRequests: true })
-            .addStub(new StubBuilder().any({ query: 'getUser', args: { id: 10 } }).response({ status: 200, data: { id: 10 } }))
+        await new ImposterBuilder({
+            port: graphqlPort,
+            protocol: 'graphql',
+            schema: graphQLSchema,
+            recordRequests: true,
+        })
+            .addStub(
+                new StubBuilder()
+                    .any({ query: 'getUser', args: { id: 10 } })
+                    .response({ status: 200, data: { id: 10 } })
+            )
             .addImposter();
 
-        await axios.post(`http://localhost:${graphqlPort}/`, { query: '{ getUser(id: 10) { id } }' });
-        await axios.post(`http://localhost:${graphqlPort}/`, { query: '{ getAllUsers { id } }' });
+        await http.post(`http://localhost:${graphqlPort}/`, { query: '{ getUser(id: 10) { id } }' });
+        await http.post(`http://localhost:${graphqlPort}/`, { query: '{ getAllUsers { id } }' });
 
-        const getUser = await getRequests({ imposterPort: graphqlPort, filter: { operationName: 'getUser', args: { id: 10 } } });
+        const getUser = await getRequests({
+            imposterPort: graphqlPort,
+            filter: { operationName: 'getUser', args: { id: 10 } },
+        });
         expect(getUser).toHaveLength(1);
         expect(getUser[0].operationType).toBe('query');
         expect(await getRequests({ imposterPort: graphqlPort })).toHaveLength(2);

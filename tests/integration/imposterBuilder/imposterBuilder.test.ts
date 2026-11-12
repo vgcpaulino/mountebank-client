@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { http } from '../../helpers/http';
 import { Imposter, ImposterBuilder } from '../../../src';
 import { mountebankUrl, testPort } from '../../config/ports';
 
@@ -9,7 +9,7 @@ describe('Imposter Builder', () => {
         const imposter = new ImposterBuilder({ port: imposterPort, protocol: 'http' });
         await imposter.addImposter();
 
-        const response = await axios.get(`${mountebankUrl}/imposters`);
+        const response = await http.get(`${mountebankUrl}/imposters`);
         expect(response.status).toBe(200);
 
         const { imposters } = response.data;

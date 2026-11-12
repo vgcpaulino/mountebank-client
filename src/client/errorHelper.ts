@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios';
+import type { HttpResponse } from './http';
 
 export type MountebankOperation =
     | 'ADD_IMPOSTER'
@@ -83,13 +83,7 @@ export class MountebankError extends Error {
         errors?: MountebankErrorDetail[];
         reason?: string;
     }) {
-        const why =
-            reason ??
-            (errors
-                .map(describeDetail)
-                .filter(Boolean)
-                .join('; ') ||
-                'no details from mountebank');
+        const why = reason ?? (errors.map(describeDetail).filter(Boolean).join('; ') || 'no details from mountebank');
         super(`${describe[operation]} failed${status !== undefined ? ` (HTTP ${status})` : ''}: ${why}`);
         this.name = 'MountebankError';
         this.operation = operation;
@@ -98,10 +92,13 @@ export class MountebankError extends Error {
     }
 }
 
-export function checkError({ errorCode, response }: { errorCode: MountebankOperation; response: AxiosResponse }) {
+export function checkError({ errorCode, response }: { errorCode: MountebankOperation; response: HttpResponse }) {
     if (response.status !== successStatus[errorCode]) {
         const data = response.data;
-        const errors: MountebankErrorDetail[] = Array.isArray(data?.errors) ? data.errors : [];
+        const errors =
+            typeof data === 'object' && data !== null && Array.isArray((data as { errors?: unknown }).errors)
+                ? (data as { errors: MountebankErrorDetail[] }).errors
+                : [];
         const reason =
             errors.length === 0 && data !== undefined && data !== ''
                 ? `unexpected response ${typeof data === 'string' ? data : JSON.stringify(data)}`

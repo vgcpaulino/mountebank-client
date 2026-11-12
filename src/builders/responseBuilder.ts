@@ -1,6 +1,7 @@
 import {
     Behavior,
     Chaos,
+    DecorateInput,
     ChaosBehavior,
     CopyBehavior,
     ICopyFromHeaderQuery,
@@ -96,31 +97,16 @@ export class ResponseBuilder {
         this.proxy = {
             to: url || '',
             mode: proxyMode || 'proxyAlways',
-            addWaitBehavior: true
+            addWaitBehavior: true,
         };
         return this;
     }
 
-    // TODO: Remove any;
-    handleDecorate(decorate: any) {
-        const decorateType = typeof decorate;
-
-        switch (decorateType) {
-            case 'function':
-                this.addDecorate(decorate.toString());
-                break;
-            case 'string':
-                this.addDecorate(decorate);
-                break;
-            case 'object':
-                decorate.map((item: any) => {
-                    if (typeof item === 'string') {
-                        this.addDecorate(item);
-                    } else {
-                        this.addDecorate(item.toString());
-                    }
-                });
-        }
+    handleDecorate(decorate: DecorateInput) {
+        const items = Array.isArray(decorate) ? decorate : [decorate];
+        items.forEach((item) => {
+            this.addDecorate(typeof item === 'string' ? item : item.toString());
+        });
     }
 
     addCopyFromHeaderQuery({ type, copyFrom }: { type: 'headers' | 'query'; copyFrom?: ICopyFromHeaderQuery }) {
@@ -160,6 +146,8 @@ export class ResponseBuilder {
             this.addDecorate(chaosDecorateSource({ errorRate, errorStatus, latencyRate, maxLatency }));
             return this;
         }
+        // The types allow only 'injection' | 'native', but JavaScript callers can pass anything.
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (implementation !== 'native') {
             throw new Error(`chaos.implementation must be 'injection' or 'native', got ${implementation}`);
         }

@@ -559,6 +559,7 @@ agent's docs for its path.
 nvm use                    # Node 22, from .nvmrc
 yarn install
 npx tsc --noEmit -p .      # type check
+yarn lint                  # ESLint
 yarn test:unit
 yarn test:integration      # starts a real mountebank on port 2525
 ```
