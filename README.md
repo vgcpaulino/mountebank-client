@@ -387,6 +387,20 @@ npx skills add vgcpaulino/mountebank-client -a cursor -a codex   # pick agents y
 npx skills add vgcpaulino/mountebank-client -g                    # for all your projects
 ```
 
+**Matching your installed version.** The skills also ship inside the npm package, so you can install the ones that
+match the `mountebank-client` version in your project:
+
+```sh
+npx skills add ./node_modules/mountebank-client
+```
+
+Or let the `skills` CLI link them from your dependencies, so they update whenever you upgrade the package. This
+command is marked experimental by the CLI:
+
+```sh
+npx skills experimental_sync
+```
+
 **Claude Code**, as a plugin:
 
 ```sh
