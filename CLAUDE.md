@@ -49,7 +49,10 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
 - `src/` — library source only. Everything here ships in the package.
 - `src/client/` — REST calls to mountebank. `src/builders/` — fluent builders. `src/interfaces/` — types.
   `src/server/` — the optional in-process server.
-- `examples/` — runnable demos (e.g. the users-service demo). Never imported by `src/`, never shipped.
+- `examples/users-service/` — the tracked demo (`yarn start:dev`). Other files in `examples/` are personal and
+  git-ignored. Never imported by `src/`, never shipped.
+- `scripts/` — dev tooling such as `start-mountebank.ts` (`yarn start`, and the integration tests' server). Not
+  shipped: only `src/` is built into `dist/`.
 - `tests/unit/` and `tests/integration/` — Jest. `tests/e2e/` — Playwright examples (not run by Jest).
 - `skills/` — Agent Skills for people using the package. They use the open `SKILL.md` format
   ([agentskills.io](https://agentskills.io)) and must work in any agent that supports it, not just Claude Code: use

@@ -1,8 +1,8 @@
-import { ImposterBuilder } from "../builders";
+import { ImposterBuilder } from '../../src';
 import {
     stubGetUser,
     stubPatchUser,
-} from '../stubs';
+} from './stubs';
 
 const stubs = [
     stubGetUser,

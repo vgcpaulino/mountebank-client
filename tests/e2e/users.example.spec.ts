@@ -1,4 +1,4 @@
-import { stubsUser } from '../../src/stubs';
+import { stubsUser } from '../../examples/users-service/stubs';
 import { test } from '@playwright/test';
 
 test.describe('Suite', () => {
