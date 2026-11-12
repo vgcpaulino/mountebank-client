@@ -1,8 +1,9 @@
 import { Imposter, ImposterBuilder, StubBuilder, deleteStubsByID } from '../../../src';
+import { testPort } from '../../config/ports';
 
 describe('Mountebank Client', () => {
     test('Delete Multiple Stubs', async () => {
-        const port = 1113;
+        const port = testPort(1113);
         const imposter = await new ImposterBuilder({ port, protocol: 'http' })
             .addStub(new StubBuilder({ imposterPort: port }).get('/example').response({ status: 200 }))
             .addStub(new StubBuilder({ imposterPort: port }).get('/example').response({ status: 200 }))
