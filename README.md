@@ -365,11 +365,39 @@ The builders call these for you, but you can use them directly. Each one accepts
 | ---------------------------------------------------- | --------------------------------------------------- |
 | `addImposter({ port, protocol, stubs, ... })`        | Creates an imposter.                                |
 | `getImposter({ port })`                              | Returns an imposter, including its stubs.          |
+| `deleteImposter({ port })`                           | Deletes an imposter; does nothing if there's none. |
 | `addStub({ imposterPort, stub })`                    | Adds a stub to an imposter.                         |
 | `deleteStubByID({ imposterPort, stubID })`           | Deletes a stub by the ID the builder gave it.       |
 | `deleteStubsByID({ imposterPort, stubIDs })`         | Deletes several stubs by ID.                        |
 | `deleteStubByIndex({ imposterPort, stubIndex })`     | Deletes a stub by its position.                     |
 | `getLogs()`                                          | Returns mountebank's log entries.                   |
+
+### Errors
+
+When mountebank rejects a call, or a stub to delete isn't there, the client throws a `MountebankError`. Its message
+says what failed and why, in mountebank's own words when it gave any:
+
+```text
+MountebankError: Creating the imposter failed (HTTP 400): port 7117 is already in use (EADDRINUSE).
+Delete the existing imposter first (deleteImposter) or use another port
+```
+
+It also exposes `operation` (e.g. `'ADD_IMPOSTER'`), `status` (mountebank's HTTP status) and `errors` (mountebank's
+`errors` array), if you need to tell failures apart:
+
+```ts
+import { MountebankError, deleteImposter } from 'mountebank-client';
+
+await deleteImposter({ port: 7117 }); // safe to call when there's no imposter
+try {
+    await usersApi.addImposter();
+} catch (error) {
+    if (error instanceof MountebankError && error.status === 400) {
+        // ...
+    }
+    throw error;
+}
+```
 
 ## Skills for AI coding agents
 

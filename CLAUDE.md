@@ -81,8 +81,8 @@ Which skill covers what:
 
 | Area of the change                                                                 | Skill                 |
 | ---------------------------------------------------------------------------------- | --------------------- |
-| `ImposterBuilder`, `StubBuilder` matching and responses, `copyFrom…`, deleting stubs, `getImposter` / `getLogs` | `mountebank-stubs`    |
-| `startMountebank`, env vars, client URLs/ports, Docker/CLI, test-runner wiring, error handling | `mountebank-setup`    |
+| `ImposterBuilder`, `StubBuilder` matching and responses, `copyFrom…`, deleting stubs/imposters, `getImposter` / `getLogs`, `MountebankError` | `mountebank-stubs`    |
+| `startMountebank`, env vars, client URLs/ports, Docker/CLI, test-runner wiring, troubleshooting | `mountebank-setup`    |
 | `decorate`, `Config`, `config.state`                                               | `mountebank-decorate` |
 | `wait`, `chaos`, `multipleResponses`, default responses, `proxyResponse`            | `mountebank-faults`   |
 | GraphQL imposters, `any()`, `protocols.json`, `mb-graphql`                          | `mountebank-graphql`  |

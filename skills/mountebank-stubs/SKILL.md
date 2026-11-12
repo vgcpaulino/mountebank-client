@@ -1,6 +1,6 @@
 ---
 name: mountebank-stubs
-description: Mock HTTP/HTTPS APIs in TypeScript/JavaScript tests with the mountebank-client package. Covers creating imposters with ImposterBuilder, adding stubs with StubBuilder, matching requests by method and path (equals, startsWith, endsWith, contains, matches), static and sequenced responses, default responses, copying request values into responses, and deleting stubs. Use when writing or changing test mocks that import from 'mountebank-client', or when asked to fake an HTTP dependency with mountebank from Node.
+description: Mock HTTP/HTTPS APIs in TypeScript/JavaScript tests with the mountebank-client package. Covers creating imposters with ImposterBuilder, adding stubs with StubBuilder, matching requests by method and path (equals, startsWith, endsWith, contains, matches), static and sequenced responses, default responses, copying request values into responses, deleting stubs and imposters, and handling MountebankError. Use when writing or changing test mocks that import from 'mountebank-client', or when asked to fake an HTTP dependency with mountebank from Node.
 ---
 
 # Mocking HTTP APIs with mountebank-client
@@ -56,12 +56,14 @@ new ImposterBuilder({ port, protocol, name?, allowCORS?, schema? })
 
 - `protocol`: `'http' | 'https' | 'graphql'`. Only these are supported. For GraphQL see **mountebank-graphql**.
 - `allowCORS: true` makes the imposter answer CORS preflight requests (useful for browser tests).
-- **Pitfall:** if an imposter already exists on that port, mountebank answers `400` and `addImposter()` currently
-  returns **without an error**. The old imposter (with its old stubs) stays. Use a unique port per test file, or
-  delete the imposter first:
+- If an imposter already exists on that port, `addImposter()` throws a `MountebankError` ("port … is already in
+  use"). Use a unique port per test file, or delete the old imposter first. `deleteImposter` does nothing when there
+  is none, so it's safe to call unconditionally:
 
   ```ts
-  await fetch(`http://localhost:2525/imposters/${port}`, { method: 'DELETE' });
+  import { deleteImposter } from 'mountebank-client';
+
+  await deleteImposter({ port });
   ```
 
 ## Matching requests (predicates)
@@ -149,10 +151,33 @@ Copied values are always strings. If you need a number, or logic, use `decorate`
 
 - `await stub.deleteStub()` removes the stub it was called on. Each `StubBuilder` gets a random `stubID` that the
   client uses to find it on the imposter.
-- **Pitfall:** `deleteStub()` currently throws a `TypeError` if the stub is no longer on the imposter (deleted twice,
-  or the imposter was recreated). Delete each stub once.
-- `deleteStubsByID({ imposterPort, stubIDs })` removes several.
-- To wipe everything between test files, delete and recreate the imposter.
+- `deleteStub()` throws a `MountebankError` ("no stub with ID …") if the stub isn't on the imposter any more
+  (deleted twice, or the imposter was recreated).
+- `deleteStubsByID({ imposterPort, stubIDs })` removes several, and throws at the first ID it can't find.
+- To wipe everything between test files, `deleteImposter({ port })` and create the imposter again.
+
+## Errors
+
+Every client call that mountebank rejects throws a `MountebankError`. Its message says what failed and why, in
+mountebank's words: for example "Creating the imposter failed (HTTP 400): port 8080 is already in use
+(EADDRINUSE)…". It also has these fields:
+
+```ts
+import { MountebankError } from 'mountebank-client';
+
+try {
+    await imposter.addImposter();
+} catch (error) {
+    if (error instanceof MountebankError) {
+        error.operation; // 'ADD_IMPOSTER', 'ADD_STUB', 'DELETE_STUB', 'GET_IMPOSTER', 'DELETE_IMPOSTER', 'GET_LOGS'
+        error.status;    // mountebank's HTTP status, e.g. 400 or 404 (undefined for client-side checks)
+        error.errors;    // mountebank's own `errors` array: [{ code, message }]
+    }
+    throw error;
+}
+```
+
+Don't catch these to carry on: they mean the mock isn't what the test expects.
 
 ## Inspecting what mountebank has
 

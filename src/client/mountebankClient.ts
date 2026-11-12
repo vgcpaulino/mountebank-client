@@ -1,5 +1,8 @@
 import { Imposter, ImposterDefaultResponse, ImposterProtocol, LogLevel, Stub } from '../interfaces';
-import { checkError } from './errorHelper';
+import { checkError, MountebankError } from './errorHelper';
+
+export { MountebankError } from './errorHelper';
+export type { MountebankErrorDetail, MountebankOperation } from './errorHelper';
 import axios from 'axios';
 
 const defaultProviderUrl = process.env['MOUNTEBANK_URL'] || 'http://localhost:2525';
@@ -48,11 +51,17 @@ export async function addImposter({
         validateStatus: null,
     });
 
-    if (response.status === 400) {
-        return;
-    }
-
     checkError({ errorCode: 'ADD_IMPOSTER', response });
+}
+
+/**
+ * Deletes the imposter on `port`, with all its stubs and `decorate` state. Does nothing if there is none, so it's
+ * safe to call before (re)creating an imposter.
+ */
+export async function deleteImposter({ providerUrl = defaultProviderUrl, port = defaultImposterPort } = {}) {
+    const response = await axios.delete(`${providerUrl}/imposters/${port}`, { validateStatus: null });
+
+    checkError({ errorCode: 'DELETE_IMPOSTER', response });
 }
 
 export async function getImposter({ providerUrl = defaultProviderUrl, port = defaultImposterPort } = {}) {
@@ -93,14 +102,22 @@ export async function deleteStubByID({
     providerUrl?: string;
     imposterPort?: number;
     stubID?: string;
-} = {}) {
-    const response = await getImposter({ providerUrl, port: imposterPort });
-    const stub = response.stubs.find((s: Stub) => s.stubID === stubID);
-    const stubIndex = getStubIndex(stub);
+} = {}): Promise<Imposter> {
+    const imposter: Imposter = await getImposter({ providerUrl, port: imposterPort });
+    const stub = imposter.stubs?.find((s: Stub) => s.stubID === stubID);
+    const stubIndex = stub ? getStubIndex(stub) : undefined;
+
+    if (stubIndex === undefined) {
+        throw new MountebankError({
+            operation: 'DELETE_STUB',
+            reason: `no stub with ID ${stubID} on the imposter at port ${imposterPort} (already deleted, or the imposter was recreated?)`,
+        });
+    }
 
     return deleteStubByIndex({ providerUrl, imposterPort, stubIndex });
 }
 
+/** Deletes several stubs by ID. Throws (and stops) at the first ID that isn't on the imposter. */
 export async function deleteStubsByID({
     providerUrl = defaultProviderUrl,
     imposterPort = defaultImposterPort,
@@ -109,32 +126,12 @@ export async function deleteStubsByID({
     providerUrl?: string;
     imposterPort?: number;
     stubIDs?: string[];
-} = {}) {
-    if (!stubIDs) {
-        return;
+} = {}): Promise<Imposter | undefined> {
+    let imposter: Imposter | undefined;
+    for (const stubID of stubIDs ?? []) {
+        imposter = await deleteStubByID({ providerUrl, imposterPort, stubID });
     }
-
-    let previousResponse: Imposter | undefined;
-    for (const stubID of stubIDs) {
-        if (!previousResponse) {
-            previousResponse = await deleteStubByID({
-                providerUrl,
-                imposterPort,
-                stubID,
-            });
-        } else {
-            const stub = previousResponse.stubs?.find((s) => s.stubID === stubID);
-            if (stub) {
-                const stubIndex = getStubIndex(stub);
-                previousResponse = await deleteStubByIndex({
-                    providerUrl,
-                    imposterPort,
-                    stubIndex,
-                });
-            }
-        }
-    }
-    return previousResponse;
+    return imposter;
 }
 
 export async function deleteStubByIndex({
