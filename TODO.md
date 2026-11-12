@@ -4,9 +4,10 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 ## 1. Bugs
 
-- [ ] `startMountebank` doesn't await `create()` before adding imposters, so the first `addImposter` can hit a
+- [x] `startMountebank` doesn't await `create()` before adding imposters, so the first `addImposter` can hit a
       server that isn't listening yet (`src/server/mountebankServer.ts`).
-- [ ] `allowInjection` option is ignored: a hardcoded `'allow-injection': true` overrides it.
+- [x] `allowInjection` option is ignored: a hardcoded `'allow-injection': true` overrides it.
+- [x] `StubBuilder.response()` dropped the `wait` option, so it never reached mountebank.
 - [ ] `startMountebank` writes `mb.pid` and `mb.log` into the consumer's working directory and allows connections from
       any IP (`ipWhitelist: ['*']`). Make them options with safe defaults (no files, local only).
 - [ ] `addImposter` silently returns on a 400 (e.g. port already in use). Surface it as an error.
@@ -25,7 +26,9 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [ ] Fix license mismatch: `package.json` says ISC but `LICENSE` is MIT.
 - [ ] Split entry points: core client/builders (no `mountebank` import), `./server` (in-process server), `./jest`
       and `./playwright` helpers.
-- [ ] Make `mountebank` an optional peer dependency instead of a dependency.
+- [ ] Make `@mbtest/mountebank` an optional peer dependency instead of a dependency.
+- [ ] Replace the pinned `@mbtest/mountebank@2.9.6-beta.10697` with `^2.9.6` once 2.9.6 is released (the beta is
+      needed for the `chaos` behavior).
 - [ ] Stop relying on the `declare module 'mountebank/src/mountebank'` shim in `index.d.ts` leaking into consumers'
       types; keep internal typings private to the server entry point.
 - [ ] Exclude `src/start.ts` and other dev-only files from `dist/`.
@@ -49,6 +52,13 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [ ] Type `Config.state` (generic parameter) instead of `any`.
 - [ ] Add a logger option; no `console.*` in library code.
 
+## 4a. Keeping up with mountebank
+
+- [x] Switch from `mountebank` to `@mbtest/mountebank` (renamed in 2.9.2) and require Node 20.19+.
+- [x] Support the `chaos` behavior (mountebank 2.9.6): `chaos: { errorRate, errorStatus, latencyRate, maxLatency }`
+      on `response()` and `proxyResponse()`.
+- [x] Support `allowCORS` on imposters (mountebank 2.9.2).
+
 ## 5. Test helpers
 
 - [ ] Runner-agnostic core: start server (optional), reset imposters/stubs, stop.
@@ -68,3 +78,10 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 - [ ] Write the README: what it is, install, quick start for client and server, builders, test helpers.
 - [ ] Document the `decorate` limitation: the function is sent as source text and can't use outer variables or imports.
+
+## 8. Examples
+
+- [ ] "Fuzzy network" example: proxy to a real backend and add a random delay between a min and max to each
+      response, so responses come back out of order. Useful for seeing how an app behaves when several requests are
+      in flight and a later one finishes first (stale data, extra re-renders, race conditions). The random delay
+      likely needs mountebank's `wait` behavior as an injected function, which requires `allowInjection`.

@@ -11,6 +11,7 @@ interface IAddImposter {
     protocol: ImposterProtocol;
     name?: string;
     schema?: string;
+    allowCORS?: boolean;
     defaultResponse?: ImposterDefaultResponse;
     stubs?: Stub[];
 }
@@ -21,6 +22,7 @@ export async function addImposter({
     protocol = 'https',
     name = '',
     schema = '',
+    allowCORS = undefined,
     defaultResponse = undefined,
     stubs = [],
 }: IAddImposter) {
@@ -29,6 +31,7 @@ export async function addImposter({
         protocol: ImposterProtocol;
         name?: string;
         schema?: string;
+        allowCORS?: boolean;
         defaultResponse?: ImposterDefaultResponse;
         stubs: Stub[];
     } = {
@@ -36,6 +39,7 @@ export async function addImposter({
         protocol,
         name,
         schema,
+        allowCORS,
         defaultResponse,
         stubs,
     };

@@ -15,5 +15,6 @@ export interface Imposter {
     name?: string;
     defaultResponse?: ImposterDefaultResponse;
     schema?: string;
+    allowCORS?: boolean;
     stubs?: Stub[];
 }
