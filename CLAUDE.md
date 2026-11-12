@@ -54,6 +54,10 @@ yarn test:integration   # starts a real mountebank server on port 2525
 yarn format             # Prettier: single quotes, 4-space indent, 120 columns
 ```
 
+When port 2525 is already taken (a dev server, or a run from another worktree), shift every test port instead of
+stopping the other process: `MB_TEST_PORT_OFFSET=1000 yarn test:integration` runs the server on 3525 and imposter
+1111 on 2111. Work in a git worktree when the main checkout has someone else's uncommitted changes.
+
 ## Definition of done
 
 A change is done only when **all** of these hold:
