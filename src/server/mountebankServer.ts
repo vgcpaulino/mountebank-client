@@ -1,6 +1,5 @@
 import { Imposter, LogLevel } from '../interfaces';
 import { addImposter, addStub } from '../client/mountebankClient';
-import { create } from 'mountebank/src/mountebank';
 
 export const startMountebank = async ({
     port = 2525,
@@ -16,11 +15,10 @@ export const startMountebank = async ({
     const startOptions = {
         debug: false,
         allowInjection,
-        'allow-injection': true,
+        'allow-injection': allowInjection,
         port,
         noParse: false,
         'no-parse': false,
-        formatter: 'mountebank-formatters',
         pidfile: 'mb.pid',
         localOnly: false,
         'local-only': false,
@@ -41,17 +39,22 @@ export const startMountebank = async ({
             },
         },
     };
-    const server = create(startOptions);
+    // Loaded lazily so importing this package never loads mountebank itself
+    // (it's only needed to start a server in-process).
+    const { create } = await import('@mbtest/mountebank/src/mountebank');
+    const server = await create(startOptions);
 
     for (const imposter of imposters) {
-        const { port: imposterPort, protocol, schema, stubs } = imposter;
+        const { port: imposterPort, protocol, defaultResponse, schema, allowCORS, stubs } = imposter;
 
         // TODO: Mock-Provider: Implement a function to add all imposters in a single request;
         await addImposter({
             providerUrl: `http://localhost:${port}`,
             port: imposterPort,
             protocol,
+            defaultResponse,
             schema,
+            allowCORS,
             stubs,
         });
     }
