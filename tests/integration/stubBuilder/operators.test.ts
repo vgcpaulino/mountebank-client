@@ -1,8 +1,9 @@
 import axios, { AxiosResponse } from 'axios';
 import { Config, ImposterBuilder, StubBuilder } from '../../../src';
 import { randomUUID } from 'crypto';
+import { testPort } from '../../config/ports';
 
-const imposterPort = 1114;
+const imposterPort = testPort(1114);
 
 describe('Stub Builder', () => {
     beforeAll(async () => {
