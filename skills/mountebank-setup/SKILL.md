@@ -1,6 +1,6 @@
 ---
 name: mountebank-setup
-description: Run a mountebank server for tests that use the mountebank-client package and connect the client to it. Covers Docker, the mb CLI, starting mountebank in-process with startMountebank, the MOUNTEBANK_URL setting, Jest global setup, Playwright webServer, keeping tests isolated, and troubleshooting connection refused, remote connections, port conflicts, stubs on the wrong port and disabled injection. Use when setting up or debugging the test infrastructure around mountebank-client.
+description: Run a mountebank server for tests that use the mountebank-client package and connect the client to it. Covers Docker, the mb CLI, starting mountebank in-process with startMountebank, the MOUNTEBANK_URL setting, the Jest and Playwright helpers (jestGlobalSetup, useImposters, playwrightGlobalSetup, withImposters), setupMountebank and resetImposters for other runners, keeping tests isolated, and troubleshooting connection refused, remote connections, port conflicts, stubs on the wrong port and disabled injection. Use when setting up or debugging the test infrastructure around mountebank-client.
 ---
 
 # Running mountebank for mountebank-client
@@ -44,57 +44,80 @@ Always pass ports explicitly instead of relying on it.
 
 ## 3. Wire it into the test runner
 
+The package ships helpers for both runners. They start mountebank **in the runner's main process** during global
+setup (or wait for an external server with `url`), point `MOUNTEBANK_URL` at it for the workers, and reset your
+imposters before each test.
+
 ### Jest
 
-Don't call `startMountebank` inside Jest (test files or `globalSetup`): it loads mountebank, which pulls in
-ES-module-only packages that Jest's module system can't load. Importing `mountebank-client` is fine; mountebank is
-only loaded when `startMountebank` runs. Run mountebank as a separate process from `globalSetup` instead, e.g. with
-`jest-dev-server`:
+```js
+// jest.global-setup.js
+module.exports = require('mountebank-client/jest').jestGlobalSetup({ port: 2525 });
+
+// jest.global-teardown.js
+module.exports = require('mountebank-client/jest').jestGlobalTeardown();
+
+// jest.config.js
+module.exports = { globalSetup: './jest.global-setup.js', globalTeardown: './jest.global-teardown.js' };
+```
+
+In each test file, declare its imposters once; `useImposters` creates them before the file's tests, recreates them
+before **each** test, and deletes them after the file:
 
 ```ts
-// jest.global-setup.ts
-import { setup } from 'jest-dev-server';
+import { ImposterBuilder, StubBuilder } from 'mountebank-client';
+import { useImposters } from 'mountebank-client/jest';
 
-module.exports = async () => {
-    process.env['MOUNTEBANK_URL'] = 'http://localhost:2525';
-    globalThis.servers = await setup({ command: 'npx mb start --allowInjection', port: 2525, launchTimeout: 30000 });
-};
+const usersApi = new ImposterBuilder({ port: 8080, protocol: 'http', recordRequests: true })
+    .addStub(new StubBuilder().get('/users/1').response({ status: 200, body: { id: 1 } }));
 
-// jest.global-teardown.ts
-import { teardown } from 'jest-dev-server';
-module.exports = async () => teardown(globalThis.servers);
+useImposters([usersApi]); // { resetBeforeEach: false } to create them once per file
+
+test('...', async () => { /* stubs added here are gone in the next test */ });
 ```
 
-```js
-// jest.config.js
-module.exports = { globalSetup: './jest.global-setup.ts', globalTeardown: './jest.global-teardown.ts' };
-```
-
-Then create imposters in `beforeAll` and remove per-test stubs in `afterEach` (see isolation below).
+- Jest runs files in parallel, so give each file its own imposter ports.
+- Never call `startMountebank` (or `setupMountebank`) **inside a test file**: mountebank pulls in ES-module-only
+  packages that Jest's module system can't load. Global setup runs in plain Node, so it works there.
 
 ### Playwright
 
-Let Playwright start the server, and create imposters/stubs from the tests or a global setup:
-
 ```ts
-// playwright.config.ts
-export default defineConfig({
-    webServer: [
-        { command: 'npx mb start --allowInjection', port: 2525, reuseExistingServer: !process.env.CI },
-        // { command: 'npm run dev', port: 3000 }, // the app under test, configured to call http://localhost:8080
-    ],
-});
+// mountebank.setup.ts, with globalSetup: require.resolve('./mountebank.setup.ts') in playwright.config.ts
+import { playwrightGlobalSetup } from 'mountebank-client/playwright';
+export default playwrightGlobalSetup({ port: 2525 });
 ```
 
 ```ts
-test.beforeAll(async () => {
-    await new ImposterBuilder({ port: 8080, protocol: 'http', allowCORS: true })
-        .addDefaultResponse({ status: 404, body: { error: 'no stub matched' } })
-        .addImposter();
+import { test as base, expect } from '@playwright/test';
+import { withImposters } from 'mountebank-client/playwright';
+
+const test = withImposters(base, [usersApi]); // recreates usersApi before each test
+
+test('shows the user', async ({ page }) => {
+    await page.goto('http://localhost:3000/users/1'); // the app under test calls http://localhost:8080
+    await expect(page.getByText('Ada')).toBeVisible();
 });
 ```
 
-Use `allowCORS: true` when the browser calls the imposter directly.
+- Imposters sit on fixed ports the app calls, so tests sharing them must not run at the same time: `workers: 1` in
+  `playwright.config.ts`, or `test.describe.configure({ mode: 'serial' })`.
+- Use `allowCORS: true` on imposters the browser calls directly.
+
+### Any other runner
+
+The same building blocks, from `mountebank-client`:
+
+```ts
+import { resetImposters, setupMountebank, waitForMountebank } from 'mountebank-client';
+
+const mb = await setupMountebank({ port: 2525, imposters: [usersApi] }); // or { url: 'http://localhost:2525' }
+await resetImposters([usersApi]); // before each test: recreate just these imposters
+await mb.stop();                  // after the run
+await waitForMountebank({ url: 'http://localhost:2525' }); // e.g. for a Docker server started elsewhere
+```
+
+With `url`, setup uses that server and `stop()` deletes only the imposters it created.
 
 ### In-process (plain Node)
 
@@ -106,7 +129,7 @@ const imposter = new ImposterBuilder({ port: 8080, protocol: 'http' })
 
 const server = await startMountebank({ port: 2525, imposters: [imposter], allowInjection: true, logLevel: 'info' });
 // ...
-await new Promise<void>((resolve) => server.close(resolve));
+await new Promise<void>((resolve) => server.close(resolve)); // also stops all imposters
 ```
 
 Defaults to know:
@@ -121,22 +144,24 @@ Defaults to know:
 
 ## 4. Keep tests isolated
 
+- The simplest isolation: `useImposters` (Jest), `withImposters` (Playwright) or `resetImposters` (any runner) before
+  each test. Recreating the imposters removes stubs added by the previous test, its recorded requests and its
+  `decorate` state, and only touches those imposters' ports.
 - One imposter port per test file. Jest and Playwright run files in parallel; files that share an imposter share its
   stubs.
 - Imposters you create live until you delete them or the server stops. Creating one on a port that is still in use
   throws, so either `deleteImposter({ port })` first or keep it for the whole run.
 - To start a run (or a test file, when files don't run in parallel) from a clean server, call `deleteImposters()`.
   Don't call it while other test files share the same server: it removes their imposters too.
-- Recorded requests accumulate: `clearRequests({ imposterPort })` in `beforeEach` (see **mountebank-requests**).
-- Per-test stubs: create them in the test, `await stub.deleteStub()` in `afterEach`.
-- `config.state` used by `decorate` lives on the imposter and survives between tests. Reset it by recreating the
-  imposter.
+- Without those helpers: recorded requests accumulate (`clearRequests({ imposterPort })` in `beforeEach`, see
+  **mountebank-requests**), per-test stubs stay (`await stub.deleteStub()` in `afterEach`), and `config.state` used
+  by `decorate` survives until the imposter is recreated.
 
 ## 5. Troubleshooting
 
 | Symptom                                                  | Likely cause and fix                                                                        |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `ECONNREFUSED ...:2525`                                  | Server not started, or still starting. Wait for the port (jest-dev-server / `webServer`).   |
+| `ECONNREFUSED ...:2525`                                  | Server not started, or still starting. Start it in global setup (`jestGlobalSetup` / `playwrightGlobalSetup`), or `waitForMountebank` for an external one. |
 | `ECONNREFUSED ...:<imposter port>`                       | Imposter never created, or (Docker) its port isn't published.                              |
 | `addStub()` works but requests don't match it            | A stub created on its own went to port 7117: pass `imposterPort`. Or a broader stub earlier in the list wins. |
 | `ECONNREFUSED` / blocked connection from a container or other host | `startMountebank` accepts only local connections by default: pass `allowRemoteConnections: true`. |

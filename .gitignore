@@ -117,3 +117,7 @@ examples/*
 # Tracked demo; other examples/ files stay personal and ignored.
 !examples/users-service/
 pack-install/*
+
+# Playwright
+test-results/
+playwright-report/

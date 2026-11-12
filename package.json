@@ -9,6 +9,14 @@
             "types": "./dist/index.d.ts",
             "default": "./dist/index.js"
         },
+        "./jest": {
+            "types": "./dist/testing/jest.d.ts",
+            "default": "./dist/testing/jest.js"
+        },
+        "./playwright": {
+            "types": "./dist/testing/playwright.d.ts",
+            "default": "./dist/testing/playwright.js"
+        },
         "./package.json": "./package.json"
     },
     "files": [
@@ -21,6 +29,7 @@
         "test": "jest --config jest.config.js",
         "test:unit": "jest --config jest.config.js --selectProjects unit",
         "test:integration": "jest --config jest.config.js --selectProjects integration",
+        "test:playwright": "playwright test --config tests/playwright/playwright.config.ts",
         "test:list": "jest --config jest.config.js --listTests",
         "start": "ts-node-dev --files ./scripts/start-mountebank.ts",
         "start:dev": "ts-node-dev --files ./examples/users-service/main.ts",

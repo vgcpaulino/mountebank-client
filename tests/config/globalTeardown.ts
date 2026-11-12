@@ -1,5 +1,3 @@
-import { teardown as teardownDevServer } from 'jest-dev-server';
+import { jestGlobalTeardown } from '../../src/testing/jest';
 
-module.exports = async function globalTeardown() {
-    await teardownDevServer(globalThis.servers);
-};
+module.exports = jestGlobalTeardown();
