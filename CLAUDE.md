@@ -48,8 +48,11 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
   `src/server/` — the optional in-process server.
 - `examples/` — runnable demos (e.g. the users-service demo). Never imported by `src/`, never shipped.
 - `tests/unit/` and `tests/integration/` — Jest. `tests/e2e/` — Playwright examples (not run by Jest).
-- `skills/` — Agent Skills for people using the package (installable as a Claude Code plugin via `.claude-plugin/`).
-  They document the public API and its current pitfalls, and must stay in sync with it (see below).
+- `skills/` — Agent Skills for people using the package. They use the open `SKILL.md` format
+  ([agentskills.io](https://agentskills.io)) and must work in any agent that supports it, not just Claude Code: use
+  only the standard frontmatter (`name`, `description`), no agent-specific tools or wording. They install with
+  `npx skills add` (any agent) or as a Claude Code plugin via `.claude-plugin/`. They document the public API and
+  its current pitfalls, and must stay in sync with it (see below).
 
 ## Commands
 

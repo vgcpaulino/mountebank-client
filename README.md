@@ -373,17 +373,30 @@ The builders call these for you, but you can use them directly. Each one accepts
 
 ## Skills for AI coding agents
 
-The [`skills/`](./skills) folder has [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills) that teach
-coding agents how to use this package: writing stubs, running mountebank in tests, `decorate` functions, GraphQL,
-and fault injection. In Claude Code, install them as a plugin:
+The [`skills/`](./skills) folder has [Agent Skills](https://agentskills.io) that teach coding agents how to use this
+package: writing stubs, running mountebank in tests, `decorate` functions, GraphQL, and fault injection. They follow
+the open `SKILL.md` format, so they work with any agent that supports it (Claude Code, OpenAI Codex, Cursor, GitHub
+Copilot, Gemini CLI, OpenCode, and others).
+
+**Any supported agent**, with the [`skills`](https://github.com/vercel-labs/skills) CLI (needs Node 22.20+). It detects
+the agents you have installed and asks which skills and agents to install for:
+
+```sh
+npx skills add vgcpaulino/mountebank-client
+npx skills add vgcpaulino/mountebank-client -a cursor -a codex   # pick agents yourself
+npx skills add vgcpaulino/mountebank-client -g                    # for all your projects
+```
+
+**Claude Code**, as a plugin:
 
 ```sh
 /plugin marketplace add vgcpaulino/mountebank-client
 /plugin install mountebank-client@mountebank-client
 ```
 
-Other agents can read the `SKILL.md` files directly, or you can copy a skill folder into your project's
-`.claude/skills/`.
+**By hand:** copy the folders under [`skills/`](./skills) into your agent's skills directory, e.g. `.agents/skills/`
+(Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode and others) or `.claude/skills/` (Claude Code). Check your
+agent's docs for its path.
 
 ## Development
 

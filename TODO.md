@@ -89,6 +89,8 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [ ] Keep `skills/` in sync with the API redesign (section 4) and the bug fixes in section 1: several skills
       describe current pitfalls (silent 400 on `addImposter`, default port 7117, `deleteStub` crash) as workarounds.
 - [ ] Decide whether to ship `skills/` in the npm package (needs a `files` change in `package.json`).
+      Shipping them would let users install the skills that match their installed version with
+      `npx skills add ./node_modules/mountebank-client`.
 
 ## 8. Examples
 
