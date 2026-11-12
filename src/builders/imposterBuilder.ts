@@ -6,9 +6,10 @@ export interface IImposterBuilder {
     protocol: ImposterProtocol;
     name?: string;
     schema?: string;
+    allowCORS?: boolean;
 }
 
-interface IDefaultReponse extends Omit<ImposterDefaultResponse, 'statusCode'> {
+interface IDefaultResponse extends Omit<ImposterDefaultResponse, 'statusCode'> {
     status: number;
 }
 
@@ -17,18 +18,20 @@ export class ImposterBuilder {
     protocol: ImposterProtocol;
     name?: string;
     schema?: string;
+    allowCORS?: boolean;
     defaultResponse?: ImposterDefaultResponse;
     stubs: Stub[];
 
-    constructor({ port, protocol, name, schema }: IImposterBuilder) {
+    constructor({ port, protocol, name, schema, allowCORS }: IImposterBuilder) {
         this.port = port;
         this.protocol = protocol;
         this.name = name;
         this.schema = schema;
+        this.allowCORS = allowCORS;
         this.stubs = [];
     }
 
-    addDefaultResponse({ status, headers, body }: IDefaultReponse) {
+    addDefaultResponse({ status, headers, body }: IDefaultResponse) {
         this.defaultResponse = {
             statusCode: status,
             headers,
@@ -42,12 +45,18 @@ export class ImposterBuilder {
         return this;
     }
 
+    addStubs(stubs: Stub[]) {
+        this.stubs.push(...stubs);
+        return this;
+    }
+
     async addImposter() {
         await addImposter({
             port: this.port,
             protocol: this.protocol,
             name: this.name,
             schema: this.schema,
+            allowCORS: this.allowCORS,
             stubs: this.stubs,
             defaultResponse: this.defaultResponse,
         });

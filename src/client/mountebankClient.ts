@@ -11,6 +11,7 @@ interface IAddImposter {
     protocol: ImposterProtocol;
     name?: string;
     schema?: string;
+    allowCORS?: boolean;
     defaultResponse?: ImposterDefaultResponse;
     stubs?: Stub[];
 }
@@ -21,6 +22,7 @@ export async function addImposter({
     protocol = 'https',
     name = '',
     schema = '',
+    allowCORS = undefined,
     defaultResponse = undefined,
     stubs = [],
 }: IAddImposter) {
@@ -29,6 +31,7 @@ export async function addImposter({
         protocol: ImposterProtocol;
         name?: string;
         schema?: string;
+        allowCORS?: boolean;
         defaultResponse?: ImposterDefaultResponse;
         stubs: Stub[];
     } = {
@@ -36,6 +39,7 @@ export async function addImposter({
         protocol,
         name,
         schema,
+        allowCORS,
         defaultResponse,
         stubs,
     };
@@ -110,19 +114,19 @@ export async function deleteStubsByID({
         return;
     }
 
-    let previousReponse: Imposter | undefined;
+    let previousResponse: Imposter | undefined;
     for (const stubID of stubIDs) {
-        if (!previousReponse) {
-            previousReponse = await deleteStubByID({
+        if (!previousResponse) {
+            previousResponse = await deleteStubByID({
                 providerUrl,
                 imposterPort,
                 stubID,
             });
         } else {
-            const stub = previousReponse.stubs?.find((s) => s.stubID === stubID);
+            const stub = previousResponse.stubs?.find((s) => s.stubID === stubID);
             if (stub) {
                 const stubIndex = getStubIndex(stub);
-                previousReponse = await deleteStubByIndex({
+                previousResponse = await deleteStubByIndex({
                     providerUrl,
                     imposterPort,
                     stubIndex,
@@ -130,7 +134,7 @@ export async function deleteStubsByID({
             }
         }
     }
-    return previousReponse;
+    return previousResponse;
 }
 
 export async function deleteStubByIndex({

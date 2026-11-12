@@ -15,10 +15,14 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
 - **Two ways to use it, both supported:**
   - **Client (core):** talks to any running mountebank server (Docker, CLI, remote). Must not require `mountebank` to be installed.
   - **Server (optional):** starts mountebank inside the Node process. It lives behind its own entry point and
-    `mountebank` is an optional peer dependency. Code in the core must never import `mountebank`.
+    `@mbtest/mountebank` is an optional peer dependency. Code in the core must never import mountebank at load
+    time (it pulls in ES-module-only packages that Jest can't load); `startMountebank` loads it lazily.
 - **Test helpers:** a runner-agnostic core (start / reset / stop) plus thin Jest and Playwright helpers as
   optional entry points. The core must not import Jest or Playwright.
-- **Runtime:** Node 18+. Use the built-in `fetch`; do not add HTTP client libraries (axios is being removed).
+- **mountebank package:** `@mbtest/mountebank` (the old `mountebank` package stopped at 2.9.1). A local clone for
+  reading its source can live in `temp/mountebank` (git-ignored); never import from it.
+- **Runtime:** Node 20.19+ (mountebank's own minimum); `.nvmrc` pins 22 for development. Use the built-in `fetch`;
+  do not add HTTP client libraries (axios is being removed).
 
 ## API design rules
 
@@ -47,10 +51,11 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
 ## Commands
 
 ```bash
+nvm use                 # Node 22 from .nvmrc
 yarn install            # yarn is the package manager; never commit package-lock.json
 npx tsc --noEmit -p .   # type check
 yarn test:unit
-yarn test:integration   # starts a real mountebank server on port 2525
+yarn test:integration   # starts a real mountebank server on port 2525; port must be free, or it waits for a prompt
 yarn format             # Prettier: single quotes, 4-space indent, 120 columns
 ```
 

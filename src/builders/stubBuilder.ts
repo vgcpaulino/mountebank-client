@@ -75,7 +75,9 @@ export class StubBuilder {
         headers,
         body,
         data,
+        wait,
         decorate,
+        chaos,
         repeat,
         copyFromHeader,
         copyFromPath,
@@ -88,7 +90,9 @@ export class StubBuilder {
                 headers,
                 body,
                 data,
+                wait,
                 decorate,
+                chaos,
                 repeat,
                 copyFromHeader,
                 copyFromPath,
@@ -104,8 +108,8 @@ export class StubBuilder {
         return this;
     }
 
-    proxyResponse({ url, proxyMode, decorate, wait }: ProxyResponseBuilder) {
-        this.responses.push(new ResponseBuilder({ url, proxyMode, decorate, wait }).generateProxy());
+    proxyResponse({ url, proxyMode, decorate, wait, chaos }: ProxyResponseBuilder) {
+        this.responses.push(new ResponseBuilder({ url, proxyMode, decorate, wait, chaos }).generateProxy());
         return this;
     }
 

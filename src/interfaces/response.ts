@@ -1,8 +1,9 @@
-import { Behavior, ICopyFromHeaderQuery, ICopyFromPathBody } from './behavior';
+import { Behavior, Chaos, ICopyFromHeaderQuery, ICopyFromPathBody } from './behavior';
 import { DecorateFunctionType, ProxyModeTypes, ResponseRecord } from './types';
 
 interface CommonBuilder {
     decorate?: string | string[] | DecorateFunctionType | DecorateFunctionType[];
+    chaos?: Chaos;
 }
 
 export interface IsResponseBuilder extends CommonBuilder, Omit<IsResponse, 'statusCode'> {

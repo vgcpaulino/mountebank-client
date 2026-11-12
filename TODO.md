@@ -4,9 +4,10 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 ## 1. Bugs
 
-- [ ] `startMountebank` doesn't await `create()` before adding imposters, so the first `addImposter` can hit a
+- [x] `startMountebank` doesn't await `create()` before adding imposters, so the first `addImposter` can hit a
       server that isn't listening yet (`src/server/mountebankServer.ts`).
-- [ ] `allowInjection` option is ignored: a hardcoded `'allow-injection': true` overrides it.
+- [x] `allowInjection` option is ignored: a hardcoded `'allow-injection': true` overrides it.
+- [x] `StubBuilder.response()` dropped the `wait` option, so it never reached mountebank.
 - [ ] `startMountebank` writes `mb.pid` and `mb.log` into the consumer's working directory and allows connections from
       any IP (`ipWhitelist: ['*']`). Make them options with safe defaults (no files, local only).
 - [ ] `addImposter` silently returns on a 400 (e.g. port already in use). Surface it as an error.
@@ -21,14 +22,15 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 ## 2. Packaging (blocks publishing)
 
-- [ ] Pick a package name: `mountebank-client` is taken on npm. Free as of 2026-11-12: `mountebank-builder`,
-      `mountebank-fluent`, `mb-builder`.
+- [x] Package name: `mountebank-client` is already ours on npm (1.0.2 published 2025-02-06).
 - [ ] Fix `package.json`: `main`/`types`/`exports` point at `dist/`, add `files`, `engines: { node: ">=18" }`,
       `prepublishOnly` build, description, author, repository, keywords. Reset version to `0.x`.
 - [ ] Fix license mismatch: `package.json` says ISC but `LICENSE` is MIT.
 - [ ] Split entry points: core client/builders (no `mountebank` import), `./server` (in-process server), `./jest`
       and `./playwright` helpers.
-- [ ] Make `mountebank` an optional peer dependency instead of a dependency.
+- [ ] Make `@mbtest/mountebank` an optional peer dependency instead of a dependency.
+- [ ] Replace the pinned `@mbtest/mountebank@2.9.6-beta.10697` with `^2.9.6` once 2.9.6 is released (the beta is
+      needed for the `chaos` behavior).
 - [ ] Stop relying on the `declare module 'mountebank/src/mountebank'` shim in `index.d.ts` leaking into consumers'
       types; keep internal typings private to the server entry point.
 - [ ] Exclude `src/start.ts` and other dev-only files from `dist/`.
@@ -48,9 +50,16 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       assert "was called with ...").
 - [ ] Make naming consistent: friendly names everywhere (`status` → `statusCode` mapping already exists; audit the
       rest), and clean up interface names (`IsResponseBuilder` vs `IResponseBuilder`, `IDefaultResponse`).
-- [ ] Remove the deprecated `addDefaultReponse` alias.
+- [x] Remove the deprecated `addDefaultReponse` alias (renamed on main without an alias).
 - [ ] Type `Config.state` (generic parameter) instead of `any`.
 - [ ] Add a logger option; no `console.*` in library code.
+
+## 4a. Keeping up with mountebank
+
+- [x] Switch from `mountebank` to `@mbtest/mountebank` (renamed in 2.9.2) and require Node 20.19+.
+- [x] Support the `chaos` behavior (mountebank 2.9.6): `chaos: { errorRate, errorStatus, latencyRate, maxLatency }`
+      on `response()` and `proxyResponse()`.
+- [x] Support `allowCORS` on imposters (mountebank 2.9.2).
 
 ## 5. Test helpers
 

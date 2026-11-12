@@ -1,1 +1,1 @@
-declare module 'mountebank/src/mountebank'; 
+declare module '@mbtest/mountebank/src/mountebank';

@@ -1,5 +1,7 @@
 import {
     Behavior,
+    Chaos,
+    ChaosBehavior,
     CopyBehavior,
     ICopyFromHeaderQuery,
     ICopyFromPathBody,
@@ -32,6 +34,7 @@ export class ResponseBuilder {
         copyFromQuery,
         url,
         proxyMode,
+        chaos,
     }: IResponseBuilder) {
         this.behaviors = [];
 
@@ -62,6 +65,11 @@ export class ResponseBuilder {
         this.addCopyFromHeaderQuery({ type: 'query', copyFrom: copyFromQuery });
         this.addCopyFromPathBody({ from: 'path', copyFrom: copyFromPath });
         this.addCopyFromPathBody({ from: 'body', copyFrom: copyFromBody });
+
+        // Last, so an injected error replaces whatever the other behaviors produced.
+        if (chaos) {
+            this.addChaos(chaos);
+        }
     }
 
     private handleIsResponse({ body, headers, status, data }: IsResponseBuilder) {
@@ -142,17 +150,33 @@ export class ResponseBuilder {
         return this;
     }
 
+    addChaos({ errorRate, errorStatus, latencyRate, maxLatency }: Chaos) {
+        assertRate('errorRate', errorRate);
+        assertRate('latencyRate', latencyRate);
+        assertNonNegativeInteger('errorStatus', errorStatus);
+        assertNonNegativeInteger('maxLatency', maxLatency);
+
+        const chaos: ChaosBehavior = {};
+        if (errorRate !== undefined) chaos.errorRate = errorRate;
+        if (errorStatus !== undefined) chaos.errorStatusCode = errorStatus;
+        if (latencyRate !== undefined) chaos.latencyRate = latencyRate;
+        if (maxLatency !== undefined) chaos.maxLatencyMs = maxLatency;
+
+        this.behaviors.push({ chaos });
+        return this;
+    }
+
     addDecorate(decorate: string) {
         this.behaviors.push({ decorate: decorate });
     }
 
     generate(): StandardResponse {
-        const isReponse: StandardResponse = {
+        const isResponse: StandardResponse = {
             is: this.is,
             behaviors: this.behaviors,
             repeat: this.repeat,
         };
-        return isReponse;
+        return isResponse;
     }
 
     generateProxy(): ProxyResponse {
@@ -161,5 +185,17 @@ export class ResponseBuilder {
             behaviors: this.behaviors,
         };
         return proxy;
+    }
+}
+
+function assertRate(name: string, value?: number) {
+    if (value !== undefined && !(typeof value === 'number' && value >= 0 && value <= 1)) {
+        throw new Error(`chaos.${name} must be a number between 0 and 1, got ${value}`);
+    }
+}
+
+function assertNonNegativeInteger(name: string, value?: number) {
+    if (value !== undefined && !(Number.isInteger(value) && value >= 0)) {
+        throw new Error(`chaos.${name} must be a non-negative integer, got ${value}`);
     }
 }
