@@ -29,9 +29,12 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
 
 - **Friendly names in the public API, mapped internally.** E.g. users write `status`, the builder emits
   mountebank's `statusCode`. Keep names consistent across all builders; don't mix the two styles.
-- **Breaking changes are allowed until 1.0.** The package is unpublished. Prefer the right design over backwards
-  compatibility, and note each breaking change in the changelog once one exists. Don't keep deprecated aliases
-  unless asked.
+- **Breaking changes are allowed, but every one is recorded.** `mountebank-client` 1.0.2 is published, and the
+  version of the next release is decided when releasing, not up front. Any change that can break existing users
+  (a removed or renamed API, a changed default, a new error where there was none, a higher minimum Node or
+  mountebank version) gets an entry under **Unreleased → Breaking** in [CHANGELOG.md](CHANGELOG.md), in the same
+  PR, saying what changed and what users must do. Other user-visible changes go under Added / Changed / Fixed.
+  Prefer the right design over backwards compatibility; don't keep deprecated aliases unless asked.
 - **No global state for configuration.** Server URL and ports should come from a client instance or explicit
   options; env vars may only provide defaults.
 - **Errors must be useful:** include the operation, HTTP status and mountebank's own error message. Never swallow a
@@ -125,6 +128,7 @@ A change is done only when **all** of these hold:
 4. New behavior and bug fixes come with tests that cover them.
 5. Skills and README match the change (see "Keeping the skills in sync"), or the change doesn't touch public
    behavior.
+6. User-visible changes have a CHANGELOG.md entry under "Unreleased", and breaking ones are under "Breaking".
 
 If any of these can't be run, say so explicitly rather than claiming the change is done.
 

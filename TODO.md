@@ -27,9 +27,10 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 ## 2. Packaging (blocks publishing)
 
 - [x] Package name: `mountebank-client` is already ours on npm (1.0.2 published 2025-02-06).
-- [ ] Fix `package.json`: `main`/`types`/`exports` point at `dist/`, add `files`, `engines: { node: ">=18" }`,
-      `prepublishOnly` build, description, author, repository, keywords. Reset version to `0.x`.
-- [ ] Fix license mismatch: `package.json` says ISC but `LICENSE` is MIT.
+- [x] Fix `package.json`: `main`/`types` point at `dist/`, `files`, `engines` (Node >= 20.19), a build on
+      `prepare`, description, author, keywords.
+- [ ] Finish `package.json`: add `exports` (decide together with the entry-point split below) and `repository`.
+- [x] Fix license mismatch: `package.json` says ISC but `LICENSE` is MIT. (Both MIT now.)
 - [ ] Split entry points: core client/builders (no `mountebank` import), `./server` (in-process server), `./jest`
       and `./playwright` helpers.
 - [ ] Make `@mbtest/mountebank` an optional peer dependency instead of a dependency.
@@ -37,19 +38,21 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       have the native `chaos` behavior: `chaos` defaults to an injected `decorate` that works on 2.9.5, and the
       `implementation: 'native'` integration tests skip themselves below 2.9.6. After the bump, consider making
       `'native'` the default (no injection needed), and update the README and the faults/setup skills.
-- [ ] Stop relying on the `declare module 'mountebank/src/mountebank'` shim in `index.d.ts` leaking into consumers'
-      types; keep internal typings private to the server entry point.
+- [ ] Keep the `declare module '@mbtest/mountebank/src/mountebank'` shim (`src/types/mountebank.d.ts`, plus a stale
+      copy in the root `index.d.ts` that tsconfig no longer includes) out of consumers' types; keep internal typings
+      private to the server entry point, and delete the root copy.
 - [ ] Exclude `src/start.ts` and other dev-only files from `dist/`.
 - [ ] GraphQL with `startMountebank` needs a `protocols.json` in the consumer's working directory (it's read from
       `./protocols.json` and isn't shipped). Generate it or ship it, so GraphQL works without manual setup.
 
 ## 3. Project layout
 
-- [ ] Move the users-service demo (`src/stubs/`, `src/imposters/`, `src/main.ts`) to `examples/`; update
-      `start:dev` and `tests/e2e/users.example.spec.ts`.
-- [ ] Decide what to do with `src/helpers/` (sample imposters): move to `examples/` or delete.
+- [ ] Move the users-service demo (`src/stubs/`, `src/imposters/`) to `examples/`: it currently ships in `dist/`.
+      Update `tests/e2e/users.example.spec.ts`, and the `start:dev` script, which still points at the deleted
+      `src/main.ts`. (`examples/` is git-ignored; un-ignore it or pick another folder.)
+- [x] Decide what to do with `src/helpers/` (sample imposters): move to `examples/` or delete. (Deleted in #30.)
 
-## 4. API redesign (breaking changes OK until 1.0)
+## 4. API redesign (breaking changes: record each in CHANGELOG.md; the version is chosen at release time)
 
 - [ ] Replace the global functions plus env-var defaults with a client instance, e.g.
       `createClient({ url })` → `client.imposter(8080).stub(...)`.
@@ -60,7 +63,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       rest), and clean up interface names (`IsResponseBuilder` vs `IResponseBuilder`, `IDefaultResponse`).
 - [x] Remove the deprecated `addDefaultReponse` alias (renamed on main without an alias).
 - [ ] Type `Config.state` (generic parameter) instead of `any`.
-- [ ] Add a logger option; no `console.*` in library code.
+- [ ] Add a logger option (library code no longer uses `console.*`).
 
 ## 4a. Keeping up with mountebank
 
@@ -77,12 +80,12 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 ## 6. Tooling
 
-- [ ] Replace axios with the built-in `fetch` (Node 18+).
+- [ ] Replace axios with the built-in `fetch` (available on our Node 20.19+ minimum).
 - [ ] Replace TSLint with ESLint (typescript-eslint) + Prettier; wire up the existing `.eslintrc.js` and update
       `yarn lint`.
 - [ ] Upgrade TypeScript (4.7) and raise `target` from `es2016`.
-- [ ] Add CI (GitHub Actions): type check, unit and integration tests on Node 18/20/22.
-- [ ] Add a release workflow and a CHANGELOG.
+- [ ] Add CI (GitHub Actions): type check, unit and integration tests on Node 20 (>= 20.19), 22 and 24.
+- [ ] Add a release workflow. (CHANGELOG.md exists; the release moves its "Unreleased" section under the new version.)
 
 ## 7. Documentation
 
