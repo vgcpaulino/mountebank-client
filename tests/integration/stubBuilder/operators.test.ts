@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import { http, TestResponse } from '../../helpers/http';
 import { Config, ImposterBuilder, StubBuilder } from '../../../src';
 import { randomUUID } from 'crypto';
 import { testPort } from '../../config/ports';
@@ -36,12 +36,12 @@ describe('Stub Builder', () => {
         await stub.addStub();
 
         const guid = randomUUID();
-        let response: AxiosResponse;
-        response = await axios.get(`http://localhost:${imposterPort}/users/${guid}/details`);
+        let response: TestResponse;
+        response = await http.get(`http://localhost:${imposterPort}/users/${guid}/details`);
         expect(response.status).toBe(200);
         expect(response.data.id).toBe(guid);
 
-        response = await axios.get(`http://localhost:${imposterPort}/users/${guid}/`);
+        response = await http.get(`http://localhost:${imposterPort}/users/${guid}/`);
         expect(response.data.id).not.toBe(guid);
     });
 });

@@ -4,7 +4,7 @@ import { checkError, MountebankError } from './errorHelper';
 
 export { MountebankError } from './errorHelper';
 export type { MountebankErrorDetail, MountebankOperation } from './errorHelper';
-import axios from 'axios';
+import { request } from './http';
 
 const defaultProviderUrl = process.env['MOUNTEBANK_URL'] || 'http://localhost:2525';
 const defaultImposterPort = parseInt(process.env['MOUNTEBANK_IMPOSTER_DEFAULT_PORT'] || '') || 7117;
@@ -52,9 +52,7 @@ export async function addImposter({
         stubs,
     };
 
-    const response = await axios.post(`${providerUrl}/imposters`, stringify(body), {
-        validateStatus: null,
-    });
+    const response = await request('ADD_IMPOSTER', 'POST', `${providerUrl}/imposters`, body);
 
     checkError({ errorCode: 'ADD_IMPOSTER', response });
 }
@@ -64,14 +62,14 @@ export async function addImposter({
  * safe to call before (re)creating an imposter.
  */
 export async function deleteImposter({ providerUrl = defaultProviderUrl, port = defaultImposterPort } = {}) {
-    const response = await axios.delete(`${providerUrl}/imposters/${port}`, { validateStatus: null });
+    const response = await request('DELETE_IMPOSTER', 'DELETE', `${providerUrl}/imposters/${port}`);
 
     checkError({ errorCode: 'DELETE_IMPOSTER', response });
 }
 
 /** Lists every imposter on the server: its port, protocol, name and how many requests it received. */
 export async function getImposters({ providerUrl = defaultProviderUrl } = {}): Promise<ImposterSummary[]> {
-    const response = await axios.get(`${providerUrl}/imposters`, { validateStatus: null });
+    const response = await request('GET_IMPOSTERS', 'GET', `${providerUrl}/imposters`);
 
     checkError({ errorCode: 'GET_IMPOSTERS', response });
 
@@ -88,7 +86,7 @@ export async function getImposters({ providerUrl = defaultProviderUrl } = {}): P
  * start each test run (or test file) from a clean server.
  */
 export async function deleteImposters({ providerUrl = defaultProviderUrl } = {}) {
-    const response = await axios.delete(`${providerUrl}/imposters`, { validateStatus: null });
+    const response = await request('DELETE_IMPOSTERS', 'DELETE', `${providerUrl}/imposters`);
 
     checkError({ errorCode: 'DELETE_IMPOSTERS', response });
 }
@@ -112,9 +110,7 @@ export async function replaceStubs({
             builder.imposterPort = imposterPort;
         }
     });
-    const response = await axios.put(`${providerUrl}/imposters/${imposterPort}/stubs`, stringify({ stubs }), {
-        validateStatus: null,
-    });
+    const response = await request('REPLACE_STUBS', 'PUT', `${providerUrl}/imposters/${imposterPort}/stubs`, { stubs });
 
     checkError({ errorCode: 'REPLACE_STUBS', response });
 }
@@ -133,7 +129,7 @@ export async function getRequests({
     imposterPort?: number;
     filter?: RequestFilter;
 } = {}): Promise<RecordedRequest[]> {
-    const response = await axios.get(`${providerUrl}/imposters/${imposterPort}`, { validateStatus: null });
+    const response = await request('GET_REQUESTS', 'GET', `${providerUrl}/imposters/${imposterPort}`);
 
     checkError({ errorCode: 'GET_REQUESTS', response });
 
@@ -152,17 +148,13 @@ export async function getRequests({
 
 /** Forgets the requests the imposter at `imposterPort` recorded, and resets its request count. */
 export async function clearRequests({ providerUrl = defaultProviderUrl, imposterPort = defaultImposterPort } = {}) {
-    const response = await axios.delete(`${providerUrl}/imposters/${imposterPort}/savedRequests`, {
-        validateStatus: null,
-    });
+    const response = await request('CLEAR_REQUESTS', 'DELETE', `${providerUrl}/imposters/${imposterPort}/savedRequests`);
 
     checkError({ errorCode: 'CLEAR_REQUESTS', response });
 }
 
 export async function getImposter({ providerUrl = defaultProviderUrl, port = defaultImposterPort } = {}) {
-    const response = await axios.get(`${providerUrl}/imposters/${port}`, {
-        validateStatus: null,
-    });
+    const response = await request('GET_IMPOSTER', 'GET', `${providerUrl}/imposters/${port}`);
 
     checkError({ errorCode: 'GET_IMPOSTER', response });
 
@@ -180,11 +172,7 @@ export async function addStub({
     stub: Stub;
     defaultHeaders?: boolean;
 }) {
-    const response = await axios.post(
-        `${providerUrl}/imposters/${imposterPort}/stubs`,
-        stringify({ stub: { ...stub } }),
-        { validateStatus: null }
-    );
+    const response = await request('ADD_STUB', 'POST', `${providerUrl}/imposters/${imposterPort}/stubs`, { stub: { ...stub } });
 
     checkError({ errorCode: 'ADD_STUB', response });
 }
@@ -238,9 +226,7 @@ export async function deleteStubByIndex({
     imposterPort?: number;
     stubIndex?: string;
 } = {}) {
-    const response = await axios.delete(`${providerUrl}/imposters/${imposterPort}/stubs/${stubIndex}`, {
-        validateStatus: null,
-    });
+    const response = await request('DELETE_STUB', 'DELETE', `${providerUrl}/imposters/${imposterPort}/stubs/${stubIndex}`);
 
     checkError({ errorCode: 'DELETE_STUB', response });
 
@@ -248,9 +234,7 @@ export async function deleteStubByIndex({
 }
 
 export async function getLogs({ providerUrl = defaultProviderUrl } = {}) {
-    const response = await axios.get(`${providerUrl}/logs`, {
-        validateStatus: null,
-    });
+    const response = await request('GET_LOGS', 'GET', `${providerUrl}/logs`);
 
     checkError({ errorCode: 'GET_LOGS', response });
 
@@ -258,9 +242,6 @@ export async function getLogs({ providerUrl = defaultProviderUrl } = {}) {
     return logs;
 }
 
-const stringify = (object: Record<any, any>) => {
-    return JSON.stringify(object);
-};
 
 function getStubIndex(stub: Stub) {
     const href = stub._links?.self.href;

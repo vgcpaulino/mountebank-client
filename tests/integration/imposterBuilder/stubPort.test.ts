@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { http } from '../../helpers/http';
 import { deleteImposter, ImposterBuilder, StubBuilder } from '../../../src';
 import { mountebankUrl, testPort } from '../../config/ports';
 
@@ -17,7 +17,7 @@ describe("Imposter Builder - stubs use their imposter's port", () => {
         // Before the fix this went to the default port (7117) and failed.
         await remove.deleteStub();
 
-        const { stubs } = (await axios.get(`${mountebankUrl}/imposters/${imposterPort}`)).data;
+        const { stubs } = (await http.get(`${mountebankUrl}/imposters/${imposterPort}`)).data;
         expect(stubs.map((s: { stubID: string }) => s.stubID)).toEqual([keep.stubID]);
     });
 });

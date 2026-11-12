@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { addStub, deleteImposter, ImposterBuilder, MountebankError, StubBuilder } from '../../../src';
+import { http } from '../../helpers/http';
+import { addStub, deleteImposter, getImposters, ImposterBuilder, MountebankError, StubBuilder } from '../../../src';
 import { mountebankUrl, testPort } from '../../config/ports';
 
 const imposterPort = testPort(1118);
@@ -28,7 +28,7 @@ describe('Mountebank Client - errors', () => {
         await deleteImposter({ port });
         await new ImposterBuilder({ port, protocol: 'http' }).addImposter();
 
-        const response = await axios.get(`${mountebankUrl}/imposters/${port}`);
+        const response = await http.get(`${mountebankUrl}/imposters/${port}`);
         expect(response.status).toBe(200);
         await deleteImposter({ port });
     });
@@ -56,6 +56,16 @@ describe('Mountebank Client - errors', () => {
             name: 'MountebankError',
             operation: 'ADD_STUB',
             status: 404,
+        });
+    });
+
+    test('a server that does not answer gives a clear MountebankError, not a bare network error', async () => {
+        const providerUrl = `http://localhost:${testPort(1149)}`;
+
+        await expect(getImposters({ providerUrl })).rejects.toMatchObject({
+            name: 'MountebankError',
+            operation: 'GET_IMPOSTERS',
+            message: `Listing the imposters failed: can't reach mountebank at ${providerUrl} (ECONNREFUSED)`,
         });
     });
 });

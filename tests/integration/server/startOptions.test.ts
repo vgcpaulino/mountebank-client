@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { http } from '../../helpers/http';
 import * as os from 'os';
 import * as path from 'path';
 import { getLogs } from '../../../src';
@@ -10,7 +10,7 @@ describe('startMountebank - safe defaults', () => {
     let options: Record<string, any>;
 
     beforeAll(async () => {
-        options = (await axios.get(`${mountebankUrl}/config`)).data.options;
+        options = (await http.get(`${mountebankUrl}/config`)).data.options;
     });
 
     test('only accepts connections from this machine, by listening on 127.0.0.1', () => {

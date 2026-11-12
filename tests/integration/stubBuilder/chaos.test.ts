@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { http } from '../../helpers/http';
 import { ImposterBuilder, StubBuilder } from '../../../src';
 import { testPort } from '../../config/ports';
 
@@ -14,7 +14,7 @@ const [major, minor, patch] = mountebankVersion.split(/[.-]/).map(Number);
 const supportsNativeChaos = major > 2 || (major === 2 && (minor > 9 || (minor === 9 && patch >= 6)));
 const testNativeChaos = supportsNativeChaos ? test : test.skip;
 
-const get = (port: number, path: string) => axios.get(`http://localhost:${port}${path}`, { validateStatus: null });
+const get = (port: number, path: string) => http.get(`http://localhost:${port}${path}`);
 
 describe('Stub Builder - chaos and wait behaviors', () => {
     beforeAll(async () => {
@@ -129,7 +129,7 @@ describe('Stub Builder - chaos on a proxy', () => {
         }
 
         // proxyTransparent (the default with chaos) records no stubs: only ours is on the imposter.
-        const imposter = (await axios.get(`${process.env['MOUNTEBANK_URL']}/imposters/${proxyPort}`)).data;
+        const imposter = (await http.get(`${process.env['MOUNTEBANK_URL']}/imposters/${proxyPort}`)).data;
         expect(imposter.stubs).toHaveLength(1);
 
         await stub.deleteStub();

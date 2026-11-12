@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { ImposterBuilder } from '../builders/imposterBuilder';
 import { addImposter, deleteImposter } from '../client/mountebankClient';
 import { startMountebank, StartMountebankOptions } from '../server/mountebankServer';
@@ -65,7 +64,8 @@ export async function waitForMountebank({ url, timeout = 30000 }: { url: string;
     let lastError: unknown;
     while (Date.now() < deadline) {
         try {
-            const response = await axios.get(`${url.replace(/\/+$/, '')}/config`, { validateStatus: null });
+            const response = await fetch(`${url.replace(/\/+$/, '')}/config`);
+            await response.body?.cancel();
             if (response.status === 200) {
                 return;
             }

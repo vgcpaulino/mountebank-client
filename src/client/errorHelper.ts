@@ -1,4 +1,4 @@
-import { AxiosResponse } from 'axios';
+import type { HttpResponse } from './http';
 
 export type MountebankOperation =
     | 'ADD_IMPOSTER'
@@ -98,7 +98,7 @@ export class MountebankError extends Error {
     }
 }
 
-export function checkError({ errorCode, response }: { errorCode: MountebankOperation; response: AxiosResponse }) {
+export function checkError({ errorCode, response }: { errorCode: MountebankOperation; response: HttpResponse }) {
     if (response.status !== successStatus[errorCode]) {
         const data = response.data;
         const errors: MountebankErrorDetail[] = Array.isArray(data?.errors) ? data.errors : [];

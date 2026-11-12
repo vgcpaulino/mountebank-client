@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { http } from '../../helpers/http';
 import { ImposterBuilder, StubBuilder } from '../../../src';
 import { mountebankUrl, testPort } from '../../config/ports';
 
@@ -21,7 +21,7 @@ describe('Stub Builder', () => {
 
         await stub.addStub();
 
-        const response = await axios.get(`${mountebankUrl}/imposters/${imposterPort}`);
+        const response = await http.get(`${mountebankUrl}/imposters/${imposterPort}`);
         expect(response.status).toBe(200);
         expect(response.data.port).toBe(imposterPort);
 
@@ -30,7 +30,7 @@ describe('Stub Builder', () => {
         expect(stubResponse.stubID).not.toBeUndefined();
 
         await stub.deleteStub();
-        const responseAfterDelete = await axios.get(`${mountebankUrl}/imposters/${imposterPort}`);
+        const responseAfterDelete = await http.get(`${mountebankUrl}/imposters/${imposterPort}`);
         expect(responseAfterDelete.status).toBe(200);
         expect(responseAfterDelete.data.stubs.length).toBe(0);
     });
