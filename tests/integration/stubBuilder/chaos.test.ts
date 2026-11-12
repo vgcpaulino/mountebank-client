@@ -4,13 +4,20 @@ import { testPort } from '../../config/ports';
 
 const imposterPort = testPort(1115);
 
+// The chaos behavior exists from mountebank 2.9.6 on; older servers reject it as "Unrecognized behavior".
+// These tests switch themselves on once the installed mountebank supports it.
+const { version: mountebankVersion } = require('@mbtest/mountebank/package.json');
+const [major, minor, patch] = mountebankVersion.split(/[.-]/).map(Number);
+const supportsChaos = major > 2 || (major === 2 && (minor > 9 || (minor === 9 && patch >= 6)));
+const testChaos = supportsChaos ? test : test.skip;
+
 describe('Stub Builder - chaos and wait behaviors', () => {
     beforeAll(async () => {
         const imposter = new ImposterBuilder({ port: imposterPort, protocol: 'http' });
         await imposter.addImposter();
     });
 
-    test('injects the configured error status when errorRate is 1', async () => {
+    testChaos('injects the configured error status when errorRate is 1', async () => {
         const stub = new StubBuilder({ imposterPort })
             .get('/chaos/error')
             .response({ status: 200, body: { ok: true }, chaos: { errorRate: 1, errorStatus: 503 } });
@@ -23,7 +30,7 @@ describe('Stub Builder - chaos and wait behaviors', () => {
         await stub.deleteStub();
     });
 
-    test('leaves the response alone when the rates are 0', async () => {
+    testChaos('leaves the response alone when the rates are 0', async () => {
         const stub = new StubBuilder({ imposterPort })
             .get('/chaos/none')
             .response({ status: 200, body: { ok: true }, chaos: { errorRate: 0, latencyRate: 0 } });
