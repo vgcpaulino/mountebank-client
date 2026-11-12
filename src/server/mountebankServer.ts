@@ -3,6 +3,7 @@ import * as path from 'path';
 import { Imposter, LogLevel } from '../interfaces';
 import { createClient } from '../client/mountebankClient';
 import { loadMountebank } from './loadMountebank';
+import { resolveProtofile } from './protocols';
 
 export interface StartMountebankOptions {
     /** Port for mountebank's own API. Defaults to 2525. */
@@ -25,6 +26,13 @@ export interface StartMountebankOptions {
      * choosing one). Turn it on when, for example, a container or another host has to reach the imposters.
      */
     allowRemoteConnections?: boolean;
+    /**
+     * The JSON file that tells mountebank how to run custom protocols, such as GraphQL through mb-graphql. By
+     * default, `./protocols.json` is used when the working directory has one; otherwise, when `mb-graphql` is
+     * installed, one is generated in the system temp folder, so GraphQL imposters need no setup. Pass a path to use
+     * your own file, or `false` to load no custom protocols.
+     */
+    protofile?: string | false;
 }
 
 export const startMountebank = async ({
@@ -34,6 +42,7 @@ export const startMountebank = async ({
     logLevel = 'info',
     logFile = path.join(os.tmpdir(), `mountebank-client-${port}.log`),
     allowRemoteConnections = false,
+    protofile,
 }: StartMountebankOptions) => {
     const startOptions = {
         debug: false,
@@ -52,7 +61,7 @@ export const startMountebank = async ({
         'ip-whitelist': '*',
         mock: false,
         heroku: false,
-        protofile: './protocols.json',
+        protofile: resolveProtofile({ protofile, port }),
         origin: false,
         log: {
             level: logLevel,
