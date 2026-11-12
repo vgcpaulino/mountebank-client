@@ -33,7 +33,7 @@ await new ImposterBuilder({ port, protocol: 'http', name: 'users-service' })
     .addImposter();
 
 // Later, e.g. inside a single test, add a stub to the running imposter.
-// Pass imposterPort: without it the stub goes to port 7117.
+// A stub created on its own needs imposterPort: without it the stub goes to port 7117.
 const stub = await new StubBuilder({ imposterPort: port })
     .post('/users')
     .response({ status: 201, body: { id: 2 } })
@@ -49,7 +49,7 @@ await stub.deleteStub();
 ```ts
 new ImposterBuilder({ port, protocol, name?, allowCORS?, schema? })
     .addDefaultResponse({ status, headers?, body? })
-    .addStub(stub)           // a StubBuilder; no imposterPort needed here
+    .addStub(stub)           // a StubBuilder; it takes on this imposter's port (unless it already has one)
     .addStubs([stubA, stubB])
     .addImposter();          // async: POSTs the imposter to mountebank
 ```
@@ -195,7 +195,8 @@ port, in the right order?) and then `getLogs()`.
 
 - Use the builders and their friendly names (`status`, `errorStatus`, `maxLatency`). Don't paste mountebank JSON
   (`statusCode`, `is`, `behaviors`) into builder options; the builders produce it.
-- Always pass `imposterPort` to a `StubBuilder` you add on its own with `.addStub()`.
+- Pass `imposterPort` to a `StubBuilder` you create on its own and add with `.addStub()`. A stub you hand to an
+  `ImposterBuilder` takes on that imposter's port, so its `deleteStub()` works without one.
 - Give every test file its own imposter port so parallel workers don't share stubs.
 - The library's API is still changing (see the repository's TODO.md). If an example here doesn't type-check, trust
   the package's type definitions and its tests over this skill.
