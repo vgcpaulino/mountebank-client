@@ -30,8 +30,9 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       and `./playwright` helpers.
 - [ ] Make `@mbtest/mountebank` an optional peer dependency instead of a dependency.
 - [ ] Bump `@mbtest/mountebank` to `^2.9.6` once it's released. We stay on the latest stable (2.9.5), which doesn't
-      have the `chaos` behavior yet: the builder emits it, but a 2.9.5 server rejects it. The chaos integration tests
-      skip themselves below 2.9.6 and run again after the bump.
+      have the native `chaos` behavior: `chaos` defaults to an injected `decorate` that works on 2.9.5, and the
+      `implementation: 'native'` integration tests skip themselves below 2.9.6. After the bump, consider making
+      `'native'` the default (no injection needed), and update the README and the faults/setup skills.
 - [ ] Stop relying on the `declare module 'mountebank/src/mountebank'` shim in `index.d.ts` leaking into consumers'
       types; keep internal typings private to the server entry point.
 - [ ] Exclude `src/start.ts` and other dev-only files from `dist/`.
@@ -84,6 +85,11 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] Write the README: what it is, install, quick start for client and server, builders. (Add test helpers once
       they exist.)
 - [x] Document the `decorate` limitation: the function is sent as source text and can't use outer variables or imports.
+- [x] Agent Skills in `skills/` (stubs, setup, decorate, GraphQL, faults) plus a Claude Code plugin manifest.
+- [ ] Keep `skills/` in sync with the API redesign (section 4) and the bug fixes in section 1: several skills
+      describe current pitfalls (silent 400 on `addImposter`, default port 7117, `deleteStub` crash) as workarounds.
+- [x] Ship `skills/` in the npm package, so users can install the skills matching their installed version
+      (`npx skills add ./node_modules/mountebank-client`, or `npx skills experimental_sync`).
 
 ## 8. Examples
 

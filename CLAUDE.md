@@ -48,6 +48,12 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
   `src/server/` — the optional in-process server.
 - `examples/` — runnable demos (e.g. the users-service demo). Never imported by `src/`, never shipped.
 - `tests/unit/` and `tests/integration/` — Jest. `tests/e2e/` — Playwright examples (not run by Jest).
+- `skills/` — Agent Skills for people using the package. They use the open `SKILL.md` format
+  ([agentskills.io](https://agentskills.io)) and must work in any agent that supports it, not just Claude Code: use
+  only the standard frontmatter (`name`, `description`), no agent-specific tools or wording. They ship in the npm package
+  (`files` in `package.json`) and install with `npx skills add` (any agent, from GitHub or `node_modules`) or as a
+  Claude Code plugin via `.claude-plugin/`. They document the public API and
+  its current pitfalls, and must stay in sync with it (see below).
 
 ## Commands
 
@@ -64,6 +70,32 @@ When port 2525 is already taken (a dev server, or a run from another worktree), 
 stopping the other process: `MB_TEST_PORT_OFFSET=1000 yarn test:integration` runs the server on 3525 and imposter
 1111 on 2111. Work in a git worktree when the main checkout has someone else's uncommitted changes.
 
+## Keeping the skills in sync
+
+The skills are documentation that coding agents follow literally, so a stale skill makes agents write broken code.
+**Any change to public behavior updates the affected skills in the same change** (same PR), along with the README.
+That includes new options, renamed or removed APIs, changed defaults, fixed bugs that a skill documents as a pitfall
+or workaround, and a new minimum mountebank or Node version.
+
+Which skill covers what:
+
+| Area of the change                                                                 | Skill                 |
+| ---------------------------------------------------------------------------------- | --------------------- |
+| `ImposterBuilder`, `StubBuilder` matching and responses, `copyFrom…`, deleting stubs, `getImposter` / `getLogs` | `mountebank-stubs`    |
+| `startMountebank`, env vars, client URLs/ports, Docker/CLI, test-runner wiring, error handling | `mountebank-setup`    |
+| `decorate`, `Config`, `config.state`                                               | `mountebank-decorate` |
+| `wait`, `chaos`, `multipleResponses`, default responses, `proxyResponse`            | `mountebank-faults`   |
+| GraphQL imposters, `any()`, `protocols.json`, `mb-graphql`                          | `mountebank-graphql`  |
+
+When updating a skill:
+
+- Search all skills for the old name or behavior (`grep -rn` in `skills/`). Pitfalls are often repeated in
+  `mountebank-setup`'s troubleshooting table.
+- When a bug fix removes a pitfall, delete the warning and its workaround; don't leave "this used to…" notes.
+- Keep examples compiling against the current API, and keep each `description` in the frontmatter accurate, since
+  it decides when the skill is used.
+- If a change adds a new area no skill covers, extend the closest skill or add a new one and list it here.
+
 ## Definition of done
 
 A change is done only when **all** of these hold:
@@ -72,6 +104,8 @@ A change is done only when **all** of these hold:
 2. `yarn test:unit` passes.
 3. `yarn test:integration` passes.
 4. New behavior and bug fixes come with tests that cover them.
+5. Skills and README match the change (see "Keeping the skills in sync"), or the change doesn't touch public
+   behavior.
 
 If any of these can't be run, say so explicitly rather than claiming the change is done.
 
