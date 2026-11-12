@@ -1,14 +1,6 @@
-export * from './server/mountebankServer';
+// The client, builders and test-reset helpers. Starting mountebank in-process lives in `mountebank-client/server`,
+// so this entry point never needs mountebank installed.
 export * from './client/mountebankClient';
 export * from './builders';
 export * from './interfaces';
 export * from './testing';
-
-
-export { startMountebank } from './server/mountebankServer';
-export { addStub } from './client/mountebankClient';
-export { ImposterBuilder } from './builders/imposterBuilder';
-export { ResponseBuilder } from './builders/responseBuilder';
-export { PredicateBuilder } from './builders/predicateBuilder';
-export { StubBuilder } from './builders/stubBuilder';
-export { Config } from './interfaces/config';

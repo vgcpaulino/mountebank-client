@@ -9,6 +9,13 @@ Changes since 1.0.2.
 
 ### Breaking
 
+- **Starting mountebank moved to `mountebank-client/server`.** Import `startMountebank` and `setupMountebank` from
+  there; the package root no longer exports them.
+- **mountebank isn't installed with the package any more.** `@mbtest/mountebank` and `mb-graphql` are now optional peer
+  dependencies, so clients of an external server (Docker, `mb`, remote) don't install mountebank at all. To start
+  mountebank from your tests (`startMountebank`, `setupMountebank`, `jestGlobalSetup`, `playwrightGlobalSetup`),
+  install `@mbtest/mountebank` yourself, plus `mb-graphql` for GraphQL imposters. Without it, starting throws an error
+  that says what to install.
 - **mountebank is now `@mbtest/mountebank` (`^2.9.5`).** mountebank was renamed after 2.9.1, and the old `mountebank`
   package gets no more releases. If your project installs or imports `mountebank` itself, switch to
   `@mbtest/mountebank`.
@@ -49,7 +56,8 @@ Changes since 1.0.2.
 - **Test runner helpers:**
   - `mountebank-client/jest`: `jestGlobalSetup`, `jestGlobalTeardown` and `useImposters`.
   - `mountebank-client/playwright`: `playwrightGlobalSetup` and `withImposters`.
-  - From the package root, for any runner: `setupMountebank`, `resetImposters` and `waitForMountebank`.
+  - For any runner: `resetImposters` and `waitForMountebank` from the package root, and `setupMountebank` from
+    `mountebank-client/server`.
 
   They start mountebank once per run (or use an external server) and recreate the imposters before each test.
 - **Imposter lifecycle:** `getImposters()` lists every imposter, `deleteImposters()` removes them all, and

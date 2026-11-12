@@ -2,6 +2,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { Imposter, LogLevel } from '../interfaces';
 import { addImposter, deleteImposters } from '../client/mountebankClient';
+import { loadMountebank } from './loadMountebank';
 
 export interface StartMountebankOptions {
     /** Port for mountebank's own API. Defaults to 2525. */
@@ -64,11 +65,7 @@ export const startMountebank = async ({
             },
         },
     };
-    // Loaded lazily so importing this package never loads mountebank itself
-    // (it's only needed to start a server in-process).
-    const mountebank = (await import('@mbtest/mountebank/src/mountebank.js')) as {
-        create: (options: typeof startOptions) => Promise<{ close: (callback?: () => void) => void }>;
-    };
+    const mountebank = await loadMountebank();
     const server = await mountebank.create(startOptions);
 
     // mountebank's close() only stops its own API server: the imposters (and mb-graphql processes) keep listening

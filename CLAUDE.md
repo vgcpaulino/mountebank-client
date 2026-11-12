@@ -48,8 +48,10 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
 
 - `src/` — library source only. Everything here ships in the package.
 - `src/client/` — REST calls to mountebank. `src/builders/` — fluent builders. `src/interfaces/` — types.
-  `src/server/` — the optional in-process server. `src/testing/` — test helpers: the core (exported from the root)
-  and the `./jest` and `./playwright` entry points. The core never imports Jest or Playwright; `playwright.ts` only
+  `src/server/` — the `./server` entry point: `startMountebank`, `setupMountebank`, and `loadMountebank`, the only
+  place that loads `@mbtest/mountebank` (an optional peer dependency, so the root must work without it).
+  `src/testing/` — test helpers: `resetImposters` / `waitForMountebank` (exported from the root) and the `./jest` and
+  `./playwright` entry points. The core never imports Jest or Playwright; `playwright.ts` only
   imports Playwright's types.
 - `examples/users-service/` — the tracked demo (`yarn start:dev`). Other files in `examples/` are personal and
   git-ignored. Never imported by `src/`, never shipped.
@@ -117,7 +119,7 @@ Which skill covers what:
 | Area of the change                                                                 | Skill                 |
 | ---------------------------------------------------------------------------------- | --------------------- |
 | `ImposterBuilder`, `StubBuilder` matching and responses, `copyFrom…`, deleting stubs/imposters, `getImposter(s)` / `deleteImposters` / `replaceStubs` / `getLogs`, `MountebankError` | `mountebank-stubs`    |
-| `startMountebank`, env vars, client URLs/ports, Docker/CLI, test helpers (`mountebank-client/jest`, `/playwright`, `setupMountebank`, `resetImposters`), troubleshooting | `mountebank-setup`    |
+| `startMountebank` / `mountebank-client/server`, installing mountebank, env vars, client URLs/ports, Docker/CLI, test helpers (`mountebank-client/jest`, `/playwright`, `setupMountebank`, `resetImposters`), troubleshooting | `mountebank-setup`    |
 | `decorate`, `Config`, `config.state`                                               | `mountebank-decorate` |
 | `wait`, `chaos`, `multipleResponses`, default responses, `proxyResponse`            | `mountebank-faults`   |
 | GraphQL imposters, `any()`, `protocols.json`, `mb-graphql`                          | `mountebank-graphql`  |
