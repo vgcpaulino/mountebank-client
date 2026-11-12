@@ -1,17 +1,39 @@
+import * as os from 'os';
+import * as path from 'path';
 import { Imposter, LogLevel } from '../interfaces';
-import { addImposter, addStub } from '../client/mountebankClient';
+import { addImposter } from '../client/mountebankClient';
+
+export interface StartMountebankOptions {
+    /** Port for mountebank's own API. Defaults to 2525. */
+    port?: number;
+    /** Let mountebank run JavaScript you send it (needed for `decorate` and the default `chaos`). Defaults to true. */
+    allowInjection?: boolean;
+    /** Imposters to create once the server is listening. */
+    imposters?: Imposter[];
+    /** Defaults to 'info'. */
+    logLevel?: LogLevel;
+    /**
+     * Where mountebank writes its log, which `getLogs()` reads. Defaults to a file in the system temp folder, so
+     * nothing is written into your project. Pass a path to choose the file, or `false` to write no log file
+     * (`getLogs()` then returns only a "No logfile" entry).
+     */
+    logFile?: string | false;
+    /**
+     * Accept connections (to mountebank's API and to every imposter) from other machines. Defaults to false: only
+     * this machine's own addresses may connect. Turn it on when, for example, a container or another host has to
+     * reach the imposters.
+     */
+    allowRemoteConnections?: boolean;
+}
 
 export const startMountebank = async ({
     port = 2525,
     allowInjection = true,
     imposters = [],
     logLevel = 'info',
-}: {
-    port?: number;
-    allowInjection?: boolean;
-    imposters?: Imposter[];
-    logLevel?: LogLevel;
-}) => {
+    logFile = path.join(os.tmpdir(), `mountebank-client-${port}.log`),
+    allowRemoteConnections = false,
+}: StartMountebankOptions) => {
     const startOptions = {
         debug: false,
         allowInjection,
@@ -19,9 +41,9 @@ export const startMountebank = async ({
         port,
         noParse: false,
         'no-parse': false,
-        pidfile: 'mb.pid',
-        localOnly: false,
-        'local-only': false,
+        // localOnly limits connections to this machine's own IP addresses.
+        localOnly: !allowRemoteConnections,
+        'local-only': !allowRemoteConnections,
         ipWhitelist: ['*'],
         'ip-whitelist': '*',
         mock: false,
@@ -35,7 +57,7 @@ export const startMountebank = async ({
                     colorize: true,
                     format: 'MockProvider: %level: %message',
                 },
-                file: { path: 'mb.log', format: 'json' },
+                ...(logFile === false ? {} : { file: { path: logFile, format: 'json' } }),
             },
         },
     };
