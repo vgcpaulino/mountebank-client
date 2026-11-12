@@ -85,9 +85,8 @@ await startMountebank({ port: 2525, imposters: [usersApi] });
 | `imposters`      | `[]`     | Imposters to create once the server is listening.                           |
 | `allowInjection` | `true`   | Lets mountebank run JavaScript you send it. Needed for `decorate`.          |
 | `logLevel`       | `'info'` | `'debug'`, `'info'`, `'warn'` or `'error'`.                                 |
-
-> **Note:** the server currently writes `mb.pid` and `mb.log` into your working directory and accepts connections from
-> any IP address. Making these configurable is on the [TODO list](TODO.md).
+| `logFile`        | a file in the system temp folder | Where mountebank writes the log that `getLogs()` reads. A path, or `false` for no log file. Nothing is written into your project. |
+| `allowRemoteConnections` | `false` | Accept connections from other machines. By default only this machine can reach mountebank and its imposters; turn it on when, e.g., a container or another host calls the imposters. |
 
 You can also add stubs to an imposter that's already running:
 
@@ -122,8 +121,9 @@ await new ImposterBuilder({ port: 7117, protocol: 'http' })
     .addImposter();
 ```
 
-> **Tip:** pass `imposterPort` to `new StubBuilder({ imposterPort })` whenever you call `stub.addStub()` yourself.
-> Without it the stub goes to the default port (7117), not to the imposter you might expect.
+> **Tip:** a stub added to an `ImposterBuilder` remembers that imposter's port, so a later `stub.deleteStub()` (or
+> `stub.addStub()`) goes to the right imposter. A stub you create on its own and add with `stub.addStub()` needs
+> `new StubBuilder({ imposterPort })`; without it, it goes to the default port (7117).
 
 ## Imposters
 

@@ -1,6 +1,6 @@
 ---
 name: mountebank-setup
-description: Run a mountebank server for tests that use the mountebank-client package and connect the client to it. Covers Docker, the mb CLI, starting mountebank in-process with startMountebank, the MOUNTEBANK_URL setting, Jest global setup, Playwright webServer, keeping tests isolated, and troubleshooting connection refused, port conflicts, stubs on the wrong port and disabled injection. Use when setting up or debugging the test infrastructure around mountebank-client.
+description: Run a mountebank server for tests that use the mountebank-client package and connect the client to it. Covers Docker, the mb CLI, starting mountebank in-process with startMountebank, the MOUNTEBANK_URL setting, Jest global setup, Playwright webServer, keeping tests isolated, and troubleshooting connection refused, remote connections, port conflicts, stubs on the wrong port and disabled injection. Use when setting up or debugging the test infrastructure around mountebank-client.
 ---
 
 # Running mountebank for mountebank-client
@@ -109,9 +109,14 @@ const server = await startMountebank({ port: 2525, imposters: [imposter], allowI
 await new Promise<void>((resolve) => server.close(resolve));
 ```
 
-Know what it does today: it writes `mb.pid` and `mb.log` into the current working directory, accepts connections
-from any IP, and reads `./protocols.json` (relative to the working directory) for the GraphQL protocol.
-`@mbtest/mountebank` must be installed for it to work.
+Defaults to know:
+
+- Only this machine can connect (to mountebank and to every imposter). Pass `allowRemoteConnections: true` when a
+  container, VM or another host has to call the imposters.
+- The log that `getLogs()` reads goes to a file in the system temp folder, not your project. `logFile: '<path>'`
+  picks the file; `logFile: false` writes none (then `getLogs()` has nothing to return).
+- It reads `./protocols.json` (relative to the working directory) for the GraphQL protocol.
+- `@mbtest/mountebank` must be installed for it to work.
 
 ## 4. Keep tests isolated
 
@@ -129,7 +134,8 @@ from any IP, and reads `./protocols.json` (relative to the working directory) fo
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `ECONNREFUSED ...:2525`                                  | Server not started, or still starting. Wait for the port (jest-dev-server / `webServer`).   |
 | `ECONNREFUSED ...:<imposter port>`                       | Imposter never created, or (Docker) its port isn't published.                              |
-| `addStub()` works but requests don't match it            | Stub went to port 7117: pass `imposterPort`. Or a broader stub earlier in the list wins.    |
+| `addStub()` works but requests don't match it            | A stub created on its own went to port 7117: pass `imposterPort`. Or a broader stub earlier in the list wins. |
+| `ECONNREFUSED` / blocked connection from a container or other host | `startMountebank` accepts only local connections by default: pass `allowRemoteConnections: true`. |
 | `200` with an empty body                                 | No stub matched and there's no default response. Add `addDefaultResponse()`.               |
 | "JavaScript injection is not allowed" / imposter with `decorate` or `chaos` missing | Server started without `--allowInjection`.                      |
 | `Unrecognized behavior: "chaos"`                         | `implementation: 'native'` on mountebank older than 2.9.6. Drop the option.               |

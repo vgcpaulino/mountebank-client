@@ -8,16 +8,19 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       server that isn't listening yet (`src/server/mountebankServer.ts`).
 - [x] `allowInjection` option is ignored: a hardcoded `'allow-injection': true` overrides it.
 - [x] `StubBuilder.response()` dropped the `wait` option, so it never reached mountebank.
-- [ ] `startMountebank` writes `mb.pid` and `mb.log` into the consumer's working directory and allows connections from
+- [x] `startMountebank` writes `mb.pid` and `mb.log` into the consumer's working directory and allows connections from
       any IP (`ipWhitelist: ['*']`). Make them options with safe defaults (no files, local only).
+      (Only `mb.log` was actually written. Now: log in the temp folder or `logFile`, local-only unless
+      `allowRemoteConnections`.)
 - [x] `addImposter` silently returns on a 400 (e.g. port already in use). Surface it as an error.
 - [x] `deleteStubByID` crashes when the stub ID isn't found (`getStubIndex(undefined)`).
-- [ ] `StubBuilder.addStub()` uses the default port (7117) unless `imposterPort` is passed; stubs aren't tied to the
-      imposter they belong to.
+- [x] `StubBuilder.addStub()` uses the default port (7117) unless `imposterPort` is passed; stubs aren't tied to the
+      imposter they belong to. (`ImposterBuilder.addStub` now ties a stub to its port; a stub created and added on
+      its own still needs `imposterPort`, see section 4's client redesign.)
 - [x] Error messages: `DELETE_STUB` and `GET_LOGS` fall through to `'GENERIC ERROR!'`, and `ADD_IMPOSTER` drops the
       status and response body. Add a dedicated error type with operation, status and mountebank's message.
       (`MountebankError`.)
-- [ ] `yarn test:integration` passes but Jest doesn't exit ("Jest did not exit one second after...") when its output
+- [x] `yarn test:integration` passes but Jest doesn't exit ("Jest did not exit one second after...") when its output
       isn't a terminal (redirected, CI), and the `yarn start` mountebank server it spawned is left running. Look at
       `tests/config/globalTeardown.ts` (jest-dev-server only kills `yarn`, not the `ts-node-dev` child).
 
@@ -88,7 +91,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] Document the `decorate` limitation: the function is sent as source text and can't use outer variables or imports.
 - [x] Agent Skills in `skills/` (stubs, setup, decorate, GraphQL, faults) plus a Claude Code plugin manifest.
 - [ ] Keep `skills/` in sync with the API redesign (section 4) and the bug fixes in section 1: the skills
-      still describe the default port 7117 pitfall as a workaround.
+      describe the default port 7117 for stubs added on their own; drop it once the client redesign removes it.
 - [x] Ship `skills/` in the npm package, so users can install the skills matching their installed version
       (`npx skills add ./node_modules/mountebank-client`, or `npx skills experimental_sync`).
 

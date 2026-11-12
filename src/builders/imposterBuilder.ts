@@ -1,5 +1,6 @@
 import { Imposter, ImposterDefaultResponse, ImposterProtocol, Stub } from '../interfaces';
 import { addImposter } from '../client/mountebankClient';
+import { StubBuilder } from './stubBuilder';
 
 export interface IImposterBuilder {
     port: number;
@@ -40,14 +41,25 @@ export class ImposterBuilder {
         return this;
     }
 
+    /**
+     * Adds a stub to this imposter. A `StubBuilder` without an `imposterPort` is tied to this imposter's port, so a
+     * later `stub.addStub()` or `stub.deleteStub()` reaches this imposter instead of the default port.
+     */
     addStub(stub: Stub) {
+        this.tieToThisImposter(stub);
         this.stubs.push(stub);
         return this;
     }
 
     addStubs(stubs: Stub[]) {
-        this.stubs.push(...stubs);
+        stubs.forEach((stub) => this.addStub(stub));
         return this;
+    }
+
+    private tieToThisImposter(stub: Stub & { imposterPort?: number }) {
+        if (stub instanceof StubBuilder && stub.imposterPort === undefined && this.port !== undefined) {
+            stub.imposterPort = this.port;
+        }
     }
 
     async addImposter() {
