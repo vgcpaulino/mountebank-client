@@ -13,7 +13,7 @@ const stubWithMatches = new StubBuilder()
     .response({ status: 200, body: 'Work' });
 
 export const imposter = new ImposterBuilder({ port: 7117, protocol: 'http', name: 'Imposter HTTP' })
-    .addDefaultReponse({
+    .addDefaultResponse({
         status: 404,
         body: 'Not Found!',
     })

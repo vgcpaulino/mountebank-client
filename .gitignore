@@ -110,3 +110,5 @@ lib/*
 .vscode
 !.vscode/tasks.json
 !.vscode/launch.json
+# macOS
+.DS_Store

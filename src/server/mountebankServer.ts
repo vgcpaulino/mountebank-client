@@ -44,13 +44,14 @@ export const startMountebank = async ({
     const server = create(startOptions);
 
     for (const imposter of imposters) {
-        const { port: imposterPort, protocol, schema, stubs } = imposter;
+        const { port: imposterPort, protocol, defaultResponse, schema, stubs } = imposter;
 
         // TODO: Mock-Provider: Implement a function to add all imposters in a single request;
         await addImposter({
             providerUrl: `http://localhost:${port}`,
             port: imposterPort,
             protocol,
+            defaultResponse,
             schema,
             stubs,
         });

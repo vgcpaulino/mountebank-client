@@ -8,7 +8,7 @@ export interface IImposterBuilder {
     schema?: string;
 }
 
-interface IDefaultReponse extends Omit<ImposterDefaultResponse, 'statusCode'> {
+interface IDefaultResponse extends Omit<ImposterDefaultResponse, 'statusCode'> {
     status: number;
 }
 
@@ -28,7 +28,7 @@ export class ImposterBuilder {
         this.stubs = [];
     }
 
-    addDefaultReponse({ status, headers, body }: IDefaultReponse) {
+    addDefaultResponse({ status, headers, body }: IDefaultResponse) {
         this.defaultResponse = {
             statusCode: status,
             headers,
@@ -37,8 +37,18 @@ export class ImposterBuilder {
         return this;
     }
 
+    /** @deprecated Use `addDefaultResponse` instead. */
+    addDefaultReponse(response: IDefaultResponse) {
+        return this.addDefaultResponse(response);
+    }
+
     addStub(stub: Stub) {
         this.stubs.push(stub);
+        return this;
+    }
+
+    addStubs(stubs: Stub[]) {
+        this.stubs.push(...stubs);
         return this;
     }
 

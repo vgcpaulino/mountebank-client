@@ -146,12 +146,12 @@ export class ResponseBuilder {
     }
 
     generate(): StandardResponse {
-        const isReponse: StandardResponse = {
+        const isResponse: StandardResponse = {
             is: this.is,
             behaviors: this.behaviors,
             repeat: this.repeat,
         };
-        return isReponse;
+        return isResponse;
     }
 
     generateProxy(): ProxyResponse {
