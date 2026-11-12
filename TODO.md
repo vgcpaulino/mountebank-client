@@ -32,10 +32,9 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] Finish `package.json`: add `exports` (decide together with the entry-point split below) and `repository`.
       (Root export only for now; the split adds `./server`, `./jest`, `./playwright`.)
 - [x] Fix license mismatch: `package.json` says ISC but `LICENSE` is MIT. (Both MIT now.)
-- [ ] Split entry points: core client/builders (no `mountebank` import), `./server` (in-process server), `./jest`
-      and `./playwright` helpers.
-      (`./jest` and `./playwright` exist now; `./server` and moving `startMountebank` out of the root remain.)
-- [ ] Make `@mbtest/mountebank` an optional peer dependency instead of a dependency.
+- [x] Split entry points: core (client, builders, reset helpers), `./server` (`startMountebank`, `setupMountebank`),
+      `./jest`, `./playwright`.
+- [x] Make `@mbtest/mountebank` an optional peer dependency instead of a dependency. (And `mb-graphql`.)
 - [ ] Bump `@mbtest/mountebank` to `^2.9.6` once it's released. We stay on the latest stable (2.9.5), which doesn't
       have the native `chaos` behavior: `chaos` defaults to an injected `decorate` that works on 2.9.5, and the
       `implementation: 'native'` integration tests skip themselves below 2.9.6. After the bump, consider making

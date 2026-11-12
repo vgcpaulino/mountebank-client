@@ -5,7 +5,9 @@ description: Run a mountebank server for tests that use the mountebank-client pa
 
 # Running mountebank for mountebank-client
 
-The client needs a running mountebank server. It never starts one by itself, except through `startMountebank`.
+The client needs a running mountebank server. It never starts one by itself, except through `startMountebank` /
+`setupMountebank` from `mountebank-client/server`, which need `@mbtest/mountebank` installed (it's an optional peer
+dependency: `npm install --save-dev @mbtest/mountebank`, plus `mb-graphql` for GraphQL imposters).
 
 ## 1. Pick how to run the server
 
@@ -13,7 +15,7 @@ The client needs a running mountebank server. It never starts one by itself, exc
 | -------------- | ----------------------------------------------------- | ------------------------------------------------------------- |
 | Docker         | CI, or you don't want mountebank in `node_modules`    | `docker run --rm -p 2525:2525 -p 8080:8080 bbyars/mountebank:2.9.5 start --allowInjection` |
 | `mb` CLI       | local dev, Jest / Playwright spawning a process       | `npx mb start --allowInjection` (needs `@mbtest/mountebank`)  |
-| In-process     | a plain Node script or a dev mock server              | `await startMountebank({ port: 2525, imposters })`            |
+| In-process     | a plain Node script or a dev mock server              | `await startMountebank({ port: 2525, imposters })` from `mountebank-client/server` |
 
 Notes:
 
@@ -45,7 +47,7 @@ Always pass ports explicitly instead of relying on it.
 ## 3. Wire it into the test runner
 
 The package ships helpers for both runners. They start mountebank **in the runner's main process** during global
-setup (or wait for an external server with `url`), point `MOUNTEBANK_URL` at it for the workers, and reset your
+setup (which needs `@mbtest/mountebank` installed), or wait for an external server with `url`. They point `MOUNTEBANK_URL` at it for the workers, and reset your
 imposters before each test.
 
 ### Jest
@@ -109,7 +111,8 @@ test('shows the user', async ({ page }) => {
 The same building blocks, from `mountebank-client`:
 
 ```ts
-import { resetImposters, setupMountebank, waitForMountebank } from 'mountebank-client';
+import { resetImposters, waitForMountebank } from 'mountebank-client';
+import { setupMountebank } from 'mountebank-client/server';
 
 const mb = await setupMountebank({ port: 2525, imposters: [usersApi] }); // or { url: 'http://localhost:2525' }
 await resetImposters([usersApi]); // before each test: recreate just these imposters
@@ -122,7 +125,8 @@ With `url`, setup uses that server and `stop()` deletes only the imposters it cr
 ### In-process (plain Node)
 
 ```ts
-import { ImposterBuilder, StubBuilder, startMountebank } from 'mountebank-client';
+import { ImposterBuilder, StubBuilder } from 'mountebank-client';
+import { startMountebank } from 'mountebank-client/server';
 
 const imposter = new ImposterBuilder({ port: 8080, protocol: 'http' })
     .addStub(new StubBuilder().get('/health').response({ status: 200, body: { ok: true } }));
@@ -140,7 +144,9 @@ Defaults to know:
 - The log that `getLogs()` reads goes to a file in the system temp folder, not your project. `logFile: '<path>'`
   picks the file; `logFile: false` writes none (then `getLogs()` has nothing to return).
 - It reads `./protocols.json` (relative to the working directory) for the GraphQL protocol.
-- `@mbtest/mountebank` must be installed for it to work.
+- `@mbtest/mountebank` must be installed (it isn't installed with mountebank-client). Without it, starting throws
+  "Starting mountebank in-process needs '@mbtest/mountebank', which isn't installed" with the install command.
+  With `url`, `setupMountebank` uses an existing server and doesn't need it.
 
 ## 4. Keep tests isolated
 
@@ -161,6 +167,7 @@ Defaults to know:
 
 | Symptom                                                  | Likely cause and fix                                                                        |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| "Starting mountebank in-process needs '@mbtest/mountebank'" | Install it: `npm install --save-dev @mbtest/mountebank` (and `mb-graphql` for GraphQL). Or use an external server (`url`). |
 | `MountebankError` "can't reach mountebank at … (ECONNREFUSED)" | Server not started, or still starting. Start it in global setup (`jestGlobalSetup` / `playwrightGlobalSetup`), or `waitForMountebank` for an external one. |
 | `ECONNREFUSED ...:<imposter port>`                       | Imposter never created, or (Docker) its port isn't published.                              |
 | `addStub()` works but requests don't match it            | A stub created on its own went to port 7117: pass `imposterPort`. Or a broader stub earlier in the list wins. |

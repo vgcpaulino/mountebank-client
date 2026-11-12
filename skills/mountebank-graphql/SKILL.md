@@ -11,7 +11,8 @@ are filled with random values that fit the schema.
 
 ## Server requirements
 
-mountebank must load the plugin through a protofile. Install `mb-graphql` next to mountebank and create
+mountebank must load the plugin through a protofile. Install `mb-graphql` next to mountebank (`npm install --save-dev
+mb-graphql`; it's an optional peer dependency of mountebank-client, not installed with it) and create
 `protocols.json`:
 
 ```json

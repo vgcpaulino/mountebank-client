@@ -55,15 +55,25 @@ That one line produces the stub mountebank expects:
 npm install --save-dev mountebank-client
 ```
 
-This also installs mountebank itself ([`@mbtest/mountebank`](https://www.npmjs.com/package/@mbtest/mountebank)), so
-you can start a server without installing anything else.
+That's all you need to talk to a mountebank server you run yourself (Docker, the `mb` CLI, another machine). To
+start mountebank **from your tests** (`startMountebank`, `setupMountebank`, or the Jest and Playwright global setup),
+also install mountebank itself, plus `mb-graphql` if you use GraphQL imposters:
+
+```sh
+npm install --save-dev @mbtest/mountebank
+npm install --save-dev mb-graphql   # only for GraphQL imposters
+```
+
+They are optional peer dependencies, so they aren't installed with the package. Without them, starting mountebank
+throws an error that says what to install.
 
 ## Quick start
 
 Start mountebank, then create an imposter (a fake server on its own port) with a stub on it:
 
 ```ts
-import { startMountebank, ImposterBuilder, StubBuilder } from 'mountebank-client';
+import { ImposterBuilder, StubBuilder } from 'mountebank-client';
+import { startMountebank } from 'mountebank-client/server'; // needs @mbtest/mountebank installed
 
 const welcome = new StubBuilder().get('/welcome').response({
     status: 200,
@@ -373,7 +383,8 @@ The app under test calls the imposters on fixed ports, so tests that share them 
 ### Any runner
 
 ```ts
-import { resetImposters, setupMountebank, waitForMountebank } from 'mountebank-client';
+import { resetImposters, waitForMountebank } from 'mountebank-client';
+import { setupMountebank } from 'mountebank-client/server';
 
 const mb = await setupMountebank({ port: 2525, imposters: [usersApi] }); // or { url } for a running server
 await resetImposters([usersApi]); // before each test
@@ -435,7 +446,8 @@ server in parallel.
 
 ## GraphQL
 
-GraphQL imposters use the [`mb-graphql`](https://www.npmjs.com/package/mb-graphql) plugin. Give the imposter your
+GraphQL imposters use the [`mb-graphql`](https://www.npmjs.com/package/mb-graphql) plugin, which the mountebank
+server needs (`npm install --save-dev mb-graphql` when you start mountebank from your tests). Give the imposter your
 schema and match operations with `any()`:
 
 ```ts

@@ -9,7 +9,8 @@
  */
 import type { TestType } from '@playwright/test';
 import { ImposterBuilder } from '../builders/imposterBuilder';
-import { resetImposters, setupMountebank, SetupMountebankOptions } from './index';
+import { setupMountebank, SetupMountebankOptions } from '../server/setupMountebank';
+import { resetImposters } from './index';
 
 /**
  * Returns a function for Playwright's `globalSetup`. It starts mountebank (or waits for `url`), creates

@@ -9,6 +9,10 @@
             "types": "./dist/index.d.ts",
             "default": "./dist/index.js"
         },
+        "./server": {
+            "types": "./dist/server/index.d.ts",
+            "default": "./dist/server/index.js"
+        },
         "./jest": {
             "types": "./dist/testing/jest.d.ts",
             "default": "./dist/testing/jest.js"
@@ -69,6 +73,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^10",
+        "@mbtest/mountebank": "^2.9.5",
         "@playwright/test": "^1.42.1",
         "@types/jest": "^29.5.0",
         "@types/node": "^20",
@@ -76,6 +81,7 @@
         "eslint-config-prettier": "^10",
         "globals": "^17.14.0",
         "jest": "^29.5.0",
+        "mb-graphql": "^0.1.11",
         "prettier": "^2.8.7",
         "ts-jest": "^29.4.15",
         "ts-node": "^10.8.2",
@@ -83,8 +89,16 @@
         "typescript": "6.0.3",
         "typescript-eslint": "^8.72.2"
     },
-    "dependencies": {
+    "peerDependencies": {
         "@mbtest/mountebank": "^2.9.5",
         "mb-graphql": "^0.1.11"
+    },
+    "peerDependenciesMeta": {
+        "@mbtest/mountebank": {
+            "optional": true
+        },
+        "mb-graphql": {
+            "optional": true
+        }
     }
 }

@@ -11,7 +11,8 @@
  */
 import { ImposterBuilder } from '../builders/imposterBuilder';
 import { deleteImposter } from '../client/mountebankClient';
-import { MountebankHandle, resetImposters, setupMountebank, SetupMountebankOptions } from './index';
+import { MountebankHandle, setupMountebank, SetupMountebankOptions } from '../server/setupMountebank';
+import { resetImposters } from './index';
 
 const handleKey = '__mountebankClientJestHandle__';
 
