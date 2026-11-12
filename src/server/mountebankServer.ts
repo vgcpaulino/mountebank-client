@@ -70,7 +70,7 @@ export const startMountebank = async ({
     const server = await create(startOptions);
 
     for (const imposter of imposters) {
-        const { port: imposterPort, protocol, defaultResponse, schema, allowCORS, stubs } = imposter;
+        const { port: imposterPort, protocol, defaultResponse, schema, allowCORS, recordRequests, stubs } = imposter;
 
         // TODO: Mock-Provider: Implement a function to add all imposters in a single request;
         await addImposter({
@@ -80,6 +80,7 @@ export const startMountebank = async ({
             defaultResponse,
             schema,
             allowCORS,
+            recordRequests,
             stubs,
         });
     }

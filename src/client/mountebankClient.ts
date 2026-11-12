@@ -1,4 +1,5 @@
-import { Imposter, ImposterDefaultResponse, ImposterProtocol, LogLevel, Stub } from '../interfaces';
+import { Imposter, ImposterDefaultResponse, ImposterProtocol, ImposterSummary, LogLevel, RecordedRequest, RequestFilter, Stub } from '../interfaces';
+import { matchesFilter, normalizeRequest } from './requestFilter';
 import { checkError, MountebankError } from './errorHelper';
 
 export { MountebankError } from './errorHelper';
@@ -15,6 +16,7 @@ interface IAddImposter {
     name?: string;
     schema?: string;
     allowCORS?: boolean;
+    recordRequests?: boolean;
     defaultResponse?: ImposterDefaultResponse;
     stubs?: Stub[];
 }
@@ -26,6 +28,7 @@ export async function addImposter({
     name = '',
     schema = '',
     allowCORS = undefined,
+    recordRequests = undefined,
     defaultResponse = undefined,
     stubs = [],
 }: IAddImposter) {
@@ -35,6 +38,7 @@ export async function addImposter({
         name?: string;
         schema?: string;
         allowCORS?: boolean;
+        recordRequests?: boolean;
         defaultResponse?: ImposterDefaultResponse;
         stubs: Stub[];
     } = {
@@ -43,6 +47,7 @@ export async function addImposter({
         name,
         schema,
         allowCORS,
+        recordRequests,
         defaultResponse,
         stubs,
     };
@@ -62,6 +67,96 @@ export async function deleteImposter({ providerUrl = defaultProviderUrl, port = 
     const response = await axios.delete(`${providerUrl}/imposters/${port}`, { validateStatus: null });
 
     checkError({ errorCode: 'DELETE_IMPOSTER', response });
+}
+
+/** Lists every imposter on the server: its port, protocol, name and how many requests it received. */
+export async function getImposters({ providerUrl = defaultProviderUrl } = {}): Promise<ImposterSummary[]> {
+    const response = await axios.get(`${providerUrl}/imposters`, { validateStatus: null });
+
+    checkError({ errorCode: 'GET_IMPOSTERS', response });
+
+    return (response.data?.imposters ?? []).map(({ port, protocol, name, numberOfRequests }: ImposterSummary) => ({
+        port,
+        protocol,
+        ...(name ? { name } : {}),
+        numberOfRequests,
+    }));
+}
+
+/**
+ * Deletes every imposter on the server, with their stubs, recorded requests and `decorate` state. Use it to
+ * start each test run (or test file) from a clean server.
+ */
+export async function deleteImposters({ providerUrl = defaultProviderUrl } = {}) {
+    const response = await axios.delete(`${providerUrl}/imposters`, { validateStatus: null });
+
+    checkError({ errorCode: 'DELETE_IMPOSTERS', response });
+}
+
+/**
+ * Replaces all stubs on the imposter at `imposterPort` with `stubs`, in one call. A `StubBuilder` without an
+ * `imposterPort` is tied to this imposter, as with `ImposterBuilder.addStub`.
+ */
+export async function replaceStubs({
+    providerUrl = defaultProviderUrl,
+    imposterPort = defaultImposterPort,
+    stubs,
+}: {
+    providerUrl?: string;
+    imposterPort?: number;
+    stubs: Stub[];
+}) {
+    stubs.forEach((stub) => {
+        const builder = stub as Stub & { imposterPort?: number };
+        if ('imposterPort' in builder && builder.imposterPort === undefined) {
+            builder.imposterPort = imposterPort;
+        }
+    });
+    const response = await axios.put(`${providerUrl}/imposters/${imposterPort}/stubs`, stringify({ stubs }), {
+        validateStatus: null,
+    });
+
+    checkError({ errorCode: 'REPLACE_STUBS', response });
+}
+
+/**
+ * Returns the requests the imposter at `imposterPort` recorded, oldest first, optionally only those matching
+ * `filter`. The imposter must be created with `recordRequests: true`; if it received requests without recording
+ * them, this throws instead of returning an empty list.
+ */
+export async function getRequests({
+    providerUrl = defaultProviderUrl,
+    imposterPort = defaultImposterPort,
+    filter,
+}: {
+    providerUrl?: string;
+    imposterPort?: number;
+    filter?: RequestFilter;
+} = {}): Promise<RecordedRequest[]> {
+    const response = await axios.get(`${providerUrl}/imposters/${imposterPort}`, { validateStatus: null });
+
+    checkError({ errorCode: 'GET_REQUESTS', response });
+
+    const requests: Record<string, unknown>[] = response.data?.requests ?? [];
+    if (requests.length === 0 && (response.data?.numberOfRequests ?? 0) > 0) {
+        throw new MountebankError({
+            operation: 'GET_REQUESTS',
+            reason:
+                `the imposter at port ${imposterPort} received ${response.data.numberOfRequests} request(s) but ` +
+                `doesn't record them. Create it with recordRequests: true`,
+        });
+    }
+
+    return requests.map(normalizeRequest).filter((request) => matchesFilter(request, filter));
+}
+
+/** Forgets the requests the imposter at `imposterPort` recorded, and resets its request count. */
+export async function clearRequests({ providerUrl = defaultProviderUrl, imposterPort = defaultImposterPort } = {}) {
+    const response = await axios.delete(`${providerUrl}/imposters/${imposterPort}/savedRequests`, {
+        validateStatus: null,
+    });
+
+    checkError({ errorCode: 'CLEAR_REQUESTS', response });
 }
 
 export async function getImposter({ providerUrl = defaultProviderUrl, port = defaultImposterPort } = {}) {

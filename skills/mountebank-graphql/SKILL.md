@@ -74,6 +74,8 @@ await new StubBuilder({ imposterPort })
 - A query or mutation that no stub matches still answers, with random data that fits the schema. Stub every
   operation whose values the test checks.
 - Stub order and "first match wins" work the same as for HTTP (see **mountebank-stubs**).
+- To check which operations the application sent, create the imposter with `recordRequests: true` and filter
+  `getRequests` by `operationName` and `args` (see **mountebank-requests**).
 
 ## Calling it
 

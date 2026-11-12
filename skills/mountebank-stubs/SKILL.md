@@ -1,6 +1,6 @@
 ---
 name: mountebank-stubs
-description: Mock HTTP/HTTPS APIs in TypeScript/JavaScript tests with the mountebank-client package. Covers creating imposters with ImposterBuilder, adding stubs with StubBuilder, matching requests by method and path (equals, startsWith, endsWith, contains, matches), static and sequenced responses, default responses, copying request values into responses, deleting stubs and imposters, and handling MountebankError. Use when writing or changing test mocks that import from 'mountebank-client', or when asked to fake an HTTP dependency with mountebank from Node.
+description: Mock HTTP/HTTPS APIs in TypeScript/JavaScript tests with the mountebank-client package. Covers creating imposters with ImposterBuilder, adding stubs with StubBuilder, matching requests by method and path (equals, startsWith, endsWith, contains, matches), static and sequenced responses, default responses, copying request values into responses, deleting stubs and imposters, replacing all stubs, listing imposters, and handling MountebankError. To check what the application sent, see mountebank-requests. Use when writing or changing test mocks that import from 'mountebank-client', or when asked to fake an HTTP dependency with mountebank from Node.
 ---
 
 # Mocking HTTP APIs with mountebank-client
@@ -8,7 +8,8 @@ description: Mock HTTP/HTTPS APIs in TypeScript/JavaScript tests with the mounte
 `mountebank-client` builds mountebank imposters and stubs with fluent builders, so you never write mountebank's
 JSON by hand. It talks to a running mountebank server over its REST API (default `http://localhost:2525`).
 
-If the server isn't running yet, or the tests can't reach it, see the **mountebank-setup** skill first.
+If the server isn't running yet, or the tests can't reach it, see the **mountebank-setup** skill first. To check
+which requests the application made (not just what the mock answered), see **mountebank-requests**.
 
 ## Mental model
 
@@ -154,7 +155,9 @@ Copied values are always strings. If you need a number, or logic, use `decorate`
 - `deleteStub()` throws a `MountebankError` ("no stub with ID …") if the stub isn't on the imposter any more
   (deleted twice, or the imposter was recreated).
 - `deleteStubsByID({ imposterPort, stubIDs })` removes several, and throws at the first ID it can't find.
-- To wipe everything between test files, `deleteImposter({ port })` and create the imposter again.
+- To wipe one imposter, `deleteImposter({ port })` and create it again; `deleteImposters()` removes all of them.
+- To swap every stub of a running imposter at once, `replaceStubs({ imposterPort, stubs })` (an empty array removes
+  them all). StubBuilders without a port take on that imposter's port.
 
 ## Errors
 
@@ -182,8 +185,9 @@ Don't catch these to carry on: they mean the mock isn't what the test expects.
 ## Inspecting what mountebank has
 
 ```ts
-import { getImposter, getLogs } from 'mountebank-client';
+import { getImposter, getImposters, getLogs } from 'mountebank-client';
 
+const all = await getImposters();                    // [{ port, protocol, name?, numberOfRequests }]
 const imposter = await getImposter({ port: 8080 }); // stubs as mountebank stored them
 const logs = await getLogs();                        // mountebank's log: which stub matched, injection errors ...
 ```

@@ -21,8 +21,9 @@ Changes since 1.0.2.
 - **All client errors are `MountebankError`s, with new messages.** For example, "Creating the imposter failed (HTTP 400):
   port 8080 is already in use (EADDRINUSE)…" replaces "ERROR: Imposter was NOT created!" and "GENERIC ERROR!". Code
   that matched on the old message text needs updating; check `error.operation` and `error.status` instead.
-- **`startMountebank` only accepts connections from this machine by default.** This applies to mountebank's API and to
-  every imposter. If a container, VM or another host calls your imposters, pass `allowRemoteConnections: true`.
+- **`startMountebank` only accepts connections from this machine by default:** mountebank's API and the HTTP/HTTPS
+  imposters listen on `127.0.0.1`. If a container, VM or another host calls your imposters, pass
+  `allowRemoteConnections: true`. (GraphQL imposters still listen on every interface; mb-graphql can't be bound.)
 - **`startMountebank` no longer writes `./mb.log`.** The log now goes to the system temp folder
   (`mountebank-client-<port>.log`), and `getLogs()` keeps working. Pass `logFile: '<path>'` to choose the file, or
   `logFile: false` for none.
@@ -39,12 +40,18 @@ Changes since 1.0.2.
   - By default it works on any mountebank version through an injected `decorate`, so injection must be allowed.
     `implementation: 'native'` uses mountebank's own behavior instead (2.9.6+).
   - On a proxy, `chaos` defaults the mode to `proxyTransparent`, and rejects `proxyOnce`.
+- **Request recording:** `recordRequests: true` on `ImposterBuilder` (and `addImposter`), plus `getRequests()` to read
+  what an imposter received and `clearRequests()` to forget it.
+  - `getRequests()` filters by method, path, query, headers, JSON body, or GraphQL operation and arguments.
+  - It throws if the imposter received requests without recording them.
+- **Imposter lifecycle:** `getImposters()` lists every imposter, `deleteImposters()` removes them all, and
+  `replaceStubs()` swaps all stubs of an imposter at once.
 - **`allowCORS`** option on imposters.
 - **`ImposterBuilder.addStubs()`.**
 - **`deleteImposter({ port })`**, which does nothing when there's no imposter.
 - **`MountebankError`** is exported, with `operation`, `status` and mountebank's `errors`.
 - **`startMountebank` options** `logFile` and `allowRemoteConnections`.
-- **Agent Skills** for coding agents, in `skills/`. They are shipped in the package and installable with
+- **Agent Skills** for coding agents, in `skills/`, including `mountebank-requests` for verifying calls. They are shipped in the package and installable with
   `npx skills add vgcpaulino/mountebank-client` or as a Claude Code plugin.
 
 ### Changed

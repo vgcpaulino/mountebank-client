@@ -34,6 +34,8 @@ That one line produces the stub mountebank expects:
 - [Stubs: matching requests](#stubs-matching-requests)
 - [Stubs: responses](#stubs-responses)
 - [Behaviors](#behaviors)
+- [Verifying requests](#verifying-requests)
+- [Managing imposters](#managing-imposters)
 - [GraphQL](#graphql)
 - [Low-level client functions](#low-level-client-functions)
 - [Skills for AI coding agents](#skills-for-ai-coding-agents)
@@ -86,7 +88,7 @@ await startMountebank({ port: 2525, imposters: [usersApi] });
 | `allowInjection` | `true`   | Lets mountebank run JavaScript you send it. Needed for `decorate`.          |
 | `logLevel`       | `'info'` | `'debug'`, `'info'`, `'warn'` or `'error'`.                                 |
 | `logFile`        | a file in the system temp folder | Where mountebank writes the log that `getLogs()` reads. A path, or `false` for no log file. Nothing is written into your project. |
-| `allowRemoteConnections` | `false` | Accept connections from other machines. By default only this machine can reach mountebank and its imposters; turn it on when, e.g., a container or another host calls the imposters. |
+| `allowRemoteConnections` | `false` | Accept connections from other machines. By default mountebank and the HTTP/HTTPS imposters listen on `127.0.0.1` only; turn it on when, e.g., a container or another host calls the imposters. (GraphQL imposters always listen on every interface.) |
 
 You can also add stubs to an imposter that's already running:
 
@@ -325,6 +327,55 @@ mountebank applies a proxy's behaviors before it records the response, so the pr
 When you set `chaos` without a `proxyMode`, the builder uses `proxyTransparent`. Without `chaos`, the default stays
 `proxyAlways`.
 
+## Verifying requests
+
+A stub controls what the fake service answers. To check what your application **sent**, turn on recording and read
+the requests back:
+
+```ts
+import { clearRequests, getRequests, ImposterBuilder, StubBuilder } from 'mountebank-client';
+
+await new ImposterBuilder({ port: 7117, protocol: 'http', recordRequests: true })
+    .addStub(new StubBuilder().post('/orders').response({ status: 201 }))
+    .addImposter();
+
+// ... your application places an order ...
+
+const orders = await getRequests({ imposterPort: 7117, filter: { method: 'POST', path: '/orders' } });
+expect(orders).toHaveLength(1);
+expect(orders[0].json).toEqual({ item: 'book', quantity: 2 });
+
+await clearRequests({ imposterPort: 7117 }); // e.g. in beforeEach, so tests don't see each other's calls
+```
+
+Each recorded request has `method`, `path`, `query`, `headers`, `body` (a string), `json` (the parsed body, when it's
+JSON) and `timestamp`. The `filter` accepts:
+
+| Field | Matches when |
+| ----- | ------------ |
+| `method` | the method is the same, ignoring case |
+| `path` | the path is exactly this string, or matches this `RegExp` |
+| `query` | the query string has these entries |
+| `headers` | these headers are present (names ignore case) |
+| `body` | a string: the raw body is exactly this. An object: the JSON body contains these fields, at any depth |
+| `operationName`, `args` | GraphQL: the operation has this name and contains these arguments |
+
+If the imposter received requests without recording them, `getRequests` throws instead of returning an empty list,
+so a forgotten `recordRequests: true` doesn't look like "no calls were made".
+
+## Managing imposters
+
+```ts
+import { deleteImposters, getImposters, replaceStubs } from 'mountebank-client';
+
+await getImposters();    // [{ port: 7117, protocol: 'http', name: 'Users API', numberOfRequests: 3 }, ...]
+await replaceStubs({ imposterPort: 7117, stubs: [stubA, stubB] }); // swap all stubs at once ([] removes them)
+await deleteImposters(); // remove every imposter, e.g. before a test run
+```
+
+`deleteImposters()` removes **every** imposter on the server, so don't call it while other test files use the same
+server in parallel.
+
 ## GraphQL
 
 GraphQL imposters use the [`mb-graphql`](https://www.npmjs.com/package/mb-graphql) plugin. Give the imposter your
@@ -366,6 +417,11 @@ The builders call these for you, but you can use them directly. Each one accepts
 | `addImposter({ port, protocol, stubs, ... })`        | Creates an imposter.                                |
 | `getImposter({ port })`                              | Returns an imposter, including its stubs.          |
 | `deleteImposter({ port })`                           | Deletes an imposter; does nothing if there's none. |
+| `getImposters()`                                     | Lists all imposters with their request counts.      |
+| `deleteImposters()`                                  | Deletes every imposter.                             |
+| `replaceStubs({ imposterPort, stubs })`              | Replaces all stubs of an imposter.                  |
+| `getRequests({ imposterPort, filter })`              | Returns the requests an imposter recorded.          |
+| `clearRequests({ imposterPort })`                    | Forgets an imposter's recorded requests.            |
 | `addStub({ imposterPort, stub })`                    | Adds a stub to an imposter.                         |
 | `deleteStubByID({ imposterPort, stubID })`           | Deletes a stub by the ID the builder gave it.       |
 | `deleteStubsByID({ imposterPort, stubIDs })`         | Deletes several stubs by ID.                        |
@@ -402,7 +458,7 @@ try {
 ## Skills for AI coding agents
 
 The [`skills/`](./skills) folder has [Agent Skills](https://agentskills.io) that teach coding agents how to use this
-package: writing stubs, running mountebank in tests, `decorate` functions, GraphQL, and fault injection. They follow
+package: writing stubs, running mountebank in tests, `decorate` functions, GraphQL, fault injection, and verifying requests. They follow
 the open `SKILL.md` format, so they work with any agent that supports it (Claude Code, OpenAI Codex, Cursor, GitHub
 Copilot, Gemini CLI, OpenCode, and others).
 
