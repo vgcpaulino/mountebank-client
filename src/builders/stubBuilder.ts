@@ -109,7 +109,17 @@ export class StubBuilder {
     }
 
     proxyResponse({ url, proxyMode, decorate, wait, chaos }: ProxyResponseBuilder) {
-        this.responses.push(new ResponseBuilder({ url, proxyMode, decorate, wait, chaos }).generateProxy());
+        if (chaos && proxyMode === 'proxyOnce') {
+            // mountebank records the proxied response after behaviors run, so proxyOnce would record one
+            // chaos outcome (possibly an injected error) and replay it on every later call, with no more chaos.
+            throw new Error(
+                "chaos can't be used with proxyMode 'proxyOnce': mountebank would record the first (possibly " +
+                    "failed) response and replay it forever. Use 'proxyTransparent' (the default with chaos) or 'proxyAlways'."
+            );
+        }
+        // Without recording, every call goes to the backend and gets its own chaos.
+        const mode = proxyMode ?? (chaos ? 'proxyTransparent' : undefined);
+        this.responses.push(new ResponseBuilder({ url, proxyMode: mode, decorate, wait, chaos }).generateProxy());
         return this;
     }
 

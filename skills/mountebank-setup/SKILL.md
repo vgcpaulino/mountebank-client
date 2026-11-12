@@ -23,9 +23,9 @@ Notes:
   --allowInjection flag"): `StubBuilder.addStub()` throws, but `ImposterBuilder.addImposter()` currently ignores
   the 400, so the imposter is silently not created. Only enable injection on servers that untrusted networks can't
   reach, because it runs arbitrary JavaScript.
-- The `chaos` behavior needs mountebank 2.9.6 or later, which isn't released yet. The mountebank this package
-  installs (and so `npx mb`) is the latest stable, 2.9.5, which rejects any stub that uses `chaos` with
-  `Unrecognized behavior: "chaos"`.
+- `chaos` works on any mountebank version because, by default, it's implemented as an injected `decorate`, so it
+  also needs `--allowInjection`. Only `chaos: { implementation: 'native' }` needs mountebank 2.9.6+ (not released
+  yet; the mountebank this package installs is the latest stable, 2.9.5).
 - The npm package is `@mbtest/mountebank`. The old `mountebank` package stopped at 2.9.1; don't install it.
 
 ## 2. Point the client at the server
@@ -132,7 +132,8 @@ from any IP, and reads `./protocols.json` (relative to the working directory) fo
 | Old stubs answer; new imposter options have no effect    | An imposter already existed on that port; `addImposter()` ignored the 400. Delete it first. |
 | `addStub()` works but requests don't match it            | Stub went to port 7117: pass `imposterPort`. Or a broader stub earlier in the list wins.    |
 | `200` with an empty body                                 | No stub matched and there's no default response. Add `addDefaultResponse()`.               |
-| "JavaScript injection is not allowed" / imposter with `decorate` missing | Server started without `--allowInjection`.                                 |
+| "JavaScript injection is not allowed" / imposter with `decorate` or `chaos` missing | Server started without `--allowInjection`.                      |
+| `Unrecognized behavior: "chaos"`                         | `implementation: 'native'` on mountebank older than 2.9.6. Drop the option.               |
 | `decorate` stub answers 500 / log shows `injection X=>`  | The function throws or uses outer variables (see **mountebank-decorate**).        |
 | `deleteStub()` throws `TypeError`                        | The stub was already gone. Delete each stub once.                                           |
 | `EADDRINUSE` / port already in use                       | Another mountebank or imposter on that port. Stop it, or use different ports.               |

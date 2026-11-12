@@ -30,8 +30,9 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       and `./playwright` helpers.
 - [ ] Make `@mbtest/mountebank` an optional peer dependency instead of a dependency.
 - [ ] Bump `@mbtest/mountebank` to `^2.9.6` once it's released. We stay on the latest stable (2.9.5), which doesn't
-      have the `chaos` behavior yet: the builder emits it, but a 2.9.5 server rejects it. The chaos integration tests
-      skip themselves below 2.9.6 and run again after the bump.
+      have the native `chaos` behavior: `chaos` defaults to an injected `decorate` that works on 2.9.5, and the
+      `implementation: 'native'` integration tests skip themselves below 2.9.6. After the bump, consider making
+      `'native'` the default (no injection needed), and update the README and the faults/setup skills.
 - [ ] Stop relying on the `declare module 'mountebank/src/mountebank'` shim in `index.d.ts` leaking into consumers'
       types; keep internal typings private to the server entry point.
 - [ ] Exclude `src/start.ts` and other dev-only files from `dist/`.

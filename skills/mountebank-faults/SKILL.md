@@ -13,7 +13,7 @@ randomness.
 | Client times out                             | `wait` longer than the client's timeout         |
 | Client retries N times, then succeeds        | `multipleResponses` with `repeat`               |
 | Client handles a specific error              | a stub with that `status`                       |
-| Behaviour under random errors / latency      | `chaos` (mountebank 2.9.6+)                     |
+| Behaviour under random errors / latency      | `chaos`                                         |
 | Calls that nobody mocked fail loudly         | `addDefaultResponse`                            |
 | Real backend, but slower or flakier          | `proxyResponse` plus `wait` / `chaos`           |
 
@@ -41,9 +41,9 @@ stick for the rest of the test.
 
 ## Random faults: `chaos`
 
-Needs mountebank **2.9.6 or later**, HTTP/HTTPS only. 2.9.6 isn't released yet, and the mountebank this package
-installs is the latest stable (2.9.5), which rejects the stub with `Unrecognized behavior: "chaos"` (so
-`addStub()` throws). Until then, use `wait` and `multipleResponses` for faults, or run a newer mountebank yourself.
+HTTP/HTTPS only. Works on any mountebank version, as long as the server allows injection (`allowInjection`, the
+default for `startMountebank`, or `mb --allowInjection`): by default the builder implements chaos as a generated
+`decorate` function.
 
 ```ts
 new StubBuilder({ imposterPort })
@@ -66,6 +66,9 @@ new StubBuilder({ imposterPort })
 - The builder validates the values and throws on a rate outside 0..1 or a negative / non-integer status or latency.
 - `chaos` is applied after every other behavior, so an injected error replaces whatever `decorate` or `copyFrom*`
   produced.
+- `implementation: 'native'` uses mountebank's own `chaos` behavior instead, which doesn't need injection but needs
+  mountebank **2.9.6+** (not released yet; older servers reject it with `Unrecognized behavior: "chaos"`). Both
+  behave the same. Use it only when you know the server is new enough and injection is off.
 - Because it's random, don't assert exact counts. Use it for exploratory runs and soak tests, or assert properties
   that must always hold ("never shows a blank page", "eventually succeeds"). Use `errorRate: 1` when a test needs
   every call to fail.
@@ -103,5 +106,19 @@ new StubBuilder({ imposterPort })
   ```
 
   Random latency per request is a quick way to make responses arrive out of order and expose race conditions in a UI.
+
+### Chaos on a proxy
+
+mountebank applies a proxy's behaviors to the backend's response **before recording it**, so the proxy mode
+matters:
+
+| `proxyMode` with `chaos`     | Result                                                                                    |
+| ---------------------------- | ----------------------------------------------------------------------------------------- |
+| `proxyTransparent` (default) | Every call goes to the backend and gets its own chaos. Nothing is recorded. Use this.     |
+| `proxyAlways`                | Live calls work the same, but recordings capture injected errors as if they were real.    |
+| `proxyOnce`                  | Rejected by the builder: it would record one outcome (maybe an error) and replay it forever. |
+
+When `chaos` is set and `proxyMode` isn't, the builder uses `proxyTransparent` (without chaos the default stays
+`proxyAlways`).
 - `proxyAlways` keeps growing the imposter's stub list during long runs. Prefer `proxyTransparent` when you don't
   need the recordings.

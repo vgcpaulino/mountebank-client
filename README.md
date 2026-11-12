@@ -211,6 +211,7 @@ new StubBuilder().get('/users', { operator: 'startsWith' }).proxyResponse({
 ```
 
 See mountebank's [proxy docs](https://www.mbtest.dev/docs/api/proxies) for how the modes record and replay responses.
+Proxies accept `wait`, `decorate` and [`chaos`](#chaos-random-errors-and-delays) too.
 
 ## Behaviors
 
@@ -292,11 +293,37 @@ new StubBuilder().get('/orders').response({
 \* If the imposter has a default response, mountebank fills the empty body from it.
 
 Every field is optional and defaults to no chaos. Invalid values (a rate outside 0–1, a negative delay) throw when you
-build the stub. Also works on `proxyResponse()`, which is a handy way to make a real backend's responses arrive late or
-out of order.
+build the stub.
 
-> **Requires mountebank 2.9.6 or later**, which isn't released yet. Until then, mountebank rejects a stub that uses
-> `chaos` with `Unrecognized behavior: "chaos"`. This package installs the latest stable mountebank (2.9.5).
+**How it runs.** By default the builder turns `chaos` into a generated `decorate` function, so it works on any
+mountebank version, including the stable one this package installs. Like any `decorate`, it needs the server to
+allow injection (`allowInjection: true`, the default for `startMountebank`, or `mb --allowInjection`).
+mountebank 2.9.6 adds its own `chaos` behavior, which doesn't need injection. Use it with
+`chaos: { ..., implementation: 'native' }`, but only on 2.9.6 or later (not released yet), because older servers
+reject it with `Unrecognized behavior: "chaos"`. Both behave the same.
+
+#### Chaos on a proxy
+
+`chaos` works on `proxyResponse()` too, which is a handy way to make a real backend's responses fail, arrive late, or
+come back out of order:
+
+```ts
+new StubBuilder().get('/api', { operator: 'startsWith' }).proxyResponse({
+    url: 'https://staging.example.com',
+    chaos: { errorRate: 0.05, latencyRate: 1, maxLatency: 1500 },
+});
+```
+
+mountebank applies a proxy's behaviors before it records the response, so the proxy mode matters:
+
+| `proxyMode` with `chaos`     | What happens                                                                              |
+| ---------------------------- | ----------------------------------------------------------------------------------------- |
+| `proxyTransparent` (default) | Every call goes to the backend and gets its own chaos. Nothing is recorded.               |
+| `proxyAlways`                | Live calls work the same, but the recordings include the injected errors.                |
+| `proxyOnce`                  | Throws: it would record one outcome (maybe an error) and replay it on every later call. |
+
+When you set `chaos` without a `proxyMode`, the builder uses `proxyTransparent`. Without `chaos`, the default stays
+`proxyAlways`.
 
 ## GraphQL
 

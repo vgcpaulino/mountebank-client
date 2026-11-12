@@ -71,7 +71,9 @@ import { Config } from 'mountebank-client';
 };
 ```
 
-Either change `config.response` in place, or return a new response object. Note the response uses mountebank's own
+Either change `config.response` in place, or return a new response object. mountebank also waits for a returned
+`Promise` (written by hand, e.g. `new Promise((resolve) => setTimeout(() => resolve(config.response), 200))`),
+which is how the builder's `chaos` adds latency. Don't use the `async` keyword for this (see above). Note the response uses mountebank's own
 field name, `statusCode`, not the builder's `status`.
 
 `decorate` can be a function, a string, or an array of them (applied in order).

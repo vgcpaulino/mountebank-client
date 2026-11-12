@@ -33,6 +33,8 @@ export interface ChaosBehavior {
     maxLatencyMs?: number;
 }
 
+export type ChaosImplementation = 'injection' | 'native';
+
 /**
  * Randomly injects errors and/or latency into a response, for testing retries,
  * timeouts and circuit breakers. HTTP/HTTPS only. Every field is optional and
@@ -50,6 +52,15 @@ export interface Chaos {
     latencyRate?: number;
     /** Maximum delay in milliseconds; the actual delay is random up to this value. Defaults to 1000. */
     maxLatency?: number;
+    /**
+     * How the chaos is produced:
+     * - `'injection'` (default): a generated `decorate` function. Works on any mountebank version, including the
+     *   latest stable one, but needs the server to allow injection (`allowInjection` / `mb --allowInjection`).
+     * - `'native'`: mountebank's own `chaos` behavior. Needs mountebank 2.9.6 or later; no injection needed.
+     *
+     * Both behave the same: latency is added first, then the response may be replaced by an error with an empty body.
+     */
+    implementation?: ChaosImplementation;
 }
 
 export interface Behavior {
