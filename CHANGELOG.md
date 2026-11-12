@@ -29,6 +29,9 @@ Changes since 1.0.2.
   | `{ providerUrl }` on any call                           | `createClient({ url })`                                |
 
   where `const mb = createClient()`. `deleteStub` throws when the stub isn't there (see below).
+- **`decorate` types are stricter.** `config.request.body` is typed `string` (what mountebank passes; it was `any`), so
+  code that reads fields from it must `JSON.parse` it first, as it already had to at runtime. `Behavior.decorate`, in
+  mountebank's own response format, is the source `string` the builder sends.
 - **Interfaces are renamed** to drop the `I…` / `Is…` / `…Types` styles: `IsResponseBuilder` → `ResponseOptions`,
   `ProxyResponseBuilder` → `ProxyOptions`, `IResponseBuilder` → `ResponseBuilderOptions`, `IImposterBuilder` →
   `ImposterOptions`, `ICopyFromHeaderQuery` → `CopyFromHeaderOrQuery`, `ICopyFromPathBody` → `CopyFromPathOrBody`,
@@ -90,6 +93,12 @@ Changes since 1.0.2.
   `delete()` deletes one imposter (doing nothing when there's none).
 - **`createImposter` accepts a plain imposter object without a `port`**: mountebank picks a free one, and the returned
   handle has it.
+- **GraphQL needs no setup with `startMountebank`.** When the working directory has no `protocols.json` and `mb-graphql`
+  is installed, a protocols file pointing at it is generated in the temp folder. A new `protofile` option picks a file,
+  or `false` for none. `./protocols.json` is still used when it exists.
+- **`Config<State>`** types `config.state` in `decorate` functions (`Config<{ count?: number }>`); without a type
+  argument, state still accepts any field. The request, response and logger types are exported as `DecorateRequest`,
+  `DecorateResponse` and `DecorateLogger`.
 - **`allowCORS`** option on imposters.
 - **`ImposterBuilder.addStubs()`.**
 - **`MountebankError`** is exported, with `operation`, `status` and mountebank's `errors`.

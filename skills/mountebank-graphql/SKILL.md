@@ -1,6 +1,6 @@
 ---
 name: mountebank-graphql
-description: Mock a GraphQL API with mountebank-client using the graphql protocol (mb-graphql). Covers creating a graphql imposter from a schema, stubbing queries and mutations by name and arguments with StubBuilder.any(), returning data, and the protofile the server needs. Use when tests need a fake GraphQL endpoint built with mountebank-client.
+description: Mock a GraphQL API with mountebank-client using the graphql protocol (mb-graphql). Covers creating a graphql imposter from a schema, stubbing queries and mutations by name and arguments with StubBuilder.any(), returning data, and how mountebank finds mb-graphql (generated automatically by startMountebank, protocols.json for mb or Docker). Use when tests need a fake GraphQL endpoint built with mountebank-client.
 ---
 
 # Mocking GraphQL APIs
@@ -11,20 +11,22 @@ are filled with random values that fit the schema.
 
 ## Server requirements
 
-mountebank must load the plugin through a protofile. Install `mb-graphql` next to mountebank (`npm install --save-dev
-mb-graphql`; it's an optional peer dependency of mountebank-client, not installed with it) and create
-`protocols.json`:
+Install `mb-graphql` next to mountebank (`npm install --save-dev mb-graphql`; it's an optional peer dependency of
+mountebank-client, not installed with it). mountebank loads the plugin through a protofile:
 
-```json
-{ "graphql": { "createCommand": "node node_modules/mb-graphql/dist/index.js" } }
-```
+- **`startMountebank()` / `setupMountebank()` / the Jest and Playwright global setup:** nothing to do. With
+  `mb-graphql` installed and no `./protocols.json` in the working directory, a protofile pointing at it is generated
+  in the system temp folder. A `./protocols.json` that exists is used instead; `protofile: '<path>'` picks another
+  file, and `protofile: false` loads none.
+- **`mb` CLI or Docker:** create `protocols.json` yourself. `mb start` loads it from the current working directory by
+  default; pass `--protofile <path>` if it lives elsewhere. In Docker, mount the file and `mb-graphql` into the
+  container.
 
-- CLI: `mb start` loads `protocols.json` from the current working directory by default; pass
-  `--protofile <path>` if it lives elsewhere. In Docker, mount the file and `mb-graphql` into the container.
-- `startMountebank()` reads `./protocols.json` from the **current working directory**, so run it from the folder that
-  holds the file.
+  ```json
+  { "graphql": { "createCommand": "node node_modules/mb-graphql/dist/index.js" } }
+  ```
 
-Without the protofile, creating a `graphql` imposter fails and `client.createImposter()` throws a `MountebankError` with
+Without a protofile, creating a `graphql` imposter fails and `client.createImposter()` throws a `MountebankError` with
 mountebank's message.
 
 ## Imposter
