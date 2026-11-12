@@ -1,5 +1,5 @@
 import { http } from '../../helpers/http';
-import { Imposter, ImposterBuilder } from '../../../src';
+import { createClient, Imposter, ImposterBuilder } from '../../../src';
 import { mountebankUrl, testPort } from '../../config/ports';
 
 const imposterPort = testPort(1111);
@@ -7,7 +7,7 @@ const imposterPort = testPort(1111);
 describe('Imposter Builder', () => {
     test('Add Imposter', async () => {
         const imposter = new ImposterBuilder({ port: imposterPort, protocol: 'http' });
-        await imposter.addImposter();
+        await createClient().createImposter(imposter);
 
         const response = await http.get(`${mountebankUrl}/imposters`);
         expect(response.status).toBe(200);

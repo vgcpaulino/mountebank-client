@@ -1,7 +1,7 @@
 import * as os from 'os';
 import * as path from 'path';
 import { Imposter, LogLevel } from '../interfaces';
-import { addImposter, deleteImposters } from '../client/mountebankClient';
+import { createClient } from '../client/mountebankClient';
 import { loadMountebank } from './loadMountebank';
 
 export interface StartMountebankOptions {
@@ -70,9 +70,10 @@ export const startMountebank = async ({
 
     // mountebank's close() only stops its own API server: the imposters (and mb-graphql processes) keep listening
     // and keep the process alive. Delete them first; mountebank's CLI does the equivalent when it exits.
+    const client = createClient({ url: `http://localhost:${port}` });
     const closeServer = server.close.bind(server);
     server.close = (callback?: () => void) => {
-        deleteImposters({ providerUrl: `http://localhost:${port}` }).then(
+        client.deleteImposters().then(
             () => {
                 closeServer(callback);
             },
@@ -83,19 +84,7 @@ export const startMountebank = async ({
     };
 
     for (const imposter of imposters) {
-        const { port: imposterPort, protocol, defaultResponse, schema, allowCORS, recordRequests, stubs } = imposter;
-
-        // TODO: Mock-Provider: Implement a function to add all imposters in a single request;
-        await addImposter({
-            providerUrl: `http://localhost:${port}`,
-            port: imposterPort,
-            protocol,
-            defaultResponse,
-            schema,
-            allowCORS,
-            recordRequests,
-            stubs,
-        });
+        await client.createImposter(imposter);
     }
 
     return server;

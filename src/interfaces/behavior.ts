@@ -1,15 +1,15 @@
-export interface ICopyFromHeaderQuery {
+export interface CopyFromHeaderOrQuery {
     name: string;
     into: string;
     using?: CopyConfiguration;
 }
 
-export interface ICopyFromPathBody {
+export interface CopyFromPathOrBody {
     into: string;
     using: CopyConfiguration;
 }
 
-interface CopyConfiguration {
+export interface CopyConfiguration {
     method: 'regex' | 'xpath' | 'jsonpath';
     selector: string;
 }

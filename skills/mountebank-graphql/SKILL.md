@@ -24,13 +24,13 @@ mb-graphql`; it's an optional peer dependency of mountebank-client, not installe
 - `startMountebank()` reads `./protocols.json` from the **current working directory**, so run it from the folder that
   holds the file.
 
-Without the protofile, creating a `graphql` imposter fails and `addImposter()` throws a `MountebankError` with
+Without the protofile, creating a `graphql` imposter fails and `client.createImposter()` throws a `MountebankError` with
 mountebank's message.
 
 ## Imposter
 
 ```ts
-import { ImposterBuilder, StubBuilder } from 'mountebank-client';
+import { createClient, ImposterBuilder, StubBuilder } from 'mountebank-client';
 
 const schema = `
     type User { id: Int, name: String, email: String }
@@ -38,9 +38,9 @@ const schema = `
     type Mutation { createUser(name: String!, email: String): User }
 `;
 
-const imposterPort = 4000;
-
-await new ImposterBuilder({ port: imposterPort, protocol: 'graphql', name: 'users-graphql', schema }).addImposter();
+const usersGraphql = await createClient().createImposter(
+    new ImposterBuilder({ port: 4000, protocol: 'graphql', name: 'users-graphql', schema })
+);
 ```
 
 ## Stubs
@@ -51,22 +51,17 @@ envelope.
 
 ```ts
 // query { getUser(id: 1) { id name } }
-await new StubBuilder({ imposterPort })
-    .any({ query: 'getUser', args: { id: 1 } })
-    .response({ data: { id: 1, name: 'Ada' } })
-    .addStub();
+await usersGraphql.addStub(new StubBuilder().any({ query: 'getUser', args: { id: 1 } }).response({ data: { id: 1, name: 'Ada' } }));
 
 // any getAllUsers call
-await new StubBuilder({ imposterPort })
-    .any({ query: 'getAllUsers' })
-    .response({ data: [{ id: 1, name: 'Ada' }, { id: 2, name: 'Grace' }] })
-    .addStub();
+await usersGraphql.addStub(
+    new StubBuilder().any({ query: 'getAllUsers' }).response({ data: [{ id: 1, name: 'Ada' }, { id: 2, name: 'Grace' }] })
+);
 
 // mutation { createUser(name: "Linus") { id } }
-await new StubBuilder({ imposterPort })
-    .any({ mutation: 'createUser', args: { name: 'Linus' } })
-    .response({ data: { id: 3, name: 'Linus' } })
-    .addStub();
+await usersGraphql.addStub(
+    new StubBuilder().any({ mutation: 'createUser', args: { name: 'Linus' } }).response({ data: { id: 3, name: 'Linus' } })
+);
 ```
 
 - `args` matching follows the `operator` option (default `equals`). With `equals` only the listed arguments are
@@ -76,7 +71,7 @@ await new StubBuilder({ imposterPort })
   operation whose values the test checks.
 - Stub order and "first match wins" work the same as for HTTP (see **mountebank-stubs**).
 - To check which operations the application sent, create the imposter with `recordRequests: true` and filter
-  `getRequests` by `operationName` and `args` (see **mountebank-requests**).
+  `imposter.getRequests()` by `operationName` and `args` (see **mountebank-requests**).
 
 ## Calling it
 

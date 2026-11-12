@@ -1,8 +1,8 @@
-import { RequestMethodsTypes } from './types';
+import { HttpMethod } from './types';
 
 interface Request {
     requestFrom: string;
-    method: RequestMethodsTypes;
+    method: HttpMethod;
     path: string;
     query: Record<string, string>;
     headers: Record<string, string>;

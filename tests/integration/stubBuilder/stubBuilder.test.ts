@@ -1,17 +1,17 @@
 import { http } from '../../helpers/http';
-import { ImposterBuilder, StubBuilder } from '../../../src';
+import { createClient, ImposterBuilder, StubBuilder } from '../../../src';
 import { mountebankUrl, testPort } from '../../config/ports';
 
 const imposterPort = testPort(1112);
+const imposter = createClient().imposter(imposterPort);
 
 describe('Stub Builder', () => {
     beforeAll(async () => {
-        const imposter = new ImposterBuilder({ port: imposterPort, protocol: 'http' });
-        await imposter.addImposter();
+        await createClient().createImposter(new ImposterBuilder({ port: imposterPort, protocol: 'http' }));
     });
 
     test('Add Stub', async () => {
-        const stub = new StubBuilder({ imposterPort }).get('/example').response({
+        const stub = new StubBuilder().get('/example').response({
             status: 200,
             headers: {
                 'content-type': '',
@@ -19,7 +19,7 @@ describe('Stub Builder', () => {
             body: '<html><body><h1>Title</h1></body></html>',
         });
 
-        await stub.addStub();
+        await imposter.addStub(stub);
 
         const response = await http.get(`${mountebankUrl}/imposters/${imposterPort}`);
         expect(response.status).toBe(200);
@@ -29,7 +29,7 @@ describe('Stub Builder', () => {
         const stubResponse = stubs[0];
         expect(stubResponse.stubID).not.toBeUndefined();
 
-        await stub.deleteStub();
+        await imposter.deleteStub(stub);
         const responseAfterDelete = await http.get(`${mountebankUrl}/imposters/${imposterPort}`);
         expect(responseAfterDelete.status).toBe(200);
         expect(responseAfterDelete.data.stubs.length).toBe(0);

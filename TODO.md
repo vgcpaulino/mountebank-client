@@ -15,8 +15,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] `addImposter` silently returns on a 400 (e.g. port already in use). Surface it as an error.
 - [x] `deleteStubByID` crashes when the stub ID isn't found (`getStubIndex(undefined)`).
 - [x] `StubBuilder.addStub()` uses the default port (7117) unless `imposterPort` is passed; stubs aren't tied to the
-      imposter they belong to. (`ImposterBuilder.addStub` now ties a stub to its port; a stub created and added on
-      its own still needs `imposterPort`, see section 4's client redesign.)
+      imposter they belong to. (Gone with the client redesign: stubs are added through `client.imposter(port)`.)
 - [x] Error messages: `DELETE_STUB` and `GET_LOGS` fall through to `'GENERIC ERROR!'`, and `ADD_IMPOSTER` drops the
       status and response body. Add a dedicated error type with operation, status and mountebank's message.
       (`MountebankError`.)
@@ -56,14 +55,16 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 ## 4. API redesign (breaking changes: record each in CHANGELOG.md; the version is chosen at release time)
 
-- [ ] Replace the global functions plus env-var defaults with a client instance, e.g.
-      `createClient({ url })` → `client.imposter(8080).stub(...)`.
+- [x] Replace the global functions plus env-var defaults with a client instance, e.g.
+      `createClient({ url })` → `client.imposter(8080).stub(...)`. (`createClient`, `MountebankClient`,
+      `ImposterClient`; builders no longer send anything.)
 - [x] Add imposter lifecycle: delete all, get all, replace all stubs on an imposter. (`deleteImposters`,
       `getImposters`, `replaceStubs`; delete one: `deleteImposter`.)
 - [x] Add request recording and verification (`recordRequests`, `getRequests` with filters, `clearRequests`;
       the `mountebank-requests` skill shows the assertions).
-- [ ] Make naming consistent: friendly names everywhere (`status` → `statusCode` mapping already exists; audit the
+- [x] Make naming consistent: friendly names everywhere (`status` → `statusCode` mapping already exists; audit the
       rest), and clean up interface names (`IsResponseBuilder` vs `IResponseBuilder`, `IDefaultResponse`).
+      (Interfaces renamed; `proxyMode` keeps mountebank's values `proxyAlways` etc., since they match its docs.)
 - [x] Remove the deprecated `addDefaultReponse` alias (renamed on main without an alias).
 - [ ] Type `Config.state` (generic parameter) instead of `any`.
 - [ ] Add a logger option (library code no longer uses `console.*`).
@@ -102,7 +103,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       they exist.)
 - [x] Document the `decorate` limitation: the function is sent as source text and can't use outer variables or imports.
 - [x] Agent Skills in `skills/` (stubs, setup, decorate, GraphQL, faults) plus a Claude Code plugin manifest.
-- [ ] Keep `skills/` in sync with the API redesign (section 4) and the bug fixes in section 1: the skills
+- [x] Keep `skills/` in sync with the API redesign (section 4) and the bug fixes in section 1: the skills
       describe the default port 7117 for stubs added on their own; drop it once the client redesign removes it.
 - [x] Ship `skills/` in the npm package, so users can install the skills matching their installed version
       (`npx skills add ./node_modules/mountebank-client`, or `npx skills experimental_sync`).

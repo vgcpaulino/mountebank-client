@@ -30,6 +30,7 @@ That one line produces the stub mountebank expects:
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Using a mountebank server you already run](#using-a-mountebank-server-you-already-run)
+- [The client](#the-client)
 - [Imposters](#imposters)
 - [Stubs: matching requests](#stubs-matching-requests)
 - [Stubs: responses](#stubs-responses)
@@ -38,7 +39,7 @@ That one line produces the stub mountebank expects:
 - [Verifying requests](#verifying-requests)
 - [Managing imposters](#managing-imposters)
 - [GraphQL](#graphql)
-- [Low-level client functions](#low-level-client-functions)
+- [Client reference](#client-reference)
 - [Skills for AI coding agents](#skills-for-ai-coding-agents)
 - [Development](#development)
 
@@ -80,14 +81,14 @@ const welcome = new StubBuilder().get('/welcome').response({
     body: { message: 'Welcome!' },
 });
 
-const usersApi = new ImposterBuilder({ port: 7117, protocol: 'http', name: 'Users API' })
+const usersApi = new ImposterBuilder({ port: 8080, protocol: 'http', name: 'Users API' })
     .addDefaultResponse({ status: 404, body: { message: 'Not found' } })
     .addStub(welcome);
 
 await startMountebank({ port: 2525, imposters: [usersApi] });
 
-// GET http://localhost:7117/welcome → 200 { "message": "Welcome!" }
-// GET http://localhost:7117/anything-else → 404 { "message": "Not found" }
+// GET http://localhost:8080/welcome → 200 { "message": "Welcome!" }
+// GET http://localhost:8080/anything-else → 404 { "message": "Not found" }
 ```
 
 `startMountebank` options:
@@ -101,25 +102,23 @@ await startMountebank({ port: 2525, imposters: [usersApi] });
 | `logFile`        | a file in the system temp folder | Where mountebank writes the log that `getLogs()` reads. A path, or `false` for no log file. Nothing is written into your project. |
 | `allowRemoteConnections` | `false` | Accept connections from other machines. By default mountebank and the HTTP/HTTPS imposters listen on `127.0.0.1` only; turn it on when, e.g., a container or another host calls the imposters. (GraphQL imposters always listen on every interface.) |
 
-You can also add stubs to an imposter that's already running:
+To change imposters while the server runs, use a [client](#the-client):
 
 ```ts
-const stub = new StubBuilder({ imposterPort: 7117 }).get('/health').response({ status: 200, body: 'OK' });
+import { createClient, StubBuilder } from 'mountebank-client';
 
-await stub.addStub();
+const usersImposter = createClient({ url: 'http://localhost:2525' }).imposter(8080);
+const health = new StubBuilder().get('/health').response({ status: 200, body: 'OK' });
+
+await usersImposter.addStub(health);
 // ...later
-await stub.deleteStub();
+await usersImposter.deleteStub(health);
 ```
 
 ## Using a mountebank server you already run
 
 If mountebank already runs elsewhere (installed globally, in Docker, on another machine), skip `startMountebank` and
-tell the client where it is:
-
-| Environment variable                | Default                 | Description                                        |
-| ----------------------------------- | ----------------------- | -------------------------------------------------- |
-| `MOUNTEBANK_URL`                    | `http://localhost:2525` | Where mountebank's API is.                         |
-| `MOUNTEBANK_IMPOSTER_DEFAULT_PORT`  | `7117`                  | Imposter port used when a call doesn't give one.   |
+create a client with its URL:
 
 ```sh
 npm install -g @mbtest/mountebank
@@ -127,22 +126,44 @@ mb --allowInjection
 ```
 
 ```ts
-import { ImposterBuilder, StubBuilder } from 'mountebank-client';
+import { createClient, ImposterBuilder, StubBuilder } from 'mountebank-client';
 
-await new ImposterBuilder({ port: 7117, protocol: 'http' })
-    .addStub(new StubBuilder().get('/welcome').response({ status: 200, body: 'Hi' }))
-    .addImposter();
+const mb = createClient({ url: 'http://localhost:2525' });
+
+await mb.createImposter(
+    new ImposterBuilder({ port: 8080, protocol: 'http' }).addStub(
+        new StubBuilder().get('/welcome').response({ status: 200, body: 'Hi' })
+    )
+);
 ```
 
-> **Tip:** a stub added to an `ImposterBuilder` remembers that imposter's port, so a later `stub.deleteStub()` (or
-> `stub.addStub()`) goes to the right imposter. A stub you create on its own and add with `stub.addStub()` needs
-> `new StubBuilder({ imposterPort })`; without it, it goes to the default port (7117).
+Without `url`, `createClient()` uses the `MOUNTEBANK_URL` environment variable, then `http://localhost:2525`. The
+test runner helpers set `MOUNTEBANK_URL` for you.
+
+## The client
+
+The builders only describe imposters and stubs. A client sends them to a mountebank server:
+
+```ts
+import { createClient } from 'mountebank-client';
+
+const mb = createClient({ url: 'http://localhost:2525' });
+
+const users = await mb.createImposter(usersApi); // returns a handle to the new imposter
+await users.addStub(stub);                       // the same handle as mb.imposter(8080)
+await users.deleteStub(stub);
+await users.delete();
+```
+
+`mb.imposter(port)` gives a handle to an imposter that already exists, for example one `startMountebank` or the
+test setup created. Making the handle sends nothing, so it's fine to create it at the top of a test file. All the
+methods are listed in the [client reference](#client-reference).
 
 ## Imposters
 
 ```ts
 new ImposterBuilder({
-    port: 7117,
+    port: 8080,
     protocol: 'http',      // 'http', 'https' or 'graphql'
     name: 'Users API',     // optional, shown in mountebank's UI and logs
     allowCORS: true,       // optional: answer CORS preflight requests automatically
@@ -153,7 +174,8 @@ new ImposterBuilder({
 ```
 
 - `addDefaultResponse` sets what the imposter returns when no stub matches.
-- `addImposter()` sends the imposter to mountebank. `startMountebank({ imposters })` does this for you.
+- `client.createImposter(imposter)` sends the imposter to mountebank. `startMountebank({ imposters })` and the test
+  helpers do this for you.
 
 ## Stubs: matching requests
 
@@ -355,9 +377,12 @@ module.exports = require('mountebank-client/jest').jestGlobalTeardown();
 ```
 
 ```ts
+import { createClient } from 'mountebank-client';
 import { useImposters } from 'mountebank-client/jest';
 
 useImposters([usersApi]); // created before the file's tests, recreated before each test, deleted after the file
+
+const users = createClient().imposter(8080); // MOUNTEBANK_URL points at the server global setup started
 ```
 
 Jest runs test files in parallel, so give each file its own imposter ports.
@@ -383,17 +408,20 @@ The app under test calls the imposters on fixed ports, so tests that share them 
 ### Any runner
 
 ```ts
-import { resetImposters, waitForMountebank } from 'mountebank-client';
 import { setupMountebank } from 'mountebank-client/server';
 
-const mb = await setupMountebank({ port: 2525, imposters: [usersApi] }); // or { url } for a running server
-await resetImposters([usersApi]); // before each test
-await mb.stop();                  // after the run
+const server = await setupMountebank({ port: 2525, imposters: [usersApi] }); // or { url } for a running server
+await server.client.resetImposters([usersApi]); // before each test
+await server.stop();                            // after the run
 ```
 
 `setupMountebank` accepts the `startMountebank` options. With `url`, it uses that server instead (waiting until it
-answers), and `stop()` only deletes the imposters it created. `waitForMountebank({ url })` waits for a server
-started elsewhere, such as in Docker.
+answers), and `stop()` only deletes the imposters it created. `resetImposters` deletes and recreates only the
+imposters you give it. `waitForMountebank({ url })` (from `mountebank-client`) waits for a server started elsewhere,
+such as in Docker.
+
+`useImposters` and `withImposters` take a `client` option (`{ client: createClient({ url }) }`) when the imposters
+should go to a server other than `MOUNTEBANK_URL`.
 
 ## Verifying requests
 
@@ -401,23 +429,25 @@ A stub controls what the fake service answers. To check what your application **
 the requests back:
 
 ```ts
-import { clearRequests, getRequests, ImposterBuilder, StubBuilder } from 'mountebank-client';
+import { createClient, ImposterBuilder, StubBuilder } from 'mountebank-client';
 
-await new ImposterBuilder({ port: 7117, protocol: 'http', recordRequests: true })
-    .addStub(new StubBuilder().post('/orders').response({ status: 201 }))
-    .addImposter();
+const ordersApi = await createClient().createImposter(
+    new ImposterBuilder({ port: 8081, protocol: 'http', recordRequests: true }).addStub(
+        new StubBuilder().post('/orders').response({ status: 201 })
+    )
+);
 
 // ... your application places an order ...
 
-const orders = await getRequests({ imposterPort: 7117, filter: { method: 'POST', path: '/orders' } });
+const orders = await ordersApi.getRequests({ method: 'POST', path: '/orders' });
 expect(orders).toHaveLength(1);
 expect(orders[0].json).toEqual({ item: 'book', quantity: 2 });
 
-await clearRequests({ imposterPort: 7117 }); // e.g. in beforeEach, so tests don't see each other's calls
+await ordersApi.clearRequests(); // e.g. in beforeEach, so tests don't see each other's calls
 ```
 
 Each recorded request has `method`, `path`, `query`, `headers`, `body` (a string), `json` (the parsed body, when it's
-JSON) and `timestamp`. The `filter` accepts:
+JSON) and `timestamp`. The filter accepts:
 
 | Field | Matches when |
 | ----- | ------------ |
@@ -434,11 +464,11 @@ so a forgotten `recordRequests: true` doesn't look like "no calls were made".
 ## Managing imposters
 
 ```ts
-import { deleteImposters, getImposters, replaceStubs } from 'mountebank-client';
+const mb = createClient();
 
-await getImposters();    // [{ port: 7117, protocol: 'http', name: 'Users API', numberOfRequests: 3 }, ...]
-await replaceStubs({ imposterPort: 7117, stubs: [stubA, stubB] }); // swap all stubs at once ([] removes them)
-await deleteImposters(); // remove every imposter, e.g. before a test run
+await mb.getImposters();                         // [{ port: 8080, protocol: 'http', name: 'Users API', numberOfRequests: 3 }, ...]
+await mb.imposter(8080).replaceStubs([stubA, stubB]); // swap all stubs at once ([] removes them)
+await mb.deleteImposters();                      // remove every imposter, e.g. before a test run
 ```
 
 `deleteImposters()` removes **every** imposter on the server, so don't call it while other test files use the same
@@ -476,26 +506,29 @@ GraphQL responses use `data` instead of `body`.
 > { "graphql": { "createCommand": "node node_modules/mb-graphql/dist/index.js" } }
 > ```
 
-## Low-level client functions
+## Client reference
 
-The builders call these for you, but you can use them directly. Each one accepts `providerUrl` to override
-`MOUNTEBANK_URL`.
+`createClient({ url })` returns a `MountebankClient`. `url` defaults to `MOUNTEBANK_URL`, then
+`http://localhost:2525`.
 
-| Function                                             | What it does                                        |
-| ---------------------------------------------------- | --------------------------------------------------- |
-| `addImposter({ port, protocol, stubs, ... })`        | Creates an imposter.                                |
-| `getImposter({ port })`                              | Returns an imposter, including its stubs.          |
-| `deleteImposter({ port })`                           | Deletes an imposter; does nothing if there's none. |
-| `getImposters()`                                     | Lists all imposters with their request counts.      |
-| `deleteImposters()`                                  | Deletes every imposter.                             |
-| `replaceStubs({ imposterPort, stubs })`              | Replaces all stubs of an imposter.                  |
-| `getRequests({ imposterPort, filter })`              | Returns the requests an imposter recorded.          |
-| `clearRequests({ imposterPort })`                    | Forgets an imposter's recorded requests.            |
-| `addStub({ imposterPort, stub })`                    | Adds a stub to an imposter.                         |
-| `deleteStubByID({ imposterPort, stubID })`           | Deletes a stub by the ID the builder gave it.       |
-| `deleteStubsByID({ imposterPort, stubIDs })`         | Deletes several stubs by ID.                        |
-| `deleteStubByIndex({ imposterPort, stubIndex })`     | Deletes a stub by its position.                     |
-| `getLogs()`                                          | Returns mountebank's log entries.                   |
+| `MountebankClient` method   | What it does                                                                 |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| `createImposter(imposter)`  | Creates an imposter from an `ImposterBuilder` and returns its handle.        |
+| `imposter(port)`            | A handle to the imposter on `port` (sends nothing).                          |
+| `getImposters()`            | Lists all imposters with their request counts.                              |
+| `deleteImposters()`         | Deletes every imposter.                                                     |
+| `resetImposters(imposters)` | Deletes and recreates these imposters from their definitions.               |
+| `getLogs()`                 | Returns mountebank's log entries.                                           |
+
+| Imposter handle method (`ImposterClient`) | What it does                                                    |
+| ----------------------------------------- | --------------------------------------------------------------- |
+| `get()`                                   | Returns the imposter as mountebank has it, including its stubs. |
+| `delete()`                                | Deletes the imposter; does nothing if there's none.             |
+| `addStub(stub)` / `addStubs(stubs)`       | Adds stubs after the existing ones.                             |
+| `replaceStubs(stubs)`                     | Replaces all its stubs.                                         |
+| `deleteStub(stub)`                        | Deletes a stub, given its `StubBuilder` or its `stubID`.        |
+| `getRequests(filter?)`                    | Returns the requests it recorded.                               |
+| `clearRequests()`                         | Forgets its recorded requests.                                  |
 
 ### Errors
 
@@ -503,19 +536,20 @@ When mountebank rejects a call, or a stub to delete isn't there, the client thro
 says what failed and why, in mountebank's own words when it gave any:
 
 ```text
-MountebankError: Creating the imposter failed (HTTP 400): port 7117 is already in use (EADDRINUSE).
-Delete the existing imposter first (deleteImposter) or use another port
+MountebankError: Creating the imposter failed (HTTP 400): port 8080 is already in use (EADDRINUSE).
+Delete the existing imposter first (client.imposter(8080).delete()) or use another port
 ```
 
 It also exposes `operation` (e.g. `'ADD_IMPOSTER'`), `status` (mountebank's HTTP status) and `errors` (mountebank's
 `errors` array), if you need to tell failures apart:
 
 ```ts
-import { MountebankError, deleteImposter } from 'mountebank-client';
+import { createClient, MountebankError } from 'mountebank-client';
 
-await deleteImposter({ port: 7117 }); // safe to call when there's no imposter
+const mb = createClient();
+await mb.imposter(8080).delete(); // safe to call when there's no imposter
 try {
-    await usersApi.addImposter();
+    await mb.createImposter(usersApi);
 } catch (error) {
     if (error instanceof MountebankError && error.status === 400) {
         // ...

@@ -1,23 +1,27 @@
 import { ImposterDefaultResponse, ImposterProtocol, Stub } from '../interfaces';
-import { addImposter } from '../client/mountebankClient';
-import { StubBuilder } from './stubBuilder';
 
-export interface IImposterBuilder {
+export interface ImposterOptions {
     port: number;
     protocol: ImposterProtocol;
     name?: string;
+    /** GraphQL imposters: the schema (SDL) mb-graphql serves. */
     schema?: string;
     allowCORS?: boolean;
     /** Record every request the imposter receives, so tests can read them with `getRequests`. */
     recordRequests?: boolean;
 }
 
-interface IDefaultResponse extends Omit<ImposterDefaultResponse, 'statusCode'> {
+/** What an imposter returns for a request no stub matches. */
+export interface DefaultResponseOptions extends Omit<ImposterDefaultResponse, 'statusCode'> {
     status: number;
 }
 
+/**
+ * Describes an imposter: its port, protocol and stubs. It only holds the definition; create it on a server with
+ * `client.createImposter(imposter)`.
+ */
 export class ImposterBuilder {
-    port?: number;
+    port: number;
     protocol: ImposterProtocol;
     name?: string;
     schema?: string;
@@ -26,7 +30,7 @@ export class ImposterBuilder {
     defaultResponse?: ImposterDefaultResponse;
     stubs: Stub[];
 
-    constructor({ port, protocol, name, schema, allowCORS, recordRequests }: IImposterBuilder) {
+    constructor({ port, protocol, name, schema, allowCORS, recordRequests }: ImposterOptions) {
         this.port = port;
         this.protocol = protocol;
         this.name = name;
@@ -36,7 +40,7 @@ export class ImposterBuilder {
         this.stubs = [];
     }
 
-    addDefaultResponse({ status, headers, body }: IDefaultResponse) {
+    addDefaultResponse({ status, headers, body }: DefaultResponseOptions) {
         this.defaultResponse = {
             statusCode: status,
             headers,
@@ -45,38 +49,13 @@ export class ImposterBuilder {
         return this;
     }
 
-    /**
-     * Adds a stub to this imposter. A `StubBuilder` without an `imposterPort` is tied to this imposter's port, so a
-     * later `stub.addStub()` or `stub.deleteStub()` reaches this imposter instead of the default port.
-     */
     addStub(stub: Stub) {
-        this.tieToThisImposter(stub);
         this.stubs.push(stub);
         return this;
     }
 
     addStubs(stubs: Stub[]) {
         stubs.forEach((stub) => this.addStub(stub));
-        return this;
-    }
-
-    private tieToThisImposter(stub: Stub & { imposterPort?: number }) {
-        if (stub instanceof StubBuilder && stub.imposterPort === undefined && this.port !== undefined) {
-            stub.imposterPort = this.port;
-        }
-    }
-
-    async addImposter() {
-        await addImposter({
-            port: this.port,
-            protocol: this.protocol,
-            name: this.name,
-            schema: this.schema,
-            allowCORS: this.allowCORS,
-            recordRequests: this.recordRequests,
-            stubs: this.stubs,
-            defaultResponse: this.defaultResponse,
-        });
         return this;
     }
 }
