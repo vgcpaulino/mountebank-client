@@ -4,6 +4,13 @@
     "description": "A TypeScript Client for Mountebank API",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+    },
     "files": [
         "dist",
         "skills",
@@ -15,9 +22,8 @@
         "test:unit": "jest --config jest.config.js --selectProjects unit",
         "test:integration": "jest --config jest.config.js --selectProjects integration",
         "test:list": "jest --config jest.config.js --listTests",
-        "start": "ts-node-dev --files ./src/start.ts",
-        "start:dev": "ts-node-dev --files ./src/main.ts",
-        "start:prod": "node ./dist/main.js",
+        "start": "ts-node-dev --files ./scripts/start-mountebank.ts",
+        "start:dev": "ts-node-dev --files ./examples/users-service/main.ts",
         "build": "tsc",
         "prepare": "npm run build",
         "format": "prettier --write \"src/**/*.ts\"",
@@ -39,6 +45,14 @@
         "typescript"
     ],
     "author": "Vinicius Gabriel Cabral Paulino",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/vgcpaulino/mountebank-client.git"
+    },
+    "homepage": "https://github.com/vgcpaulino/mountebank-client#readme",
+    "bugs": {
+        "url": "https://github.com/vgcpaulino/mountebank-client/issues"
+    },
     "license": "MIT",
     "engines": {
         "node": ">=20.19"

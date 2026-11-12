@@ -1,5 +1,4 @@
-import { StubBuilder } from "../builders";
-import { Config } from "../interfaces";
+import { Config, StubBuilder } from '../../src';
 import { UserBuilder } from './userBuilder';
 
 

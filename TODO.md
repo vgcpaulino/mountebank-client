@@ -29,7 +29,8 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] Package name: `mountebank-client` is already ours on npm (1.0.2 published 2025-02-06).
 - [x] Fix `package.json`: `main`/`types` point at `dist/`, `files`, `engines` (Node >= 20.19), a build on
       `prepare`, description, author, keywords.
-- [ ] Finish `package.json`: add `exports` (decide together with the entry-point split below) and `repository`.
+- [x] Finish `package.json`: add `exports` (decide together with the entry-point split below) and `repository`.
+      (Root export only for now; the split adds `./server`, `./jest`, `./playwright`.)
 - [x] Fix license mismatch: `package.json` says ISC but `LICENSE` is MIT. (Both MIT now.)
 - [ ] Split entry points: core client/builders (no `mountebank` import), `./server` (in-process server), `./jest`
       and `./playwright` helpers.
@@ -38,16 +39,17 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       have the native `chaos` behavior: `chaos` defaults to an injected `decorate` that works on 2.9.5, and the
       `implementation: 'native'` integration tests skip themselves below 2.9.6. After the bump, consider making
       `'native'` the default (no injection needed), and update the README and the faults/setup skills.
-- [ ] Keep the `declare module '@mbtest/mountebank/src/mountebank'` shim (`src/types/mountebank.d.ts`, plus a stale
+- [x] Keep the `declare module '@mbtest/mountebank/src/mountebank'` shim (`src/types/mountebank.d.ts`, plus a stale
       copy in the root `index.d.ts` that tsconfig no longer includes) out of consumers' types; keep internal typings
-      private to the server entry point, and delete the root copy.
-- [ ] Exclude `src/start.ts` and other dev-only files from `dist/`.
+      private to the server entry point, and delete the root copy. (Done: tsc doesn't emit it into `dist/`, no
+      published `.d.ts` mentions mountebank, and the root copy is deleted.)
+- [x] Exclude `src/start.ts` and other dev-only files from `dist/`. (Moved to `scripts/`.)
 - [ ] GraphQL with `startMountebank` needs a `protocols.json` in the consumer's working directory (it's read from
       `./protocols.json` and isn't shipped). Generate it or ship it, so GraphQL works without manual setup.
 
 ## 3. Project layout
 
-- [ ] Move the users-service demo (`src/stubs/`, `src/imposters/`) to `examples/`: it currently ships in `dist/`.
+- [x] Move the users-service demo (`src/stubs/`, `src/imposters/`) to `examples/`: it currently ships in `dist/`.
       Update `tests/e2e/users.example.spec.ts`, and the `start:dev` script, which still points at the deleted
       `src/main.ts`. (`examples/` is git-ignored; un-ignore it or pick another folder.)
 - [x] Decide what to do with `src/helpers/` (sample imposters): move to `examples/` or delete. (Deleted in #30.)

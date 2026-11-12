@@ -114,4 +114,6 @@ lib/*
 .DS_Store
 
 examples/*
+# Tracked demo; other examples/ files stay personal and ignored.
+!examples/users-service/
 pack-install/*

@@ -450,6 +450,9 @@ yarn test:unit
 yarn test:integration      # starts a real mountebank on port 2525
 ```
 
+`yarn start:dev` runs the users-service demo in [`examples/users-service`](./examples/users-service): mountebank on
+2525 and a fake users API on 8080 (`GET /users/me`, `PATCH /users/:id`) that remembers changes.
+
 `yarn test:integration` needs port 2525 free. Set `MB_TEST_PORT_OFFSET` (e.g. `1000`) to move the server and all
 imposters to other ports, for example when running a second copy of the tests.
 
