@@ -68,6 +68,9 @@ If any of these can't be run, say so explicitly rather than claiming the change 
 ## What Claude may do without asking
 
 - **Allowed:** create feature branches, commit to them, push them and open pull requests.
+- **Allowed:** merge your own pull request into `main` (through GitHub, never by pushing to `main`) when it breaks
+  none of the "Never" rules below and every check in the Definition of done has passed **locally** first. Always
+  run them yourself before merging; don't rely on CI alone.
 - **Ask first:** adding, removing or upgrading dependencies; changing `package.json` metadata (name, version,
   license, entry points); deleting files that aren't clearly generated.
 - **Never:** commit or push to `main`, force-push, publish to npm, or bump versions for a release.
