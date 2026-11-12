@@ -80,20 +80,24 @@ stopping the other process: `MB_TEST_PORT_OFFSET=1000 yarn test:integration` run
 
 - Work in a git worktree under `temp/` (git-ignored), e.g. `git worktree add -b fix/x temp/wt-x origin/main`, when
   the main checkout has someone else's uncommitted changes or another task is in progress there.
-- **Remove the worktree once its PR is merged.** Confirm the merge first (`gh pr view <number> --json state` says
-  `MERGED`), then:
+- **Once a PR is merged, delete its branches and worktree.** Confirm the merge first (`gh pr view <number> --json state`
+  says `MERGED`), then delete the remote branch, the worktree and the local branch:
 
   ```bash
+  git merge-base --is-ancestor origin/fix/x origin/main   # the branch tip must be on main (exit code 0)
+  git push origin --delete fix/x
   git worktree remove temp/wt-x   # refuses if the worktree has uncommitted or untracked changes
-  git branch -d fix/x             # -d refuses if the branch isn't merged
+  git branch -d fix/x             # refuses if the branch isn't merged
   git worktree prune
   ```
 
-  If either command refuses, stop and ask instead of forcing it (never `--force` or `-D`): the worktree or branch
-  has work that isn't on `main`.
-- With stacked PRs, keep a worktree until every PR from its branches is merged; a worktree that switched branches
-  (e.g. from #35's branch to #36's) is removed after the last one. Delete each merged local branch with `git branch -d`.
-- Leave the remote branches alone unless asked to delete them.
+  If any check or command refuses, stop and ask instead of forcing it (never `--force` or `-D`): the branch or
+  worktree has work that isn't on `main`. Remote branches can be restored from the PR page on GitHub.
+- With stacked PRs, keep a branch until every PR built on it is merged; a worktree that switched branches (e.g. from
+  #35's branch to #36's) is removed after the last one.
+- Never delete branches that have no merged PR (e.g. `eslint`, `feat/redis`): they may hold unmerged work. Note that
+  `git branch -d` also deletes a branch that is only merged into its *remote* copy, so check `git branch --merged main`
+  first when deleting more than the branch you just merged.
 
 ## Keeping the skills in sync
 
