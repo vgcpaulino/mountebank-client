@@ -1,0 +1,8 @@
+{
+    "name": "mountebank-client",
+    "description": "Skills for mocking HTTP, HTTPS and GraphQL APIs in tests with the mountebank-client package.",
+    "author": { "name": "Vinicius Gabriel Cabral Paulino" },
+    "repository": "https://github.com/vgcpaulino/mountebank-client",
+    "license": "MIT",
+    "keywords": ["mountebank", "mock", "stub", "testing"]
+}

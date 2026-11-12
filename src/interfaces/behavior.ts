@@ -41,7 +41,10 @@ export interface ChaosBehavior {
 export interface Chaos {
     /** Probability (0 to 1) of replacing the response with an error. Defaults to 0. */
     errorRate?: number;
-    /** Status code returned when an error is injected; the body is emptied. Defaults to 500. */
+    /**
+     * Status code returned when an error is injected. Defaults to 500. The body is emptied, unless the imposter has a
+     * default response: mountebank then fills the empty body from it.
+     */
     errorStatus?: number;
     /** Probability (0 to 1) of adding a random delay. Defaults to 0. */
     latencyRate?: number;

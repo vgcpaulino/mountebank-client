@@ -84,6 +84,10 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] Write the README: what it is, install, quick start for client and server, builders. (Add test helpers once
       they exist.)
 - [x] Document the `decorate` limitation: the function is sent as source text and can't use outer variables or imports.
+- [x] Agent Skills in `skills/` (stubs, setup, decorate, GraphQL, faults) plus a Claude Code plugin manifest.
+- [ ] Keep `skills/` in sync with the API redesign (section 4) and the bug fixes in section 1: several skills
+      describe current pitfalls (silent 400 on `addImposter`, default port 7117, `deleteStub` crash) as workarounds.
+- [ ] Decide whether to ship `skills/` in the npm package (needs a `files` change in `package.json`).
 
 ## 8. Examples
 

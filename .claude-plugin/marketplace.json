@@ -1,0 +1,11 @@
+{
+    "name": "mountebank-client",
+    "owner": { "name": "Vinicius Gabriel Cabral Paulino" },
+    "plugins": [
+        {
+            "name": "mountebank-client",
+            "source": "./",
+            "description": "Skills for mocking HTTP, HTTPS and GraphQL APIs in tests with the mountebank-client package."
+        }
+    ]
+}

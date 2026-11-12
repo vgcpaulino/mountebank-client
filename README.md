@@ -36,6 +36,7 @@ That one line produces the stub mountebank expects:
 - [Behaviors](#behaviors)
 - [GraphQL](#graphql)
 - [Low-level client functions](#low-level-client-functions)
+- [Skills for AI coding agents](#skills-for-ai-coding-agents)
 - [Development](#development)
 
 ## Requirements
@@ -281,12 +282,14 @@ new StubBuilder().get('/orders').response({
     body: [],
     chaos: {
         errorRate: 0.1,     // 10% of calls return an error…
-        errorStatus: 503,   // …with this status (default 500) and an empty body
+        errorStatus: 503,   // …with this status (default 500) and an empty body*
         latencyRate: 0.3,   // 30% of calls are delayed…
         maxLatency: 800,    // …by a random 0–800 ms (default 1000)
     },
 });
 ```
+
+\* If the imposter has a default response, mountebank fills the empty body from it.
 
 Every field is optional and defaults to no chaos. Invalid values (a rate outside 0–1, a negative delay) throw when you
 build the stub. Also works on `proxyResponse()`, which is a handy way to make a real backend's responses arrive late or
@@ -340,6 +343,20 @@ The builders call these for you, but you can use them directly. Each one accepts
 | `deleteStubsByID({ imposterPort, stubIDs })`         | Deletes several stubs by ID.                        |
 | `deleteStubByIndex({ imposterPort, stubIndex })`     | Deletes a stub by its position.                     |
 | `getLogs()`                                          | Returns mountebank's log entries.                   |
+
+## Skills for AI coding agents
+
+The [`skills/`](./skills) folder has [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills) that teach
+coding agents how to use this package: writing stubs, running mountebank in tests, `decorate` functions, GraphQL,
+and fault injection. In Claude Code, install them as a plugin:
+
+```sh
+/plugin marketplace add vgcpaulino/mountebank-client
+/plugin install mountebank-client@mountebank-client
+```
+
+Other agents can read the `SKILL.md` files directly, or you can copy a skill folder into your project's
+`.claude/skills/`.
 
 ## Development
 
