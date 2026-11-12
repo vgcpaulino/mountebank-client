@@ -29,11 +29,14 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [ ] Split entry points: core client/builders (no `mountebank` import), `./server` (in-process server), `./jest`
       and `./playwright` helpers.
 - [ ] Make `@mbtest/mountebank` an optional peer dependency instead of a dependency.
-- [ ] Replace the pinned `@mbtest/mountebank@2.9.6-beta.10697` with `^2.9.6` once 2.9.6 is released (the beta is
-      needed for the `chaos` behavior).
+- [ ] Bump `@mbtest/mountebank` to `^2.9.6` once it's released. We stay on the latest stable (2.9.5), which doesn't
+      have the `chaos` behavior yet: the builder emits it, but a 2.9.5 server rejects it. The chaos integration tests
+      skip themselves below 2.9.6 and run again after the bump.
 - [ ] Stop relying on the `declare module 'mountebank/src/mountebank'` shim in `index.d.ts` leaking into consumers'
       types; keep internal typings private to the server entry point.
 - [ ] Exclude `src/start.ts` and other dev-only files from `dist/`.
+- [ ] GraphQL with `startMountebank` needs a `protocols.json` in the consumer's working directory (it's read from
+      `./protocols.json` and isn't shipped). Generate it or ship it, so GraphQL works without manual setup.
 
 ## 3. Project layout
 
@@ -78,8 +81,9 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 ## 7. Documentation
 
-- [ ] Write the README: what it is, install, quick start for client and server, builders, test helpers.
-- [ ] Document the `decorate` limitation: the function is sent as source text and can't use outer variables or imports.
+- [x] Write the README: what it is, install, quick start for client and server, builders. (Add test helpers once
+      they exist.)
+- [x] Document the `decorate` limitation: the function is sent as source text and can't use outer variables or imports.
 
 ## 8. Examples
 
