@@ -1,5 +1,5 @@
 import { IImposterBuilder, ImposterBuilder } from '../../../src';
-import { graphQLSchema } from '../../../src/helpers/graphqlSchema';
+import { graphQLSchema } from '../../helpers/graphqlSchema';
 
 describe('ImposterBuilder', () => {
     test('With GraphQL Schema', () => {

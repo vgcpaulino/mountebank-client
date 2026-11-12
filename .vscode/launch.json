@@ -7,11 +7,18 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "skipFiles": ["<node_internals>/**"],
-            "program": "${workspaceFolder}/src/main.ts",
-            "preLaunchTask": "tsc: watch - tsconfig.json",
-            "outFiles": ["${workspaceFolder}/**/*.js"]
+            "name": "Launch Example",
+            "runtimeArgs": [
+                "--require",
+                "ts-node/register/transpile-only"
+            ],
+            "args": [
+                "${workspaceFolder}/examples/dev.ts"
+            ],
+            "env": {
+                "TS_NODE_PROJECT": "${workspaceFolder}/tsconfig.json"
+            },
+            "sourceMaps": true
         },
         {
             "type": "node",

@@ -108,8 +108,8 @@ export class StubBuilder {
         return this;
     }
 
-    proxyResponse({ url, proxyMode, decorate, chaos }: ProxyResponseBuilder) {
-        this.responses.push(new ResponseBuilder({ url, proxyMode, decorate, chaos }).generateProxy());
+    proxyResponse({ url, proxyMode, decorate, wait, chaos }: ProxyResponseBuilder) {
+        this.responses.push(new ResponseBuilder({ url, proxyMode, decorate, wait, chaos }).generateProxy());
         return this;
     }
 

@@ -40,11 +40,6 @@ export class ImposterBuilder {
         return this;
     }
 
-    /** @deprecated Use `addDefaultResponse` instead. */
-    addDefaultReponse(response: IDefaultResponse) {
-        return this.addDefaultResponse(response);
-    }
-
     addStub(stub: Stub) {
         this.stubs.push(stub);
         return this;

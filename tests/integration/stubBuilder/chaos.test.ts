@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { ImposterBuilder, StubBuilder } from '../../../src';
+import { testPort } from '../../config/ports';
 
-const imposterPort = 1115;
+const imposterPort = testPort(1115);
 
 describe('Stub Builder - chaos and wait behaviors', () => {
     beforeAll(async () => {

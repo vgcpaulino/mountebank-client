@@ -19,8 +19,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 ## 2. Packaging (blocks publishing)
 
-- [ ] Pick a package name: `mountebank-client` is taken on npm. Free as of 2026-11-12: `mountebank-builder`,
-      `mountebank-fluent`, `mb-builder`.
+- [x] Package name: `mountebank-client` is already ours on npm (1.0.2 published 2025-02-06).
 - [ ] Fix `package.json`: `main`/`types`/`exports` point at `dist/`, add `files`, `engines: { node: ">=18" }`,
       `prepublishOnly` build, description, author, repository, keywords. Reset version to `0.x`.
 - [ ] Fix license mismatch: `package.json` says ISC but `LICENSE` is MIT.
@@ -48,7 +47,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       assert "was called with ...").
 - [ ] Make naming consistent: friendly names everywhere (`status` → `statusCode` mapping already exists; audit the
       rest), and clean up interface names (`IsResponseBuilder` vs `IResponseBuilder`, `IDefaultResponse`).
-- [ ] Remove the deprecated `addDefaultReponse` alias.
+- [x] Remove the deprecated `addDefaultReponse` alias (renamed on main without an alias).
 - [ ] Type `Config.state` (generic parameter) instead of `any`.
 - [ ] Add a logger option; no `console.*` in library code.
 
