@@ -19,9 +19,9 @@ export interface StartMountebankOptions {
      */
     logFile?: string | false;
     /**
-     * Accept connections (to mountebank's API and to every imposter) from other machines. Defaults to false: only
-     * this machine's own addresses may connect. Turn it on when, for example, a container or another host has to
-     * reach the imposters.
+     * Accept connections from other machines. Defaults to false: mountebank's API and the HTTP/HTTPS imposters
+     * listen on 127.0.0.1 only (GraphQL imposters always listen on every interface; mb-graphql doesn't support
+     * choosing one). Turn it on when, for example, a container or another host has to reach the imposters.
      */
     allowRemoteConnections?: boolean;
 }
@@ -41,9 +41,12 @@ export const startMountebank = async ({
         port,
         noParse: false,
         'no-parse': false,
-        // localOnly limits connections to this machine's own IP addresses.
-        localOnly: !allowRemoteConnections,
-        'local-only': !allowRemoteConnections,
+        // Local-only by binding mountebank's API and the HTTP/HTTPS imposters to the loopback address, not with
+        // mountebank's localOnly: that checks each request's IP, and mb-graphql's callbacks carry none, so every
+        // GraphQL request was blocked. (mb-graphql ignores `host`, so GraphQL imposters still listen everywhere.)
+        ...(allowRemoteConnections ? {} : { host: '127.0.0.1' }),
+        localOnly: false,
+        'local-only': false,
         ipWhitelist: ['*'],
         'ip-whitelist': '*',
         mock: false,

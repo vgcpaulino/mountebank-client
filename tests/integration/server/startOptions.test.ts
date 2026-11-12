@@ -13,8 +13,10 @@ describe('startMountebank - safe defaults', () => {
         options = (await axios.get(`${mountebankUrl}/config`)).data.options;
     });
 
-    test('only accepts connections from this machine', () => {
-        expect(options.localOnly).toBe(true);
+    test('only accepts connections from this machine, by listening on 127.0.0.1', () => {
+        expect(options.host).toBe('127.0.0.1');
+        // Not mountebank's per-request localOnly check: it blocks mb-graphql's callbacks (no IP), breaking GraphQL.
+        expect(options.localOnly).toBe(false);
     });
 
     test("writes its log to the system temp folder, not the project", () => {
