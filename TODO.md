@@ -58,9 +58,10 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 - [ ] Replace the global functions plus env-var defaults with a client instance, e.g.
       `createClient({ url })` → `client.imposter(8080).stub(...)`.
-- [ ] Add imposter lifecycle: delete all, get all, replace all stubs on an imposter. (Delete one: `deleteImposter`.)
-- [ ] Add request recording and verification (`recordRequests`, read an imposter's recorded `requests`, helpers to
-      assert "was called with ...").
+- [x] Add imposter lifecycle: delete all, get all, replace all stubs on an imposter. (`deleteImposters`,
+      `getImposters`, `replaceStubs`; delete one: `deleteImposter`.)
+- [x] Add request recording and verification (`recordRequests`, `getRequests` with filters, `clearRequests`;
+      the `mountebank-requests` skill shows the assertions).
 - [ ] Make naming consistent: friendly names everywhere (`status` → `statusCode` mapping already exists; audit the
       rest), and clean up interface names (`IsResponseBuilder` vs `IResponseBuilder`, `IDefaultResponse`).
 - [x] Remove the deprecated `addDefaultReponse` alias (renamed on main without an alias).

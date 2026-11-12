@@ -111,8 +111,9 @@ await new Promise<void>((resolve) => server.close(resolve));
 
 Defaults to know:
 
-- Only this machine can connect (to mountebank and to every imposter). Pass `allowRemoteConnections: true` when a
-  container, VM or another host has to call the imposters.
+- Only this machine can connect: mountebank and the HTTP/HTTPS imposters listen on `127.0.0.1`. Pass
+  `allowRemoteConnections: true` when a container, VM or another host has to call them. GraphQL imposters always
+  listen on every interface (mb-graphql doesn't support choosing one).
 - The log that `getLogs()` reads goes to a file in the system temp folder, not your project. `logFile: '<path>'`
   picks the file; `logFile: false` writes none (then `getLogs()` has nothing to return).
 - It reads `./protocols.json` (relative to the working directory) for the GraphQL protocol.
@@ -124,6 +125,9 @@ Defaults to know:
   stubs.
 - Imposters you create live until you delete them or the server stops. Creating one on a port that is still in use
   throws, so either `deleteImposter({ port })` first or keep it for the whole run.
+- To start a run (or a test file, when files don't run in parallel) from a clean server, call `deleteImposters()`.
+  Don't call it while other test files share the same server: it removes their imposters too.
+- Recorded requests accumulate: `clearRequests({ imposterPort })` in `beforeEach` (see **mountebank-requests**).
 - Per-test stubs: create them in the test, `await stub.deleteStub()` in `afterEach`.
 - `config.state` used by `decorate` lives on the imposter and survives between tests. Reset it by recreating the
   imposter.
@@ -141,6 +145,7 @@ Defaults to know:
 | `Unrecognized behavior: "chaos"`                         | `implementation: 'native'` on mountebank older than 2.9.6. Drop the option.               |
 | `decorate` stub answers 500 / log shows `injection X=>`  | The function throws or uses outer variables (see **mountebank-decorate**).        |
 | `MountebankError` "no stub with ID …"                    | The stub was already deleted, or the imposter was recreated. Delete each stub once.        |
+| `MountebankError` "… received N request(s) but doesn't record them" | The imposter was created without `recordRequests: true`; recreate it with recording on. |
 | `MountebankError` "port … is already in use"             | An imposter already exists on that port: `deleteImposter({ port })` first, or use another. |
 | `EADDRINUSE` when starting mountebank                    | Another mountebank (or other process) on 2525. Stop it, or use different ports.            |
 

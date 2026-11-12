@@ -4,8 +4,13 @@ export type MountebankOperation =
     | 'ADD_IMPOSTER'
     | 'GET_IMPOSTER'
     | 'DELETE_IMPOSTER'
+    | 'GET_IMPOSTERS'
+    | 'DELETE_IMPOSTERS'
     | 'ADD_STUB'
+    | 'REPLACE_STUBS'
     | 'DELETE_STUB'
+    | 'GET_REQUESTS'
+    | 'CLEAR_REQUESTS'
     | 'GET_LOGS';
 
 /** One entry of the `errors` array mountebank sends back, e.g. `{ code: 'bad data', message: '...' }`. */
@@ -31,7 +36,12 @@ const successStatus: Record<MountebankOperation, number> = {
     ADD_IMPOSTER: 201,
     GET_IMPOSTER: 200,
     DELETE_IMPOSTER: 200,
+    GET_IMPOSTERS: 200,
+    DELETE_IMPOSTERS: 200,
     ADD_STUB: 200,
+    REPLACE_STUBS: 200,
+    GET_REQUESTS: 200,
+    CLEAR_REQUESTS: 200,
     DELETE_STUB: 200,
     GET_LOGS: 200,
 };
@@ -40,7 +50,12 @@ const describe: Record<MountebankOperation, string> = {
     ADD_IMPOSTER: 'Creating the imposter',
     GET_IMPOSTER: 'Getting the imposter',
     DELETE_IMPOSTER: 'Deleting the imposter',
+    GET_IMPOSTERS: 'Listing the imposters',
+    DELETE_IMPOSTERS: 'Deleting all imposters',
     ADD_STUB: 'Adding the stub',
+    REPLACE_STUBS: 'Replacing the stubs',
+    GET_REQUESTS: 'Getting the recorded requests',
+    CLEAR_REQUESTS: 'Clearing the recorded requests',
     DELETE_STUB: 'Deleting the stub',
     GET_LOGS: 'Getting the logs',
 };

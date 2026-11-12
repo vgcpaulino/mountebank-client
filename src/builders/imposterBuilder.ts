@@ -8,6 +8,8 @@ export interface IImposterBuilder {
     name?: string;
     schema?: string;
     allowCORS?: boolean;
+    /** Record every request the imposter receives, so tests can read them with `getRequests`. */
+    recordRequests?: boolean;
 }
 
 interface IDefaultResponse extends Omit<ImposterDefaultResponse, 'statusCode'> {
@@ -20,15 +22,17 @@ export class ImposterBuilder {
     name?: string;
     schema?: string;
     allowCORS?: boolean;
+    recordRequests?: boolean;
     defaultResponse?: ImposterDefaultResponse;
     stubs: Stub[];
 
-    constructor({ port, protocol, name, schema, allowCORS }: IImposterBuilder) {
+    constructor({ port, protocol, name, schema, allowCORS, recordRequests }: IImposterBuilder) {
         this.port = port;
         this.protocol = protocol;
         this.name = name;
         this.schema = schema;
         this.allowCORS = allowCORS;
+        this.recordRequests = recordRequests;
         this.stubs = [];
     }
 
@@ -69,6 +73,7 @@ export class ImposterBuilder {
             name: this.name,
             schema: this.schema,
             allowCORS: this.allowCORS,
+            recordRequests: this.recordRequests,
             stubs: this.stubs,
             defaultResponse: this.defaultResponse,
         });
