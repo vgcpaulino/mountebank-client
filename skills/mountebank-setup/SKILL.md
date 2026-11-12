@@ -152,7 +152,9 @@ Defaults to know:
   listen on every interface (mb-graphql doesn't support choosing one).
 - The log that `client.getLogs()` reads goes to a file in the system temp folder, not your project. `logFile: '<path>'`
   picks the file; `logFile: false` writes none (then `getLogs()` has nothing to return).
-- It reads `./protocols.json` (relative to the working directory) for the GraphQL protocol.
+- GraphQL needs no setup: with `mb-graphql` installed, it generates the protofile mountebank needs in the temp folder.
+  A `./protocols.json` in the working directory is used instead when it exists; `protofile` picks a file, or `false`
+  for none.
 - `@mbtest/mountebank` must be installed (it isn't installed with mountebank-client). Without it, starting throws
   "Starting mountebank in-process needs '@mbtest/mountebank', which isn't installed" with the install command.
   With `url`, `setupMountebank` uses an existing server and doesn't need it.

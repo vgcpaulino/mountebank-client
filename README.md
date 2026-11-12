@@ -100,6 +100,7 @@ await startMountebank({ port: 2525, imposters: [usersApi] });
 | `allowInjection` | `true`   | Lets mountebank run JavaScript you send it. Needed for `decorate`.          |
 | `logLevel`       | `'info'` | `'debug'`, `'info'`, `'warn'` or `'error'`.                                 |
 | `logFile`        | a file in the system temp folder | Where mountebank writes the log that `getLogs()` reads. A path, or `false` for no log file. Nothing is written into your project. |
+| `protofile`      | `./protocols.json` if it exists, else generated when `mb-graphql` is installed | The file that tells mountebank how to run GraphQL imposters. A path, or `false` for none. See [GraphQL](#graphql). |
 | `allowRemoteConnections` | `false` | Accept connections from other machines. By default mountebank and the HTTP/HTTPS imposters listen on `127.0.0.1` only; turn it on when, e.g., a container or another host calls the imposters. (GraphQL imposters always listen on every interface.) |
 
 To change imposters while the server runs, use a [client](#the-client):
@@ -303,6 +304,10 @@ new StubBuilder().get('/counter').response({
 
 You can also pass the function as a string, or an array of functions. Also works on `proxyResponse()`.
 
+`Config` takes the type of your state, so TypeScript checks it: `(config: Config<{ count?: number }>) => { ... }`.
+Without a type argument, `config.state` accepts any field. `config.request.body` is always a string; `JSON.parse` it
+when you need the JSON.
+
 > **Important:** the function is converted to source text (`fn.toString()`) and sent to mountebank, which runs it in
 > its own process. It **can't use anything defined outside its own body**: no imports, no variables or helpers from
 > the surrounding file. Put everything it needs inside the function. It also needs the server to allow injection
@@ -499,8 +504,13 @@ const graphqlApi = new ImposterBuilder({ port: 4000, protocol: 'graphql', schema
 
 GraphQL responses use `data` instead of `body`.
 
-> **Setup needed:** mountebank finds the plugin through a `protocols.json` file in your working directory. Create one
-> next to your `package.json`:
+When you start mountebank from your tests (`startMountebank`, `setupMountebank`, the Jest and Playwright global
+setup), there's nothing else to set up: with `mb-graphql` installed, the package tells mountebank where it is. A
+`protocols.json` in your working directory still takes precedence, and the `protofile` option picks another file (or
+`false` for none).
+
+> **Running mountebank yourself** (`mb`, Docker): mountebank finds the plugin through a `protocols.json` file in the
+> folder it starts from (or `mb start --protofile <path>`). Create one next to your `package.json`:
 >
 > ```json
 > { "graphql": { "createCommand": "node node_modules/mb-graphql/dist/index.js" } }

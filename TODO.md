@@ -43,8 +43,9 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       private to the server entry point, and delete the root copy. (Done: tsc doesn't emit it into `dist/`, no
       published `.d.ts` mentions mountebank, and the root copy is deleted.)
 - [x] Exclude `src/start.ts` and other dev-only files from `dist/`. (Moved to `scripts/`.)
-- [ ] GraphQL with `startMountebank` needs a `protocols.json` in the consumer's working directory (it's read from
+- [x] GraphQL with `startMountebank` needs a `protocols.json` in the consumer's working directory (it's read from
       `./protocols.json` and isn't shipped). Generate it or ship it, so GraphQL works without manual setup.
+      (Generated in the temp folder when `mb-graphql` is installed; `protofile` option.)
 
 ## 3. Project layout
 
@@ -66,7 +67,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       rest), and clean up interface names (`IsResponseBuilder` vs `IResponseBuilder`, `IDefaultResponse`).
       (Interfaces renamed; `proxyMode` keeps mountebank's values `proxyAlways` etc., since they match its docs.)
 - [x] Remove the deprecated `addDefaultReponse` alias (renamed on main without an alias).
-- [ ] Type `Config.state` (generic parameter) instead of `any`.
+- [x] Type `Config.state` (generic parameter) instead of `any`. (`Config<State>`.)
 - [ ] Add a logger option (library code no longer uses `console.*`).
 
 ## 4a. Keeping up with mountebank
@@ -90,7 +91,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] Replace TSLint with ESLint (typescript-eslint, strict type-aware rules from the old `eslint` branch) + Prettier.
 - [x] Upgrade TypeScript (4.7) and raise `target` from `es2016`. (TypeScript 6.0, target ES2022.)
 - [ ] Move to TypeScript 7 once ts-jest (<7) and typescript-eslint (<6.1) support it.
-- [ ] Clear the remaining `no-explicit-any` lint warnings: `Config` (with the typed `Config.state` item above) and
+- [x] Clear the remaining `no-explicit-any` lint warnings: `Config` (with the typed `Config.state` item above) and
       `Behavior.decorate`.
 - [ ] Format the 3 files Prettier would still change (`src/index.ts`, `examples/users-service/{imposters,userBuilder}.ts`)
       and add a `format:check` step.

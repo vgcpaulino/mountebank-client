@@ -71,6 +71,10 @@ import { Config } from 'mountebank-client';
 };
 ```
 
+Type your state with `Config`'s type argument, so TypeScript checks it:
+`decorate: (config: Config<{ todos?: Record<string, unknown> }>) => { ... }`. Without one, `config.state` accepts any
+field. The type only helps while writing: mountebank still receives the source text.
+
 Either change `config.response` in place, or return a new response object. mountebank also waits for a returned
 `Promise` (written by hand, e.g. `new Promise((resolve) => setTimeout(() => resolve(config.response), 200))`),
 which is how the builder's `chaos` adds latency. Don't use the `async` keyword for this (see above). Note the response uses mountebank's own
