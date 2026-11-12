@@ -1,9 +1,9 @@
-import { stubsUser } from '../../examples/users-service/stubs';
+import { addUserStubs } from '../../examples/users-service/stubs';
 import { test } from '@playwright/test';
 
 test.describe('Suite', () => {
     test.beforeAll(async () => {
-        await stubsUser().addStubs();
+        await addUserStubs();
     });
 
     test('Test 1', async () => {

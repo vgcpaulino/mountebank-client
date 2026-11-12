@@ -36,7 +36,7 @@ describe('checkError', () => {
 
         expect(() => checkError({ errorCode: 'ADD_IMPOSTER', response: failed })).toThrow(
             'Creating the imposter failed (HTTP 400): port 8080 is already in use (EADDRINUSE). ' +
-                'Delete the existing imposter first (deleteImposter) or use another port'
+                'Delete the existing imposter first (client.imposter(8080).delete()) or use another port'
         );
     });
 

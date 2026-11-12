@@ -1,4 +1,4 @@
-import { Config, StubBuilder } from '../../src';
+import { Config, createClient, StubBuilder } from '../../src';
 import { UserBuilder } from './userBuilder';
 
 export const stubGetUserProxy = new StubBuilder().get('/users/me').proxyResponse({ url: 'http://live.com' });
@@ -59,13 +59,7 @@ export const stubPatchUser = new StubBuilder().patch('/users', { operator: 'star
     },
 });
 
-export function stubsUser() {
-    const stubs = [stubGetUser, stubPatchUser];
-    return {
-        addStubs: async () => addStubs(stubs),
-    };
-}
-
-async function addStubs(mocks: StubBuilder[]) {
-    await Promise.all(Array.from(mocks).map((mock) => mock.addStub()));
+/** Adds the users stubs to the users-service imposter (port 8080) on the server in MOUNTEBANK_URL. */
+export async function addUserStubs() {
+    await createClient().imposter(8080).addStubs([stubGetUser, stubPatchUser]);
 }

@@ -9,8 +9,8 @@
  */
 import type { TestType } from '@playwright/test';
 import { ImposterBuilder } from '../builders/imposterBuilder';
+import { createClient, MountebankClient } from '../client/mountebankClient';
 import { setupMountebank, SetupMountebankOptions } from '../server/setupMountebank';
-import { resetImposters } from './index';
 
 /**
  * Returns a function for Playwright's `globalSetup`. It starts mountebank (or waits for `url`), creates
@@ -31,7 +31,8 @@ export function playwrightGlobalSetup(options: SetupMountebankOptions = {}) {
 /**
  * Extends Playwright's `test` with an automatic `imposters` fixture that recreates `imposters` before each test,
  * so stubs added in a test, recorded requests and `decorate` state don't leak into the next one. Tests can also
- * use the fixture to get the imposters.
+ * use the fixture to get the imposters. They go to `client`, or by default to `createClient()` (the server
+ * `playwrightGlobalSetup` put in `MOUNTEBANK_URL`).
  *
  * Imposters live on fixed ports that the app under test calls, so tests that share them must not run at the same
  * time: use `workers: 1` (or `test.describe.configure({ mode: 'serial' })`), or give each worker its own ports.
@@ -44,7 +45,11 @@ export function playwrightGlobalSetup(options: SetupMountebankOptions = {}) {
  * test('shows the user', async ({ page }) => { ... });
  * ```
  */
-export function withImposters<T extends object, W extends object>(test: TestType<T, W>, imposters: ImposterBuilder[]) {
+export function withImposters<T extends object, W extends object>(
+    test: TestType<T, W>,
+    imposters: ImposterBuilder[],
+    { client }: { client?: MountebankClient } = {}
+) {
     // Playwright's fixture type is a conditional type over the caller's own fixtures (T, W), which TypeScript can't
     // resolve inside a generic function. Extend the base TestType instead, where the fixture is fully type-checked,
     // and give the result the caller's fixtures back.
@@ -53,7 +58,7 @@ export function withImposters<T extends object, W extends object>(test: TestType
             // Playwright reads the fixture's source and requires an object destructuring pattern here.
             // eslint-disable-next-line no-empty-pattern
             async ({}, use) => {
-                await resetImposters(imposters);
+                await (client ?? createClient()).resetImposters(imposters);
                 await use(imposters);
             },
             { auto: true },

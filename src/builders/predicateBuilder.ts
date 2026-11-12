@@ -1,9 +1,9 @@
-import { OperatorTypes, RequestMethodsTypes, ResponseRecord } from '../interfaces/types';
+import { Operator, HttpMethod, ResponseRecord } from '../interfaces/types';
 import { Predicate, PredicateEquals } from '../interfaces';
 
-interface IPredicateBuilder {
-    operator: OperatorTypes;
-    method?: RequestMethodsTypes;
+interface PredicateOptions {
+    operator: Operator;
+    method?: HttpMethod;
     path?: string;
     query?: ResponseRecord | string;
     mutation?: string;
@@ -17,7 +17,7 @@ export class PredicateBuilder {
     contains!: PredicateEquals;
     matches!: PredicateEquals;
 
-    constructor({ operator, method, path, query, mutation, args }: IPredicateBuilder) {
+    constructor({ operator, method, path, query, mutation, args }: PredicateOptions) {
         this[operator] = {
             method,
             path,

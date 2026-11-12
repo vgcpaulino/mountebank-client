@@ -27,7 +27,9 @@ export interface MountebankErrorDetail {
 function describeDetail({ code, message, port }: MountebankErrorDetail): string {
     if (!message && code === 'EADDRINUSE') {
         const which = port !== undefined ? `port ${port}` : 'the port';
-        return `${which} is already in use (EADDRINUSE). Delete the existing imposter first (deleteImposter) or use another port`;
+        return `${which} is already in use (EADDRINUSE). Delete the existing imposter first (client.imposter(${
+            port ?? 'port'
+        }).delete()) or use another port`;
     }
     return [code, message].filter(Boolean).join(': ');
 }

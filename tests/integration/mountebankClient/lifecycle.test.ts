@@ -1,12 +1,13 @@
 import { http } from '../../helpers/http';
 import { ChildProcess, spawn } from 'child_process';
-import { addImposter as createImposter, deleteImposters, getImposters, replaceStubs, StubBuilder } from '../../../src';
+import { createClient, ImposterBuilder, StubBuilder } from '../../../src';
 import { testPort } from '../../config/ports';
 
 // deleteImposters() wipes every imposter, so these tests use their own mountebank server instead of the shared
 // one the other test files run against in parallel.
 const serverPort = testPort(2535);
-const providerUrl = `http://localhost:${serverPort}`;
+const url = `http://localhost:${serverPort}`;
+const mb = createClient({ url });
 const portA = testPort(1131);
 const portB = testPort(1132);
 
@@ -15,7 +16,7 @@ let server: ChildProcess;
 async function waitForServer() {
     for (let i = 0; i < 100; i++) {
         try {
-            await http.get(`${providerUrl}/config`);
+            await http.get(`${url}/config`);
             return;
         } catch {
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -43,7 +44,7 @@ describe('Imposter lifecycle', () => {
         await addImposter(portB);
         await http.get(`http://localhost:${portA}/`);
 
-        const imposters = await getImposters({ providerUrl });
+        const imposters = await mb.getImposters();
 
         expect(imposters).toEqual(
             expect.arrayContaining([
@@ -54,28 +55,27 @@ describe('Imposter lifecycle', () => {
     });
 
     test('deleteImposters removes them all', async () => {
-        await deleteImposters({ providerUrl });
+        await mb.deleteImposters();
 
-        expect(await getImposters({ providerUrl })).toEqual([]);
+        expect(await mb.getImposters()).toEqual([]);
         // and is fine to call again on an empty server
-        await expect(deleteImposters({ providerUrl })).resolves.toBeUndefined();
+        await expect(mb.deleteImposters()).resolves.toBeUndefined();
     });
 
-    test('replaceStubs swaps all stubs at once, tying StubBuilders to the imposter', async () => {
-        await addImposter(portA);
+    test('replaceStubs swaps all stubs at once', async () => {
+        const imposter = await addImposter(portA);
         const pong = new StubBuilder().get('/ping').response({ status: 200, body: 'pong' });
 
-        await replaceStubs({ providerUrl, imposterPort: portA, stubs: [pong] });
+        await imposter.replaceStubs([pong]);
 
         const response = await http.get(`http://localhost:${portA}/ping`);
         expect(response.data).toBe('pong');
-        expect(pong.imposterPort).toBe(portA);
 
-        await replaceStubs({ providerUrl, imposterPort: portA, stubs: [] });
+        await imposter.replaceStubs([]);
         expect((await http.get(`http://localhost:${portA}/ping`)).data).toBe('');
     });
 });
 
-async function addImposter(port: number, name?: string) {
-    await createImposter({ providerUrl, port, protocol: 'http', name });
+function addImposter(port: number, name?: string) {
+    return mb.createImposter(new ImposterBuilder({ port, protocol: 'http', name }));
 }

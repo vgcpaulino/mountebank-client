@@ -4,20 +4,20 @@ import {
     DecorateInput,
     ChaosBehavior,
     CopyBehavior,
-    ICopyFromHeaderQuery,
-    ICopyFromPathBody,
-    IResponseBuilder,
+    CopyFromHeaderOrQuery,
+    CopyFromPathOrBody,
+    ResponseBuilderOptions,
     IsResponse,
-    IsResponseBuilder,
-    ProxyResponse,
-    ProxyResponseBuilder,
-    ProxyResponseOptions,
-    StandardResponse,
+    ResponseOptions,
+    ProxyResponseDefinition,
+    ProxyOptions,
+    ProxyConfig,
+    IsResponseDefinition,
 } from '../interfaces';
 
 export class ResponseBuilder {
     is!: IsResponse;
-    proxy!: ProxyResponseOptions;
+    proxy!: ProxyConfig;
     behaviors: Behavior[];
     repeat!: number;
 
@@ -36,7 +36,7 @@ export class ResponseBuilder {
         url,
         proxyMode,
         chaos,
-    }: IResponseBuilder) {
+    }: ResponseBuilderOptions) {
         this.behaviors = [];
 
         if (url) {
@@ -73,7 +73,7 @@ export class ResponseBuilder {
         }
     }
 
-    private handleIsResponse({ body, headers, status, data }: IsResponseBuilder) {
+    private handleIsResponse({ body, headers, status, data }: ResponseOptions) {
         const isAppJson = typeof body === 'object';
 
         if (isAppJson) {
@@ -93,7 +93,7 @@ export class ResponseBuilder {
         return this;
     }
 
-    private handleProxyResponse({ url, proxyMode }: ProxyResponseBuilder) {
+    private handleProxyResponse({ url, proxyMode }: ProxyOptions) {
         this.proxy = {
             to: url || '',
             mode: proxyMode || 'proxyAlways',
@@ -109,7 +109,7 @@ export class ResponseBuilder {
         });
     }
 
-    addCopyFromHeaderQuery({ type, copyFrom }: { type: 'headers' | 'query'; copyFrom?: ICopyFromHeaderQuery }) {
+    addCopyFromHeaderQuery({ type, copyFrom }: { type: 'headers' | 'query'; copyFrom?: CopyFromHeaderOrQuery }) {
         if (copyFrom) {
             const copyBehavior: CopyBehavior = {
                 from: { [type]: copyFrom.name },
@@ -124,7 +124,7 @@ export class ResponseBuilder {
         return this;
     }
 
-    addCopyFromPathBody({ from, copyFrom }: { from: 'path' | 'body'; copyFrom?: ICopyFromPathBody }) {
+    addCopyFromPathBody({ from, copyFrom }: { from: 'path' | 'body'; copyFrom?: CopyFromPathOrBody }) {
         if (copyFrom) {
             const copyBehavior: CopyBehavior = {
                 from,
@@ -166,8 +166,8 @@ export class ResponseBuilder {
         this.behaviors.push({ decorate: decorate });
     }
 
-    generate(): StandardResponse {
-        const isResponse: StandardResponse = {
+    generate(): IsResponseDefinition {
+        const isResponse: IsResponseDefinition = {
             is: this.is,
             behaviors: this.behaviors,
             repeat: this.repeat,
@@ -175,8 +175,8 @@ export class ResponseBuilder {
         return isResponse;
     }
 
-    generateProxy(): ProxyResponse {
-        const proxy: ProxyResponse = {
+    generateProxy(): ProxyResponseDefinition {
+        const proxy: ProxyResponseDefinition = {
             proxy: this.proxy,
             behaviors: this.behaviors,
         };

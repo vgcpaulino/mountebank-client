@@ -1,18 +1,18 @@
 import { http, TestResponse } from '../../helpers/http';
-import { Config, ImposterBuilder, StubBuilder } from '../../../src';
+import { Config, createClient, ImposterBuilder, StubBuilder } from '../../../src';
 import { randomUUID } from 'crypto';
 import { testPort } from '../../config/ports';
 
 const imposterPort = testPort(1114);
+const mb = createClient();
 
 describe('Stub Builder', () => {
     beforeAll(async () => {
-        const imposter = new ImposterBuilder({ port: imposterPort, protocol: 'http' });
-        await imposter.addImposter();
+        await mb.createImposter(new ImposterBuilder({ port: imposterPort, protocol: 'http' }));
     });
 
     test('Add Stub', async () => {
-        const stub = new StubBuilder({ imposterPort })
+        const stub = new StubBuilder()
             .get('/users/[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?/details', { operator: 'matches' })
             .response({
                 status: 200,
@@ -33,7 +33,7 @@ describe('Stub Builder', () => {
                     }
                 },
             });
-        await stub.addStub();
+        await mb.imposter(imposterPort).addStub(stub);
 
         const guid = randomUUID();
         let response: TestResponse;

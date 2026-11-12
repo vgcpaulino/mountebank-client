@@ -1,7 +1,7 @@
 import { http } from '../../helpers/http';
 import * as os from 'os';
 import * as path from 'path';
-import { addImposter, deleteImposter, getLogs } from '../../../src';
+import { createClient, ImposterBuilder } from '../../../src';
 import { mountebankUrl, testPort } from '../../config/ports';
 
 // The test server is started with startMountebank's defaults (tests/config/globalSetup.ts -> jestGlobalSetup),
@@ -30,11 +30,13 @@ describe('startMountebank - safe defaults', () => {
         // The test server logs at 'error' level, so make sure there is an entry: a duplicate imposter is logged as
         // "error creating imposter". (Relying on other test files to log something made this order-dependent.)
         const port = testPort(1150);
-        await addImposter({ port, protocol: 'http' });
-        await addImposter({ port, protocol: 'http' }).catch(() => undefined);
-        await deleteImposter({ port });
+        const mb = createClient();
+        const imposter = new ImposterBuilder({ port, protocol: 'http' });
+        await mb.createImposter(imposter);
+        await mb.createImposter(imposter).catch(() => undefined);
+        await mb.imposter(port).delete();
 
-        const logs = await getLogs();
+        const logs = await mb.getLogs();
 
         expect(logs.some((entry) => entry.message.includes('error creating imposter'))).toBe(true);
         expect(logs.some((entry) => entry.message === 'No logfile')).toBe(false);

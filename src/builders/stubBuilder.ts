@@ -1,26 +1,29 @@
-import { IsResponseBuilder, Predicate, ProxyResponseBuilder, Response } from '../interfaces';
-import { OperatorTypes, ResponseRecord } from '../interfaces/types';
+import { ResponseOptions, Predicate, ProxyOptions, Response } from '../interfaces';
+import { Operator, ResponseRecord } from '../interfaces/types';
 import { PredicateBuilder } from './predicateBuilder';
 import { ResponseBuilder } from './responseBuilder';
-import { addStub, deleteStubByID } from '../client/mountebankClient';
 import { randomUUID } from 'crypto';
 
-interface Options {
-    operator?: OperatorTypes;
+/** How a stub matches: the comparison `operator` and, for GraphQL, the operation to match. */
+export interface MatchOptions {
+    operator?: Operator;
     query?: ResponseRecord | string;
     mutation?: string;
     args?: Record<string, string | number | boolean>;
 }
 
+/**
+ * Describes a stub: which requests it matches and how it responds. It only holds the definition; add it to an
+ * `ImposterBuilder`, or to a running imposter with `client.imposter(port).addStub(stub)`.
+ */
 export class StubBuilder {
+    /** Identifies the stub on the server, so `client.imposter(port).deleteStub(stub)` can find it. */
     stubID: string;
-    imposterPort?: number;
     predicates: Predicate[];
     responses: Response[];
 
-    constructor({ imposterPort }: { imposterPort?: number } = {}) {
+    constructor() {
         this.stubID = randomUUID();
-        this.imposterPort = imposterPort;
         this.predicates = [];
         this.responses = [];
     }
@@ -35,37 +38,37 @@ export class StubBuilder {
         return this;
     }
 
-    any({ operator = 'equals', query, mutation, args }: Options) {
+    any({ operator = 'equals', query, mutation, args }: MatchOptions) {
         this.predicates.push(new PredicateBuilder({ operator, query, mutation, args }));
         return this;
     }
 
-    get(path: string, { operator = 'equals' }: Options = {}) {
+    get(path: string, { operator = 'equals' }: MatchOptions = {}) {
         this.predicates.push(new PredicateBuilder({ operator, method: 'GET', path }));
         return this;
     }
 
-    post(path: string, { operator = 'equals' }: Options = {}) {
+    post(path: string, { operator = 'equals' }: MatchOptions = {}) {
         this.predicates.push(new PredicateBuilder({ operator, method: 'POST', path }));
         return this;
     }
 
-    put(path: string, { operator = 'equals' }: Options = {}) {
+    put(path: string, { operator = 'equals' }: MatchOptions = {}) {
         this.predicates.push(new PredicateBuilder({ operator, method: 'PUT', path }));
         return this;
     }
 
-    patch(path: string, { operator = 'equals' }: Options = {}) {
+    patch(path: string, { operator = 'equals' }: MatchOptions = {}) {
         this.predicates.push(new PredicateBuilder({ operator, method: 'PATCH', path }));
         return this;
     }
 
-    delete(path: string, { operator = 'equals' }: Options = {}) {
+    delete(path: string, { operator = 'equals' }: MatchOptions = {}) {
         this.predicates.push(new PredicateBuilder({ operator, method: 'DELETE', path }));
         return this;
     }
 
-    options(path: string, { operator = 'equals' }: Options = {}) {
+    options(path: string, { operator = 'equals' }: MatchOptions = {}) {
         this.predicates.push(new PredicateBuilder({ operator, method: 'OPTIONS', path }));
         return this;
     }
@@ -83,7 +86,7 @@ export class StubBuilder {
         copyFromPath,
         copyFromBody,
         copyFromQuery,
-    }: IsResponseBuilder) {
+    }: ResponseOptions) {
         this.responses.push(
             new ResponseBuilder({
                 status,
@@ -103,12 +106,12 @@ export class StubBuilder {
         return this;
     }
 
-    multipleResponses(responses: IsResponseBuilder[]) {
-        responses.forEach((r: IsResponseBuilder) => this.response(r));
+    multipleResponses(responses: ResponseOptions[]) {
+        responses.forEach((r: ResponseOptions) => this.response(r));
         return this;
     }
 
-    proxyResponse({ url, proxyMode, decorate, wait, chaos }: ProxyResponseBuilder) {
+    proxyResponse({ url, proxyMode, decorate, wait, chaos }: ProxyOptions) {
         if (chaos && proxyMode === 'proxyOnce') {
             // mountebank records the proxied response after behaviors run, so proxyOnce would record one
             // chaos outcome (possibly an injected error) and replay it on every later call, with no more chaos.
@@ -120,19 +123,6 @@ export class StubBuilder {
         // Without recording, every call goes to the backend and gets its own chaos.
         const mode = proxyMode ?? (chaos ? 'proxyTransparent' : undefined);
         this.responses.push(new ResponseBuilder({ url, proxyMode: mode, decorate, wait, chaos }).generateProxy());
-        return this;
-    }
-
-    async addStub() {
-        await addStub({ imposterPort: this.imposterPort, stub: this });
-        return this;
-    }
-
-    async deleteStub() {
-        await deleteStubByID({
-            imposterPort: this.imposterPort,
-            stubID: this.stubID,
-        });
         return this;
     }
 }

@@ -1,9 +1,9 @@
-import { IImposterBuilder, ImposterBuilder } from '../../../src';
+import { ImposterOptions, ImposterBuilder } from '../../../src';
 import { graphQLSchema } from '../../helpers/graphqlSchema';
 
 describe('ImposterBuilder', () => {
     test('With GraphQL Schema', () => {
-        const config: IImposterBuilder = {
+        const config: ImposterOptions = {
             port: 8080,
             protocol: 'graphql',
             name: 'GraphQL',

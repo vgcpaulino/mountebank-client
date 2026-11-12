@@ -1,31 +1,31 @@
-import { Behavior, Chaos, ICopyFromHeaderQuery, ICopyFromPathBody } from './behavior';
-import { DecorateFunctionType, ProxyModeTypes, ResponseRecord } from './types';
+import { Behavior, Chaos, CopyFromHeaderOrQuery, CopyFromPathOrBody } from './behavior';
+import { DecorateFunction, ProxyMode, ResponseRecord } from './types';
 
 /** A decorate function, its source as a string, or several of them (applied in order). */
-export type DecorateInput = string | DecorateFunctionType | (string | DecorateFunctionType)[];
+export type DecorateInput = string | DecorateFunction | (string | DecorateFunction)[];
 
-interface CommonBuilder {
+interface CommonResponseOptions {
     decorate?: DecorateInput;
     chaos?: Chaos;
 }
 
-export interface IsResponseBuilder extends CommonBuilder, Omit<IsResponse, 'statusCode'> {
+export interface ResponseOptions extends CommonResponseOptions, Omit<IsResponse, 'statusCode'> {
     status?: number;
     wait?: number;
     repeat?: number;
-    copyFromHeader?: ICopyFromHeaderQuery;
-    copyFromQuery?: ICopyFromHeaderQuery;
-    copyFromPath?: ICopyFromPathBody;
-    copyFromBody?: ICopyFromPathBody;
+    copyFromHeader?: CopyFromHeaderOrQuery;
+    copyFromQuery?: CopyFromHeaderOrQuery;
+    copyFromPath?: CopyFromPathOrBody;
+    copyFromBody?: CopyFromPathOrBody;
 }
 
-export interface ProxyResponseBuilder extends CommonBuilder {
+export interface ProxyOptions extends CommonResponseOptions {
     url?: string;
-    proxyMode?: ProxyModeTypes;
+    proxyMode?: ProxyMode;
     wait?: number;
 }
 
-export interface IResponseBuilder extends IsResponseBuilder, ProxyResponseBuilder {}
+export interface ResponseBuilderOptions extends ResponseOptions, ProxyOptions {}
 
 export interface IsResponse {
     statusCode?: number;
@@ -34,29 +34,29 @@ export interface IsResponse {
     data?: unknown;
 }
 
-// TODO: Still needed?
-export interface StandardResponse {
+/** A stub response that returns a fixed response (mountebank's `is`). */
+export interface IsResponseDefinition {
     is: IsResponse;
     repeat?: number;
     behaviors?: Behavior[];
 }
 
-export interface ProxyResponseOptions {
+export interface ProxyConfig {
     to: string;
-    mode: ProxyModeTypes;
+    mode: ProxyMode;
     addWaitBehavior: boolean;
 }
 
-// TODO: Still needed?
-export interface ProxyResponse {
-    proxy: ProxyResponseOptions;
+/** A stub response that forwards to another server (mountebank's `proxy`). */
+export interface ProxyResponseDefinition {
+    proxy: ProxyConfig;
     repeat?: number;
     behaviors?: Behavior[];
 }
 
 export interface Response {
     is?: IsResponse;
-    proxy?: ProxyResponseOptions;
+    proxy?: ProxyConfig;
     repeat?: number;
     behaviors?: Behavior[];
 }

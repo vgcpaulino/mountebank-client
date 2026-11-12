@@ -1,41 +1,38 @@
 import { http } from '../../helpers/http';
-import {
-    clearRequests,
-    deleteImposter,
-    getRequests,
-    ImposterBuilder,
-    MountebankError,
-    StubBuilder,
-} from '../../../src';
+import { createClient, ImposterBuilder, MountebankError, StubBuilder } from '../../../src';
 import { graphQLSchema } from '../../helpers/graphqlSchema';
 import { testPort } from '../../config/ports';
 
 const recordingPort = testPort(1122);
 const silentPort = testPort(1123);
 const graphqlPort = testPort(1124);
+const mb = createClient();
+const recording = mb.imposter(recordingPort);
+const silent = mb.imposter(silentPort);
 
 describe('Recorded requests', () => {
     beforeAll(async () => {
-        await new ImposterBuilder({ port: recordingPort, protocol: 'http', recordRequests: true })
-            .addStub(new StubBuilder().post('/orders').response({ status: 201, body: { id: 1 } }))
-            .addDefaultResponse({ status: 200, body: 'ok' })
-            .addImposter();
-        await new ImposterBuilder({ port: silentPort, protocol: 'http' }).addImposter();
+        await mb.createImposter(
+            new ImposterBuilder({ port: recordingPort, protocol: 'http', recordRequests: true })
+                .addStub(new StubBuilder().post('/orders').response({ status: 201, body: { id: 1 } }))
+                .addDefaultResponse({ status: 200, body: 'ok' })
+        );
+        await mb.createImposter(new ImposterBuilder({ port: silentPort, protocol: 'http' }));
     });
 
     afterAll(async () => {
-        await Promise.all([recordingPort, silentPort, graphqlPort].map((port) => deleteImposter({ port })));
+        await Promise.all([recordingPort, silentPort, graphqlPort].map((port) => mb.imposter(port).delete()));
     });
 
     beforeEach(async () => {
-        await clearRequests({ imposterPort: recordingPort });
+        await recording.clearRequests();
     });
 
     test('records what the app sent, with the JSON body parsed', async () => {
         await http.get(`http://localhost:${recordingPort}/orders?page=2`, { headers: { 'X-Request-Id': 'abc' } });
         await http.post(`http://localhost:${recordingPort}/orders`, { item: 'book', quantity: 2 });
 
-        const requests = await getRequests({ imposterPort: recordingPort });
+        const requests = await recording.getRequests();
 
         expect(requests.map((r) => `${r.method} ${r.path}`)).toEqual(['GET /orders', 'POST /orders']);
         expect(requests[0].query).toEqual({ page: '2' });
@@ -48,64 +45,56 @@ describe('Recorded requests', () => {
         await http.post(`http://localhost:${recordingPort}/orders`, { item: 'pen', quantity: 1 });
         await http.get(`http://localhost:${recordingPort}/orders?page=2`, { headers: { 'X-Request-Id': 'abc' } });
 
-        const books = await getRequests({
-            imposterPort: recordingPort,
-            filter: { method: 'post', path: '/orders', body: { item: 'book' } },
-        });
+        const books = await recording.getRequests({ method: 'post', path: '/orders', body: { item: 'book' } });
         expect(books).toHaveLength(1);
         expect(books[0].json).toEqual({ item: 'book', quantity: 2 });
 
-        expect(await getRequests({ imposterPort: recordingPort, filter: { method: 'POST' } })).toHaveLength(2);
-        expect(
-            await getRequests({ imposterPort: recordingPort, filter: { headers: { 'x-request-id': 'abc' } } })
-        ).toHaveLength(1);
-        expect(await getRequests({ imposterPort: recordingPort, filter: { query: { page: '2' } } })).toHaveLength(1);
-        expect(await getRequests({ imposterPort: recordingPort, filter: { path: /^\/missing/ } })).toEqual([]);
+        expect(await recording.getRequests({ method: 'POST' })).toHaveLength(2);
+        expect(await recording.getRequests({ headers: { 'x-request-id': 'abc' } })).toHaveLength(1);
+        expect(await recording.getRequests({ query: { page: '2' } })).toHaveLength(1);
+        expect(await recording.getRequests({ path: /^\/missing/ })).toEqual([]);
     });
 
     test('clearRequests forgets what was recorded', async () => {
         await http.get(`http://localhost:${recordingPort}/anything`);
-        expect(await getRequests({ imposterPort: recordingPort })).toHaveLength(1);
+        expect(await recording.getRequests()).toHaveLength(1);
 
-        await clearRequests({ imposterPort: recordingPort });
+        await recording.clearRequests();
 
-        expect(await getRequests({ imposterPort: recordingPort })).toEqual([]);
+        expect(await recording.getRequests()).toEqual([]);
     });
 
     test('an imposter that does not record returns [] until it receives a request, then throws', async () => {
-        expect(await getRequests({ imposterPort: silentPort })).toEqual([]);
+        expect(await silent.getRequests()).toEqual([]);
 
         await http.get(`http://localhost:${silentPort}/anything`);
 
-        const error = (await getRequests({ imposterPort: silentPort }).catch((e: unknown) => e)) as MountebankError;
+        const error = (await silent.getRequests().catch((e: unknown) => e)) as MountebankError;
         expect(error).toBeInstanceOf(MountebankError);
         expect(error.message).toContain(`received 1 request(s) but doesn't record them`);
         expect(error.message).toContain('recordRequests: true');
     });
 
     test('records GraphQL operations, filterable by operationName and args', async () => {
-        await new ImposterBuilder({
-            port: graphqlPort,
-            protocol: 'graphql',
-            schema: graphQLSchema,
-            recordRequests: true,
-        })
-            .addStub(
+        const graphql = await mb.createImposter(
+            new ImposterBuilder({
+                port: graphqlPort,
+                protocol: 'graphql',
+                schema: graphQLSchema,
+                recordRequests: true,
+            }).addStub(
                 new StubBuilder()
                     .any({ query: 'getUser', args: { id: 10 } })
                     .response({ status: 200, data: { id: 10 } })
             )
-            .addImposter();
+        );
 
         await http.post(`http://localhost:${graphqlPort}/`, { query: '{ getUser(id: 10) { id } }' });
         await http.post(`http://localhost:${graphqlPort}/`, { query: '{ getAllUsers { id } }' });
 
-        const getUser = await getRequests({
-            imposterPort: graphqlPort,
-            filter: { operationName: 'getUser', args: { id: 10 } },
-        });
+        const getUser = await graphql.getRequests({ operationName: 'getUser', args: { id: 10 } });
         expect(getUser).toHaveLength(1);
         expect(getUser[0].operationType).toBe('query');
-        expect(await getRequests({ imposterPort: graphqlPort })).toHaveLength(2);
+        expect(await graphql.getRequests()).toHaveLength(2);
     });
 });

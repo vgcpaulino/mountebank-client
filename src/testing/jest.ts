@@ -10,9 +10,8 @@
  * This file doesn't import Jest: it uses the `beforeAll` / `beforeEach` / `afterAll` globals that Jest defines.
  */
 import { ImposterBuilder } from '../builders/imposterBuilder';
-import { deleteImposter } from '../client/mountebankClient';
+import { createClient, MountebankClient } from '../client/mountebankClient';
 import { MountebankHandle, setupMountebank, SetupMountebankOptions } from '../server/setupMountebank';
-import { resetImposters } from './index';
 
 const handleKey = '__mountebankClientJestHandle__';
 
@@ -54,19 +53,27 @@ export function jestGlobalTeardown() {
  * (so stubs added in a test, recorded requests and `decorate` state don't leak into the next one), and deletes
  * them after the file. Give each test file its own imposter ports: Jest runs files in parallel.
  *
- * Pass `{ resetBeforeEach: false }` to create them once per file instead.
+ * Pass `{ resetBeforeEach: false }` to create them once per file instead. The imposters go to `client`, or by default
+ * to `createClient()` (the server `jestGlobalSetup` put in `MOUNTEBANK_URL`).
  */
-export function useImposters(imposters: ImposterBuilder[], { resetBeforeEach = true } = {}) {
+export function useImposters(
+    imposters: ImposterBuilder[],
+    { resetBeforeEach = true, client }: { resetBeforeEach?: boolean; client?: MountebankClient } = {}
+) {
     const hooks = globalThis as unknown as { beforeAll?: Hook; beforeEach?: Hook; afterAll?: Hook };
     if (!hooks.beforeAll || !hooks.beforeEach || !hooks.afterAll) {
         throw new Error('useImposters must be called in a test file, where beforeAll/beforeEach/afterAll exist');
     }
 
-    hooks.beforeAll(() => resetImposters(imposters));
+    // Created when the hooks run, so MOUNTEBANK_URL is read after global setup has set it.
+    let mb: MountebankClient | undefined = client;
+    const getClient = () => (mb ??= createClient());
+
+    hooks.beforeAll(() => getClient().resetImposters(imposters));
     if (resetBeforeEach) {
-        hooks.beforeEach(() => resetImposters(imposters));
+        hooks.beforeEach(() => getClient().resetImposters(imposters));
     }
     hooks.afterAll(async () => {
-        await Promise.all(imposters.map((imposter) => deleteImposter({ port: imposter.port })));
+        await Promise.all(imposters.map((imposter) => getClient().imposter(imposter.port).delete()));
     });
 }
