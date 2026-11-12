@@ -118,7 +118,8 @@ new StubBuilder({ imposterPort })
 ```
 
 - Always initialise state defensively (`config.state.todos ??= {}`): the first request finds it empty.
-- State survives between tests. Recreate the imposter when a test needs a clean slate.
+- State survives between tests. Recreate the imposter when a test needs a clean slate: `useImposters` (Jest),
+  `withImposters` (Playwright) or `resetImposters` do that before each test.
 
 ## Debugging
 

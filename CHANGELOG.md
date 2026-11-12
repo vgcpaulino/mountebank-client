@@ -44,6 +44,12 @@ Changes since 1.0.2.
   what an imposter received and `clearRequests()` to forget it.
   - `getRequests()` filters by method, path, query, headers, JSON body, or GraphQL operation and arguments.
   - It throws if the imposter received requests without recording them.
+- **Test runner helpers:**
+  - `mountebank-client/jest`: `jestGlobalSetup`, `jestGlobalTeardown` and `useImposters`.
+  - `mountebank-client/playwright`: `playwrightGlobalSetup` and `withImposters`.
+  - From the package root, for any runner: `setupMountebank`, `resetImposters` and `waitForMountebank`.
+
+  They start mountebank once per run (or use an external server) and recreate the imposters before each test.
 - **Imposter lifecycle:** `getImposters()` lists every imposter, `deleteImposters()` removes them all, and
   `replaceStubs()` swaps all stubs of an imposter at once.
 - **`allowCORS`** option on imposters.
@@ -65,5 +71,7 @@ Changes since 1.0.2.
 
 ### Fixed
 
+- **`startMountebank`'s `server.close()` now also stops the imposters.** mountebank's own `close()` stops only its
+  API server, so the imposters (and `mb-graphql` processes) kept the Node process alive.
 - **`startMountebank` startup race:** it now waits for the server to listen before creating imposters.
 - **`wait` on `response()`** is now passed to mountebank. It was silently dropped before.

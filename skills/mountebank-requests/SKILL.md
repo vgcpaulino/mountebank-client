@@ -94,7 +94,9 @@ beforeEach(async () => {
 });
 ```
 
-Deleting the imposter (`deleteImposter`, or `deleteImposters` for all of them) also removes its recordings.
+Deleting the imposter (`deleteImposter`, or `deleteImposters` for all of them) also removes its recordings, and so
+does recreating it before each test with `useImposters` (Jest), `withImposters` (Playwright) or `resetImposters`
+(see **mountebank-setup**).
 
 ## GraphQL
 

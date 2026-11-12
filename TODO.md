@@ -34,6 +34,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] Fix license mismatch: `package.json` says ISC but `LICENSE` is MIT. (Both MIT now.)
 - [ ] Split entry points: core client/builders (no `mountebank` import), `./server` (in-process server), `./jest`
       and `./playwright` helpers.
+      (`./jest` and `./playwright` exist now; `./server` and moving `startMountebank` out of the root remain.)
 - [ ] Make `@mbtest/mountebank` an optional peer dependency instead of a dependency.
 - [ ] Bump `@mbtest/mountebank` to `^2.9.6` once it's released. We stay on the latest stable (2.9.5), which doesn't
       have the native `chaos` behavior: `chaos` defaults to an injected `decorate` that works on 2.9.5, and the
@@ -77,9 +78,11 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 ## 5. Test helpers
 
-- [ ] Runner-agnostic core: start server (optional), reset imposters/stubs, stop.
-- [ ] Jest helper (global setup/teardown, `afterEach` reset).
-- [ ] Playwright fixture.
+- [x] Runner-agnostic core: start server (optional), reset imposters/stubs, stop.
+- [x] Jest helper (global setup/teardown, `afterEach` reset).
+- [x] Playwright fixture.
+- [ ] Remove the `jest-dev-server` dev dependency: the integration tests now use the package's own `jestGlobalSetup`.
+      (Dependency change: ask first.)
 
 ## 6. Tooling
 

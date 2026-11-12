@@ -34,6 +34,7 @@ That one line produces the stub mountebank expects:
 - [Stubs: matching requests](#stubs-matching-requests)
 - [Stubs: responses](#stubs-responses)
 - [Behaviors](#behaviors)
+- [Test runner setup](#test-runner-setup)
 - [Verifying requests](#verifying-requests)
 - [Managing imposters](#managing-imposters)
 - [GraphQL](#graphql)
@@ -327,6 +328,62 @@ mountebank applies a proxy's behaviors before it records the response, so the pr
 When you set `chaos` without a `proxyMode`, the builder uses `proxyTransparent`. Without `chaos`, the default stays
 `proxyAlways`.
 
+## Test runner setup
+
+Helpers start mountebank once for the whole test run, in the runner's main process, point `MOUNTEBANK_URL` at it
+for the workers, and recreate your imposters before each test. A test then never sees stubs, recorded requests or
+`decorate` state left over from another one.
+
+### Jest
+
+```js
+// jest.global-setup.js
+module.exports = require('mountebank-client/jest').jestGlobalSetup({ port: 2525 });
+// jest.global-teardown.js
+module.exports = require('mountebank-client/jest').jestGlobalTeardown();
+// jest.config.js: { globalSetup: './jest.global-setup.js', globalTeardown: './jest.global-teardown.js' }
+```
+
+```ts
+import { useImposters } from 'mountebank-client/jest';
+
+useImposters([usersApi]); // created before the file's tests, recreated before each test, deleted after the file
+```
+
+Jest runs test files in parallel, so give each file its own imposter ports.
+
+### Playwright
+
+```ts
+// mountebank.setup.ts, with globalSetup: require.resolve('./mountebank.setup.ts') in playwright.config.ts
+import { playwrightGlobalSetup } from 'mountebank-client/playwright';
+export default playwrightGlobalSetup({ port: 2525 });
+```
+
+```ts
+import { test as base } from '@playwright/test';
+import { withImposters } from 'mountebank-client/playwright';
+
+const test = withImposters(base, [usersApi]); // recreates usersApi before each test
+```
+
+The app under test calls the imposters on fixed ports, so tests that share them must not run at the same time: use
+`workers: 1`.
+
+### Any runner
+
+```ts
+import { resetImposters, setupMountebank, waitForMountebank } from 'mountebank-client';
+
+const mb = await setupMountebank({ port: 2525, imposters: [usersApi] }); // or { url } for a running server
+await resetImposters([usersApi]); // before each test
+await mb.stop();                  // after the run
+```
+
+`setupMountebank` accepts the `startMountebank` options. With `url`, it uses that server instead (waiting until it
+answers), and `stop()` only deletes the imposters it created. `waitForMountebank({ url })` waits for a server
+started elsewhere, such as in Docker.
+
 ## Verifying requests
 
 A stub controls what the fake service answers. To check what your application **sent**, turn on recording and read
@@ -509,7 +566,8 @@ yarn test:integration      # starts a real mountebank on port 2525
 `yarn start:dev` runs the users-service demo in [`examples/users-service`](./examples/users-service): mountebank on
 2525 and a fake users API on 8080 (`GET /users/me`, `PATCH /users/:id`) that remembers changes.
 
-`yarn test:integration` needs port 2525 free. Set `MB_TEST_PORT_OFFSET` (e.g. `1000`) to move the server and all
+`yarn test:playwright` runs the Playwright helper tests (no browser needed). `yarn test:integration` needs port 2525
+free. Set `MB_TEST_PORT_OFFSET` (e.g. `1000`) to move the server and all
 imposters to other ports, for example when running a second copy of the tests.
 
 Planned work is in [TODO.md](TODO.md), and conventions for contributors (and coding agents) are in

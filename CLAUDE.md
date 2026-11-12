@@ -48,12 +48,16 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
 
 - `src/` — library source only. Everything here ships in the package.
 - `src/client/` — REST calls to mountebank. `src/builders/` — fluent builders. `src/interfaces/` — types.
-  `src/server/` — the optional in-process server.
+  `src/server/` — the optional in-process server. `src/testing/` — test helpers: the core (exported from the root)
+  and the `./jest` and `./playwright` entry points. The core never imports Jest or Playwright; `playwright.ts` only
+  imports Playwright's types.
 - `examples/users-service/` — the tracked demo (`yarn start:dev`). Other files in `examples/` are personal and
   git-ignored. Never imported by `src/`, never shipped.
-- `scripts/` — dev tooling such as `start-mountebank.ts` (`yarn start`, and the integration tests' server). Not
-  shipped: only `src/` is built into `dist/`.
-- `tests/unit/` and `tests/integration/` — Jest. `tests/e2e/` — Playwright examples (not run by Jest).
+- `scripts/` — dev tooling such as `start-mountebank.ts` (`yarn start`, and the separate server the lifecycle test
+  spawns). Not shipped: only `src/` is built into `dist/`.
+- `tests/unit/` and `tests/integration/` — Jest (the integration server is started by the package's own
+  `jestGlobalSetup`). `tests/playwright/` — tests for the Playwright helpers (`yarn test:playwright`, no browser).
+  `tests/e2e/` — Playwright examples (not run).
 - `skills/` — Agent Skills for people using the package. They use the open `SKILL.md` format
   ([agentskills.io](https://agentskills.io)) and must work in any agent that supports it, not just Claude Code: use
   only the standard frontmatter (`name`, `description`), no agent-specific tools or wording. They ship in the npm package
@@ -68,7 +72,8 @@ nvm use                 # Node 22 from .nvmrc
 yarn install            # yarn is the package manager; never commit package-lock.json
 npx tsc --noEmit -p .   # type check
 yarn test:unit
-yarn test:integration   # starts a real mountebank server on port 2525; port must be free, or it waits for a prompt
+yarn test:integration   # starts a real mountebank server on port 2525 (must be free)
+yarn test:playwright    # Playwright helper tests; server on 2545
 yarn format             # Prettier: single quotes, 4-space indent, 120 columns
 ```
 
@@ -80,20 +85,24 @@ stopping the other process: `MB_TEST_PORT_OFFSET=1000 yarn test:integration` run
 
 - Work in a git worktree under `temp/` (git-ignored), e.g. `git worktree add -b fix/x temp/wt-x origin/main`, when
   the main checkout has someone else's uncommitted changes or another task is in progress there.
-- **Remove the worktree once its PR is merged.** Confirm the merge first (`gh pr view <number> --json state` says
-  `MERGED`), then:
+- **Once a PR is merged, delete its branches and worktree.** Confirm the merge first (`gh pr view <number> --json state`
+  says `MERGED`), then delete the remote branch, the worktree and the local branch:
 
   ```bash
+  git merge-base --is-ancestor origin/fix/x origin/main   # the branch tip must be on main (exit code 0)
+  git push origin --delete fix/x
   git worktree remove temp/wt-x   # refuses if the worktree has uncommitted or untracked changes
-  git branch -d fix/x             # -d refuses if the branch isn't merged
+  git branch -d fix/x             # refuses if the branch isn't merged
   git worktree prune
   ```
 
-  If either command refuses, stop and ask instead of forcing it (never `--force` or `-D`): the worktree or branch
-  has work that isn't on `main`.
-- With stacked PRs, keep a worktree until every PR from its branches is merged; a worktree that switched branches
-  (e.g. from #35's branch to #36's) is removed after the last one. Delete each merged local branch with `git branch -d`.
-- Leave the remote branches alone unless asked to delete them.
+  If any check or command refuses, stop and ask instead of forcing it (never `--force` or `-D`): the branch or
+  worktree has work that isn't on `main`. Remote branches can be restored from the PR page on GitHub.
+- With stacked PRs, keep a branch until every PR built on it is merged; a worktree that switched branches (e.g. from
+  #35's branch to #36's) is removed after the last one.
+- Never delete branches that have no merged PR (e.g. `eslint`, `feat/redis`): they may hold unmerged work. Note that
+  `git branch -d` also deletes a branch that is only merged into its *remote* copy, so check `git branch --merged main`
+  first when deleting more than the branch you just merged.
 
 ## Keeping the skills in sync
 
@@ -107,7 +116,7 @@ Which skill covers what:
 | Area of the change                                                                 | Skill                 |
 | ---------------------------------------------------------------------------------- | --------------------- |
 | `ImposterBuilder`, `StubBuilder` matching and responses, `copyFrom…`, deleting stubs/imposters, `getImposter(s)` / `deleteImposters` / `replaceStubs` / `getLogs`, `MountebankError` | `mountebank-stubs`    |
-| `startMountebank`, env vars, client URLs/ports, Docker/CLI, test-runner wiring, troubleshooting | `mountebank-setup`    |
+| `startMountebank`, env vars, client URLs/ports, Docker/CLI, test helpers (`mountebank-client/jest`, `/playwright`, `setupMountebank`, `resetImposters`), troubleshooting | `mountebank-setup`    |
 | `decorate`, `Config`, `config.state`                                               | `mountebank-decorate` |
 | `wait`, `chaos`, `multipleResponses`, default responses, `proxyResponse`            | `mountebank-faults`   |
 | GraphQL imposters, `any()`, `protocols.json`, `mb-graphql`                          | `mountebank-graphql`  |
@@ -128,7 +137,7 @@ A change is done only when **all** of these hold:
 
 1. `npx tsc --noEmit -p .` is clean.
 2. `yarn test:unit` passes.
-3. `yarn test:integration` passes.
+3. `yarn test:integration` and `yarn test:playwright` pass.
 4. New behavior and bug fixes come with tests that cover them.
 5. Skills and README match the change (see "Keeping the skills in sync"), or the change doesn't touch public
    behavior.
