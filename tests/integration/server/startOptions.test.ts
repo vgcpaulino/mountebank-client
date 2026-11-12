@@ -1,10 +1,10 @@
 import { http } from '../../helpers/http';
 import * as os from 'os';
 import * as path from 'path';
-import { getLogs } from '../../../src';
-import { mountebankUrl } from '../../config/ports';
+import { addImposter, deleteImposter, getLogs } from '../../../src';
+import { mountebankUrl, testPort } from '../../config/ports';
 
-// The test server is started with startMountebank's defaults (tests/config/globalSetup.ts -> src/start.ts),
+// The test server is started with startMountebank's defaults (tests/config/globalSetup.ts -> jestGlobalSetup),
 // so its /config shows what those defaults are.
 describe('startMountebank - safe defaults', () => {
     let options: Record<string, any>;
@@ -19,7 +19,7 @@ describe('startMountebank - safe defaults', () => {
         expect(options.localOnly).toBe(false);
     });
 
-    test("writes its log to the system temp folder, not the project", () => {
+    test('writes its log to the system temp folder, not the project', () => {
         const logFile: string = options.log.transports.file.path;
 
         expect(path.dirname(logFile)).toBe(os.tmpdir());
@@ -27,9 +27,16 @@ describe('startMountebank - safe defaults', () => {
     });
 
     test('getLogs still works with the log in the temp folder', async () => {
+        // The test server logs at 'error' level, so make sure there is an entry: a duplicate imposter is logged as
+        // "error creating imposter". (Relying on other test files to log something made this order-dependent.)
+        const port = testPort(1150);
+        await addImposter({ port, protocol: 'http' });
+        await addImposter({ port, protocol: 'http' }).catch(() => undefined);
+        await deleteImposter({ port });
+
         const logs = await getLogs();
 
-        expect(logs.length).toBeGreaterThan(0);
+        expect(logs.some((entry) => entry.message.includes('error creating imposter'))).toBe(true);
         expect(logs.some((entry) => entry.message === 'No logfile')).toBe(false);
     });
 });
