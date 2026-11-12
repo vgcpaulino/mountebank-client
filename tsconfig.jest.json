@@ -3,7 +3,7 @@
     "compilerOptions": {
         "types": ["node", "jest"]
     },
-    "include": ["tests", "src/types", "global.d.ts"],
+    "include": ["tests", "src/types"],
     "ts-node": {
         "files": true,
         "compilerOptions": {

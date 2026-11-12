@@ -43,16 +43,23 @@ export async function setupMountebank({
         serverUrl = url.replace(/\/+$/, '');
         await waitForMountebank({ url: serverUrl, timeout });
         stopServer = async () => {
-            await Promise.all(imposters.map((imposter) => deleteImposter({ providerUrl: serverUrl, port: imposter.port })));
+            await Promise.all(
+                imposters.map((imposter) => deleteImposter({ providerUrl: serverUrl, port: imposter.port }))
+            );
         };
     } else {
         const port = startOptions.port ?? 2525;
         const server = await startMountebank({ ...startOptions, port });
         serverUrl = `http://localhost:${port}`;
-        stopServer = () => new Promise<void>((resolve) => server.close(() => resolve()));
+        stopServer = () =>
+            new Promise<void>((resolve) => {
+                server.close(() => {
+                    resolve();
+                });
+            });
     }
 
-    process.env['MOUNTEBANK_URL'] = serverUrl;
+    process.env.MOUNTEBANK_URL = serverUrl;
     await resetImposters(imposters, { providerUrl: serverUrl });
 
     return { url: serverUrl, stop: stopServer };
@@ -85,7 +92,7 @@ export async function waitForMountebank({ url, timeout = 30000 }: { url: string;
  */
 export async function resetImposters(
     imposters: ImposterBuilder[],
-    { providerUrl = process.env['MOUNTEBANK_URL'] || 'http://localhost:2525' }: { providerUrl?: string } = {}
+    { providerUrl = process.env.MOUNTEBANK_URL || 'http://localhost:2525' }: { providerUrl?: string } = {}
 ) {
     await Promise.all(
         imposters.map(async (imposter) => {

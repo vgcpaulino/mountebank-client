@@ -1,6 +1,9 @@
 import { Chaos, StubBuilder } from '../../../src';
 
-type DecorateResponse = { statusCode?: number; body?: unknown };
+interface DecorateResponse {
+    statusCode?: number;
+    body?: unknown;
+}
 
 /** Runs a generated chaos `decorate` the way mountebank does: `(fn)(config)`, then resolves the result. */
 async function runDecorate(source: string, response: DecorateResponse) {
@@ -124,7 +127,9 @@ describe('StubBuilder - chaos, injection implementation (default, any mountebank
         const source = decorateFor({ errorRate: 0.3, errorStatus: 502, latencyRate: 0.4, maxLatency: 900 });
 
         expect(source).toContain('errorRate = 0.3, errorStatus = 502, latencyRate = 0.4, maxLatency = 900');
-        // Only globals mountebank's eval has: Math, setTimeout, Promise.
+        // Only globals mountebank's eval has: Math, setTimeout, Promise. Compiling the source the way mountebank
+        // does (eval) is the point of this test.
+        // eslint-disable-next-line @typescript-eslint/no-implied-eval
         expect(() => new Function(`return ${source}`)).not.toThrow();
     });
 

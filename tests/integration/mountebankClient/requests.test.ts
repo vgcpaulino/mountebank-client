@@ -1,5 +1,12 @@
 import { http } from '../../helpers/http';
-import { clearRequests, deleteImposter, getRequests, ImposterBuilder, MountebankError, StubBuilder } from '../../../src';
+import {
+    clearRequests,
+    deleteImposter,
+    getRequests,
+    ImposterBuilder,
+    MountebankError,
+    StubBuilder,
+} from '../../../src';
 import { graphQLSchema } from '../../helpers/graphqlSchema';
 import { testPort } from '../../config/ports';
 
@@ -70,21 +77,33 @@ describe('Recorded requests', () => {
 
         await http.get(`http://localhost:${silentPort}/anything`);
 
-        const error = await getRequests({ imposterPort: silentPort }).catch((e) => e);
+        const error = (await getRequests({ imposterPort: silentPort }).catch((e: unknown) => e)) as MountebankError;
         expect(error).toBeInstanceOf(MountebankError);
         expect(error.message).toContain(`received 1 request(s) but doesn't record them`);
         expect(error.message).toContain('recordRequests: true');
     });
 
     test('records GraphQL operations, filterable by operationName and args', async () => {
-        await new ImposterBuilder({ port: graphqlPort, protocol: 'graphql', schema: graphQLSchema, recordRequests: true })
-            .addStub(new StubBuilder().any({ query: 'getUser', args: { id: 10 } }).response({ status: 200, data: { id: 10 } }))
+        await new ImposterBuilder({
+            port: graphqlPort,
+            protocol: 'graphql',
+            schema: graphQLSchema,
+            recordRequests: true,
+        })
+            .addStub(
+                new StubBuilder()
+                    .any({ query: 'getUser', args: { id: 10 } })
+                    .response({ status: 200, data: { id: 10 } })
+            )
             .addImposter();
 
         await http.post(`http://localhost:${graphqlPort}/`, { query: '{ getUser(id: 10) { id } }' });
         await http.post(`http://localhost:${graphqlPort}/`, { query: '{ getAllUsers { id } }' });
 
-        const getUser = await getRequests({ imposterPort: graphqlPort, filter: { operationName: 'getUser', args: { id: 10 } } });
+        const getUser = await getRequests({
+            imposterPort: graphqlPort,
+            filter: { operationName: 'getUser', args: { id: 10 } },
+        });
         expect(getUser).toHaveLength(1);
         expect(getUser[0].operationType).toBe('query');
         expect(await getRequests({ imposterPort: graphqlPort })).toHaveLength(2);

@@ -30,6 +30,8 @@ Changes since 1.0.2.
 - **Only the package root can be imported.** `package.json` now has `exports`, so deep imports such as
   `mountebank-client/dist/builders` fail with `ERR_PACKAGE_PATH_NOT_EXPORTED`. Import everything from
   `mountebank-client` instead. The dev-only `dist/start` file (shipped in 1.0.2) is no longer published.
+- **`addStub()` no longer accepts `defaultHeaders`.** It never did anything; TypeScript callers that pass it get a type
+  error now. Remove the option.
 - **`startMountebank({ allowInjection: false })` is now honored.** It was ignored before, and injection was always on.
   If you passed `false` but use `decorate` or `chaos`, remove the option.
 
@@ -61,6 +63,13 @@ Changes since 1.0.2.
   `npx skills add vgcpaulino/mountebank-client` or as a Claude Code plugin.
 
 ### Changed
+
+- **No more axios dependency.** The client uses Node's built-in `fetch`, so the package depends only on
+  `@mbtest/mountebank` and `mb-graphql`. When mountebank can't be reached at all, calls now throw a `MountebankError`
+  ("… can't reach mountebank at http://localhost:2525 (ECONNREFUSED)") instead of axios's network error.
+- **`getImposter()`, `deleteStubByID()`, `deleteStubsByID()` and `deleteStubByIndex()` return a typed
+  `ImposterDetails`** (the imposter plus `numberOfRequests`, `recordRequests` and `requests`) instead of `any`.
+- **`decorate` accepts a mixed array** of functions and strings (`DecorateInput`).
 
 - **`package.json` has `repository`, `homepage` and `bugs`**, so npm links back to GitHub.
 

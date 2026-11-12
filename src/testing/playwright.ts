@@ -43,11 +43,11 @@ export function playwrightGlobalSetup(options: SetupMountebankOptions = {}) {
  * test('shows the user', async ({ page }) => { ... });
  * ```
  */
-export function withImposters<T extends {}, W extends {}>(test: TestType<T, W>, imposters: ImposterBuilder[]) {
+export function withImposters<T extends object, W extends object>(test: TestType<T, W>, imposters: ImposterBuilder[]) {
     // Playwright's fixture type is a conditional type over the caller's own fixtures (T, W), which TypeScript can't
     // resolve inside a generic function. Extend the base TestType instead, where the fixture is fully type-checked,
     // and give the result the caller's fixtures back.
-    const extended = (test as unknown as TestType<{}, {}>).extend<{ imposters: ImposterBuilder[] }>({
+    const extended = (test as unknown as TestType<object, object>).extend<{ imposters: ImposterBuilder[] }>({
         imposters: [
             // Playwright reads the fixture's source and requires an object destructuring pattern here.
             // eslint-disable-next-line no-empty-pattern

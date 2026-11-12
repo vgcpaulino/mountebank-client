@@ -11,7 +11,7 @@ const api = new ImposterBuilder({ port, protocol: 'http', recordRequests: true }
 const test = withImposters(base, [api]);
 
 test('global setup started mountebank and the fixture created the imposter', async ({ request, imposters }) => {
-    expect(process.env['MOUNTEBANK_URL']).toBe(`http://localhost:${testPort(2545)}`);
+    expect(process.env.MOUNTEBANK_URL).toBe(`http://localhost:${testPort(2545)}`);
     expect(imposters).toEqual([api]);
 
     expect(await (await request.get(`http://localhost:${port}/users/1`)).json()).toEqual({ id: 1 });

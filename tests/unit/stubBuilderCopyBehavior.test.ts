@@ -1,4 +1,4 @@
-import { Config, StubBuilder } from '../../src';
+import { StubBuilder } from '../../src';
 
 describe('StubBuilder - Copy Behavior', () => {
     test('From Header', () => {
@@ -11,7 +11,7 @@ describe('StubBuilder - Copy Behavior', () => {
         const { responses } = stub;
 
         expect(responses[0].behaviors?.length).toBe(1);
-        expect(responses?.[0].behaviors?.[0]).toMatchObject({
+        expect(responses[0].behaviors?.[0]).toMatchObject({
             copy: {
                 from: { headers: 'Origin' },
                 into: '${Origin}',
@@ -30,7 +30,7 @@ describe('StubBuilder - Copy Behavior', () => {
         const { responses } = stub;
 
         expect(responses[0].behaviors?.length).toBe(1);
-        expect(responses?.[0].behaviors?.[0]).toMatchObject({
+        expect(responses[0].behaviors?.[0]).toMatchObject({
             copy: {
                 from: 'path',
                 into: '${userId}',
@@ -50,7 +50,7 @@ describe('StubBuilder - Copy Behavior', () => {
         const { responses } = stub;
 
         expect(responses[0].behaviors?.length).toBe(1);
-        expect(responses?.[0].behaviors?.[0]).toMatchObject({
+        expect(responses[0].behaviors?.[0]).toMatchObject({
             copy: {
                 from: 'body',
                 into: '${Language}',
@@ -69,7 +69,7 @@ describe('StubBuilder - Copy Behavior', () => {
         const { responses } = stub;
 
         expect(responses[0].behaviors?.length).toBe(1);
-        expect(responses?.[0].behaviors?.[0]).toMatchObject({
+        expect(responses[0].behaviors?.[0]).toMatchObject({
             copy: {
                 from: { query: 'name' },
                 into: '${name}',

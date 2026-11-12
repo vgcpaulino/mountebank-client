@@ -1,7 +1,6 @@
-import type { HttpResponse } from '../../../src/client/http';
 import { checkError, MountebankError } from '../../../src/client/errorHelper';
 
-const response = (status: number, data?: unknown) => ({ status, data } as HttpResponse);
+const response = (status: number, data?: unknown) => ({ status, data });
 
 describe('checkError', () => {
     test('does nothing on the expected success status', () => {

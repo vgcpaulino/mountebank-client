@@ -66,16 +66,22 @@ export const startMountebank = async ({
     };
     // Loaded lazily so importing this package never loads mountebank itself
     // (it's only needed to start a server in-process).
-    const { create } = await import('@mbtest/mountebank/src/mountebank.js');
-    const server: { close: (callback?: () => void) => void } = await create(startOptions);
+    const mountebank = (await import('@mbtest/mountebank/src/mountebank.js')) as {
+        create: (options: typeof startOptions) => Promise<{ close: (callback?: () => void) => void }>;
+    };
+    const server = await mountebank.create(startOptions);
 
     // mountebank's close() only stops its own API server: the imposters (and mb-graphql processes) keep listening
     // and keep the process alive. Delete them first; mountebank's CLI does the equivalent when it exits.
     const closeServer = server.close.bind(server);
     server.close = (callback?: () => void) => {
         deleteImposters({ providerUrl: `http://localhost:${port}` }).then(
-            () => closeServer(callback),
-            () => closeServer(callback) // still close the server if the imposters couldn't be deleted
+            () => {
+                closeServer(callback);
+            },
+            () => {
+                closeServer(callback); // still close the server if the imposters couldn't be deleted
+            }
         );
     };
 

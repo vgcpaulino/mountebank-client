@@ -1,4 +1,13 @@
-import { Imposter, ImposterDefaultResponse, ImposterProtocol, ImposterSummary, LogLevel, RecordedRequest, RequestFilter, Stub } from '../interfaces';
+import {
+    Imposter,
+    ImposterDefaultResponse,
+    ImposterProtocol,
+    ImposterSummary,
+    LogLevel,
+    RecordedRequest,
+    RequestFilter,
+    Stub,
+} from '../interfaces';
 import { matchesFilter, normalizeRequest } from './requestFilter';
 import { checkError, MountebankError } from './errorHelper';
 
@@ -6,8 +15,8 @@ export { MountebankError } from './errorHelper';
 export type { MountebankErrorDetail, MountebankOperation } from './errorHelper';
 import { request } from './http';
 
-const defaultProviderUrl = process.env['MOUNTEBANK_URL'] || 'http://localhost:2525';
-const defaultImposterPort = parseInt(process.env['MOUNTEBANK_IMPOSTER_DEFAULT_PORT'] || '') || 7117;
+const defaultProviderUrl = process.env.MOUNTEBANK_URL || 'http://localhost:2525';
+const defaultImposterPort = parseInt(process.env.MOUNTEBANK_IMPOSTER_DEFAULT_PORT || '') || 7117;
 
 interface IAddImposter {
     providerUrl?: string;
@@ -24,12 +33,12 @@ interface IAddImposter {
 export async function addImposter({
     providerUrl = defaultProviderUrl,
     port = defaultImposterPort,
-    protocol = 'https',
+    protocol,
     name = '',
     schema = '',
-    allowCORS = undefined,
-    recordRequests = undefined,
-    defaultResponse = undefined,
+    allowCORS,
+    recordRequests,
+    defaultResponse,
     stubs = [],
 }: IAddImposter) {
     const body: {
@@ -73,7 +82,8 @@ export async function getImposters({ providerUrl = defaultProviderUrl } = {}): P
 
     checkError({ errorCode: 'GET_IMPOSTERS', response });
 
-    return (response.data?.imposters ?? []).map(({ port, protocol, name, numberOfRequests }: ImposterSummary) => ({
+    const { imposters = [] } = response.data as { imposters?: ImposterSummary[] };
+    return imposters.map(({ port, protocol, name, numberOfRequests }) => ({
         port,
         protocol,
         ...(name ? { name } : {}),
@@ -133,12 +143,13 @@ export async function getRequests({
 
     checkError({ errorCode: 'GET_REQUESTS', response });
 
-    const requests: Record<string, unknown>[] = response.data?.requests ?? [];
-    if (requests.length === 0 && (response.data?.numberOfRequests ?? 0) > 0) {
+    const imposter = response.data as ImposterDetails;
+    const requests = imposter.requests ?? [];
+    if (requests.length === 0 && (imposter.numberOfRequests ?? 0) > 0) {
         throw new MountebankError({
             operation: 'GET_REQUESTS',
             reason:
-                `the imposter at port ${imposterPort} received ${response.data.numberOfRequests} request(s) but ` +
+                `the imposter at port ${imposterPort} received ${imposter.numberOfRequests} request(s) but ` +
                 `doesn't record them. Create it with recordRequests: true`,
         });
     }
@@ -148,31 +159,48 @@ export async function getRequests({
 
 /** Forgets the requests the imposter at `imposterPort` recorded, and resets its request count. */
 export async function clearRequests({ providerUrl = defaultProviderUrl, imposterPort = defaultImposterPort } = {}) {
-    const response = await request('CLEAR_REQUESTS', 'DELETE', `${providerUrl}/imposters/${imposterPort}/savedRequests`);
+    const response = await request(
+        'CLEAR_REQUESTS',
+        'DELETE',
+        `${providerUrl}/imposters/${imposterPort}/savedRequests`
+    );
 
     checkError({ errorCode: 'CLEAR_REQUESTS', response });
 }
 
-export async function getImposter({ providerUrl = defaultProviderUrl, port = defaultImposterPort } = {}) {
+/**
+ * An imposter as mountebank returns it: its definition, plus how many requests it received, what it recorded (with
+ * `recordRequests: true`), and its stubs with mountebank's links.
+ */
+export interface ImposterDetails extends Imposter {
+    numberOfRequests?: number;
+    recordRequests?: boolean;
+    requests?: Record<string, unknown>[];
+}
+
+export async function getImposter({
+    providerUrl = defaultProviderUrl,
+    port = defaultImposterPort,
+} = {}): Promise<ImposterDetails> {
     const response = await request('GET_IMPOSTER', 'GET', `${providerUrl}/imposters/${port}`);
 
     checkError({ errorCode: 'GET_IMPOSTER', response });
 
-    return response.data;
+    return response.data as ImposterDetails;
 }
 
 export async function addStub({
     providerUrl = defaultProviderUrl,
     imposterPort = defaultImposterPort,
     stub,
-    defaultHeaders = true,
 }: {
     providerUrl?: string;
     imposterPort?: string | number;
     stub: Stub;
-    defaultHeaders?: boolean;
 }) {
-    const response = await request('ADD_STUB', 'POST', `${providerUrl}/imposters/${imposterPort}/stubs`, { stub: { ...stub } });
+    const response = await request('ADD_STUB', 'POST', `${providerUrl}/imposters/${imposterPort}/stubs`, {
+        stub: { ...stub },
+    });
 
     checkError({ errorCode: 'ADD_STUB', response });
 }
@@ -185,9 +213,9 @@ export async function deleteStubByID({
     providerUrl?: string;
     imposterPort?: number;
     stubID?: string;
-} = {}): Promise<Imposter> {
-    const imposter: Imposter = await getImposter({ providerUrl, port: imposterPort });
-    const stub = imposter.stubs?.find((s: Stub) => s.stubID === stubID);
+} = {}): Promise<ImposterDetails> {
+    const imposter = await getImposter({ providerUrl, port: imposterPort });
+    const stub = imposter.stubs?.find((s) => s.stubID === stubID);
     const stubIndex = stub ? getStubIndex(stub) : undefined;
 
     if (stubIndex === undefined) {
@@ -209,8 +237,8 @@ export async function deleteStubsByID({
     providerUrl?: string;
     imposterPort?: number;
     stubIDs?: string[];
-} = {}): Promise<Imposter | undefined> {
-    let imposter: Imposter | undefined;
+} = {}): Promise<ImposterDetails | undefined> {
+    let imposter: ImposterDetails | undefined;
     for (const stubID of stubIDs ?? []) {
         imposter = await deleteStubByID({ providerUrl, imposterPort, stubID });
     }
@@ -226,11 +254,15 @@ export async function deleteStubByIndex({
     imposterPort?: number;
     stubIndex?: string;
 } = {}) {
-    const response = await request('DELETE_STUB', 'DELETE', `${providerUrl}/imposters/${imposterPort}/stubs/${stubIndex}`);
+    const response = await request(
+        'DELETE_STUB',
+        'DELETE',
+        `${providerUrl}/imposters/${imposterPort}/stubs/${stubIndex}`
+    );
 
     checkError({ errorCode: 'DELETE_STUB', response });
 
-    return response.data;
+    return response.data as ImposterDetails;
 }
 
 export async function getLogs({ providerUrl = defaultProviderUrl } = {}) {
@@ -238,10 +270,9 @@ export async function getLogs({ providerUrl = defaultProviderUrl } = {}) {
 
     checkError({ errorCode: 'GET_LOGS', response });
 
-    const logs: { level: LogLevel; message: string; timestamp: string }[] = response.data?.logs;
+    const { logs = [] } = response.data as { logs?: { level: LogLevel; message: string; timestamp: string }[] };
     return logs;
 }
-
 
 function getStubIndex(stub: Stub) {
     const href = stub._links?.self.href;

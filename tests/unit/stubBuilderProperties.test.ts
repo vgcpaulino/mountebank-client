@@ -1,14 +1,12 @@
-import { Config, StubBuilder } from "../../src";
+import { StubBuilder } from '../../src';
 
-describe("StubBuilder", () => {
-    test("With Repeat", async () => {
-        const stub = new StubBuilder()
-            .get("/decorateFunction")
-            .response({
-                status: 200,
-                body: { message: "Welcome!" },
-                repeat: 999,
-            });
+describe('StubBuilder', () => {
+    test('With Repeat', () => {
+        const stub = new StubBuilder().get('/decorateFunction').response({
+            status: 200,
+            body: { message: 'Welcome!' },
+            repeat: 999,
+        });
 
         const { responses } = stub;
 
@@ -16,10 +14,10 @@ describe("StubBuilder", () => {
         expect(responses[0].repeat).toBe(999);
     });
 
-    test("Without Repeat", async () => {
+    test('Without Repeat', () => {
         const stub = new StubBuilder()
-            .get("/decorateFunction")
-            .response({ status: 200, body: { message: "Welcome!" } });
+            .get('/decorateFunction')
+            .response({ status: 200, body: { message: 'Welcome!' } });
 
         const { responses } = stub;
 

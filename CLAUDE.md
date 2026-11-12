@@ -23,7 +23,7 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
   stable release; no betas. A local clone for reading its source can live in `temp/mountebank` (git-ignored);
   never import from it.
 - **Runtime:** Node 20.19+ (mountebank's own minimum); `.nvmrc` pins 22 for development. Use the built-in `fetch`;
-  do not add HTTP client libraries (axios is being removed).
+  do not add HTTP client libraries.
 
 ## API design rules
 
@@ -74,6 +74,7 @@ npx tsc --noEmit -p .   # type check
 yarn test:unit
 yarn test:integration   # starts a real mountebank server on port 2525 (must be free)
 yarn test:playwright    # Playwright helper tests; server on 2545
+yarn lint               # ESLint (strict, type-aware); `yarn lint:fix` for the auto-fixable rules
 yarn format             # Prettier: single quotes, 4-space indent, 120 columns
 ```
 
@@ -135,7 +136,7 @@ When updating a skill:
 
 A change is done only when **all** of these hold:
 
-1. `npx tsc --noEmit -p .` is clean.
+1. `npx tsc --noEmit -p .` is clean, and `yarn lint` has no errors (the `any` warnings are known).
 2. `yarn test:unit` passes.
 3. `yarn test:integration` and `yarn test:playwright` pass.
 4. New behavior and bug fixes come with tests that cover them.
@@ -159,4 +160,7 @@ If any of these can't be run, say so explicitly rather than claiming the change 
 
 - Branch names: `feat/...`, `fix/...`, `chore/...`.
 - Commit messages: Conventional Commits (`feat: ...`, `fix: ...`, `chore: ...`), one logical change per commit.
-- Linting is moving from TSLint to ESLint + Prettier; until that lands, don't add new TSLint rules.
+- Lint with ESLint (`eslint.config.mjs`: typescript-eslint's strict, type-aware rules) and format with Prettier
+  (`.prettierrc`); eslint-config-prettier keeps them from overlapping. Fix lint errors instead of disabling rules; a
+  disable needs a comment saying why. Format the files you change (`npx prettier --write <files>`); don't reformat
+  untouched files in the same PR.

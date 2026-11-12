@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import { http } from '../../helpers/http';
 import { ImposterBuilder, StubBuilder } from '../../../src';
 import { testPort } from '../../config/ports';
@@ -9,7 +10,9 @@ const proxyPort = testPort(1117);
 // mountebank's native chaos behavior exists from 2.9.6 on; older servers reject it as "Unrecognized behavior".
 // The native tests switch themselves on once the installed mountebank supports it. The default (injection)
 // implementation works on any version.
-const { version: mountebankVersion } = require('@mbtest/mountebank/package.json');
+const { version: mountebankVersion } = JSON.parse(
+    readFileSync(require.resolve('@mbtest/mountebank/package.json'), 'utf8')
+) as { version: string };
 const [major, minor, patch] = mountebankVersion.split(/[.-]/).map(Number);
 const supportsNativeChaos = major > 2 || (major === 2 && (minor > 9 || (minor === 9 && patch >= 6)));
 const testNativeChaos = supportsNativeChaos ? test : test.skip;
@@ -111,7 +114,11 @@ describe('Stub Builder - chaos on a proxy', () => {
     beforeAll(async () => {
         // The "real" backend the proxy forwards to.
         await new ImposterBuilder({ port: backendPort, protocol: 'http' })
-            .addStub(new StubBuilder().get('/orders', { operator: 'startsWith' }).response({ status: 200, body: { from: 'backend' } }))
+            .addStub(
+                new StubBuilder()
+                    .get('/orders', { operator: 'startsWith' })
+                    .response({ status: 200, body: { from: 'backend' } })
+            )
             .addImposter();
         await new ImposterBuilder({ port: proxyPort, protocol: 'http' }).addImposter();
     });
@@ -129,7 +136,7 @@ describe('Stub Builder - chaos on a proxy', () => {
         }
 
         // proxyTransparent (the default with chaos) records no stubs: only ours is on the imposter.
-        const imposter = (await http.get(`${process.env['MOUNTEBANK_URL']}/imposters/${proxyPort}`)).data;
+        const imposter = (await http.get(`${process.env.MOUNTEBANK_URL}/imposters/${proxyPort}`)).data;
         expect(imposter.stubs).toHaveLength(1);
 
         await stub.deleteStub();

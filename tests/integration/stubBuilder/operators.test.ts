@@ -23,7 +23,7 @@ describe('Stub Builder', () => {
                 decorate: (config: Config) => {
                     const requestPath = config.request.path;
                     const guidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-                    const result = requestPath.match(guidPattern);
+                    const result = guidPattern.exec(requestPath);
                     if (result && result.length > 0) {
                         config.response.body = {
                             ...config.response.body,

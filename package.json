@@ -35,8 +35,9 @@
         "start:dev": "ts-node-dev --files ./examples/users-service/main.ts",
         "build": "npm run clean && tsc",
         "prepare": "npm run build",
-        "format": "prettier --write \"src/**/*.ts\"",
-        "lint": "tslint -p tsconfig.json",
+        "format": "prettier --write \"{src,tests,scripts,examples/users-service}/**/*.ts\"",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "example": "ts-node --files ./examples/dev.ts",
         "example:prod": "tsc && node ./dist/examples/dev.js",
         "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
@@ -67,17 +68,20 @@
         "node": ">=20.19"
     },
     "devDependencies": {
+        "@eslint/js": "^10",
         "@playwright/test": "^1.42.1",
         "@types/jest": "^29.5.0",
         "@types/node": "^20",
+        "eslint": "^10",
+        "eslint-config-prettier": "^10",
+        "globals": "^17.14.0",
         "jest": "^29.5.0",
         "prettier": "^2.8.7",
         "ts-jest": "^29.4.15",
         "ts-node": "^10.8.2",
         "ts-node-dev": "^2.0.0",
-        "tslint": "^6.1.3",
-        "tslint-config-prettier": "^1.18.0",
-        "typescript": "6.0.3"
+        "typescript": "6.0.3",
+        "typescript-eslint": "^8.72.2"
     },
     "dependencies": {
         "@mbtest/mountebank": "^2.9.5",

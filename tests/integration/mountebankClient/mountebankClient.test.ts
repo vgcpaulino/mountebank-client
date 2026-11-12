@@ -1,4 +1,4 @@
-import { Imposter, ImposterBuilder, StubBuilder, deleteStubsByID } from '../../../src';
+import { ImposterBuilder, StubBuilder, deleteStubsByID } from '../../../src';
 import { testPort } from '../../config/ports';
 
 describe('Mountebank Client', () => {
@@ -15,10 +15,7 @@ describe('Mountebank Client', () => {
         await stub2.addStub();
 
         const stubIDs = [stub2.stubID, ...(imposter.stubs.map((s) => s.stubID) as string[])];
-        let imposterAfterDelete: Imposter | undefined;
-        if (stubIDs) {
-            imposterAfterDelete = await deleteStubsByID({ imposterPort: port, stubIDs });
-        }
+        const imposterAfterDelete = await deleteStubsByID({ imposterPort: port, stubIDs });
 
         expect(imposterAfterDelete).not.toBeUndefined();
         expect(imposterAfterDelete?.stubs?.length).toBe(1);

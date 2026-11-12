@@ -1,4 +1,4 @@
-import { Imposter, ImposterDefaultResponse, ImposterProtocol, Stub } from '../interfaces';
+import { ImposterDefaultResponse, ImposterProtocol, Stub } from '../interfaces';
 import { addImposter } from '../client/mountebankClient';
 import { StubBuilder } from './stubBuilder';
 

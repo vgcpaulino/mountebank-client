@@ -7,13 +7,17 @@ import { RecordedRequest, RequestFilter } from '../interfaces/request';
  * - Adds `json` (the parsed body) when the body is valid JSON.
  */
 export function normalizeRequest(recorded: Record<string, unknown>): RecordedRequest {
-    const request = { ...recorded };
-    for (const operationType of ['query', 'mutation']) {
-        if (typeof request[operationType] === 'string') {
-            request.operationType = operationType;
-            request.operationName = request[operationType];
-            delete request[operationType];
-        }
+    const { query, mutation, ...rest } = recorded;
+    const request: Record<string, unknown> = { ...rest };
+    if (typeof query === 'string') {
+        request.operationType = 'query';
+        request.operationName = query;
+    } else if (query !== undefined) {
+        request.query = query;
+    }
+    if (typeof mutation === 'string') {
+        request.operationType = 'mutation';
+        request.operationName = mutation;
     }
     const result = request as RecordedRequest;
     if (typeof result.body === 'string' && result.body !== '') {

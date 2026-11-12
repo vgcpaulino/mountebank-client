@@ -1,5 +1,12 @@
 import { http } from '../../helpers/http';
-import { getImposters, getRequests, ImposterBuilder, setupMountebank, StubBuilder, waitForMountebank } from '../../../src';
+import {
+    getImposters,
+    getRequests,
+    ImposterBuilder,
+    setupMountebank,
+    StubBuilder,
+    waitForMountebank,
+} from '../../../src';
 import { useImposters } from '../../../src/testing/jest';
 import { mountebankUrl, testPort } from '../../config/ports';
 

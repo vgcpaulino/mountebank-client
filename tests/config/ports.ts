@@ -16,7 +16,7 @@ export function parsePortOffset(value: string | undefined): number {
     return offset;
 }
 
-const offset = parsePortOffset(process.env['MB_TEST_PORT_OFFSET']);
+const offset = parsePortOffset(process.env.MB_TEST_PORT_OFFSET);
 
 export const testPort = (port: number): number => port + offset;
 

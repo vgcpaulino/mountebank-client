@@ -81,15 +81,19 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [x] Runner-agnostic core: start server (optional), reset imposters/stubs, stop.
 - [x] Jest helper (global setup/teardown, `afterEach` reset).
 - [x] Playwright fixture.
-- [ ] Remove the `jest-dev-server` dev dependency: the integration tests now use the package's own `jestGlobalSetup`.
+- [x] Remove the `jest-dev-server` dev dependency: the integration tests now use the package's own `jestGlobalSetup`.
       (Dependency change: ask first.)
 
 ## 6. Tooling
 
-- [ ] Replace axios with the built-in `fetch` (available on our Node 20.19+ minimum).
-- [ ] Replace TSLint with ESLint (typescript-eslint) + Prettier; wire up the existing `.eslintrc.js` and update
-      `yarn lint`.
-- [ ] Upgrade TypeScript (4.7) and raise `target` from `es2016`.
+- [x] Replace axios with the built-in `fetch` (available on our Node 20.19+ minimum).
+- [x] Replace TSLint with ESLint (typescript-eslint, strict type-aware rules from the old `eslint` branch) + Prettier.
+- [x] Upgrade TypeScript (4.7) and raise `target` from `es2016`. (TypeScript 6.0, target ES2022.)
+- [ ] Move to TypeScript 7 once ts-jest (<7) and typescript-eslint (<6.1) support it.
+- [ ] Clear the remaining `no-explicit-any` lint warnings: `Config` (with the typed `Config.state` item above) and
+      `Behavior.decorate`.
+- [ ] Format the 3 files Prettier would still change (`src/index.ts`, `examples/users-service/{imposters,userBuilder}.ts`)
+      and add a `format:check` step.
 - [ ] Add CI (GitHub Actions): type check, unit and integration tests on Node 20 (>= 20.19), 22 and 24.
 - [ ] Add a release workflow. (CHANGELOG.md exists; the release moves its "Unreleased" section under the new version.)
 
