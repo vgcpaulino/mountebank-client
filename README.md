@@ -1,5 +1,11 @@
 # mountebank-client
 
+[![npm version](https://img.shields.io/npm/v/mountebank-client)](https://www.npmjs.com/package/mountebank-client)
+[![npm downloads](https://img.shields.io/npm/dm/mountebank-client)](https://www.npmjs.com/package/mountebank-client)
+[![CI](https://github.com/vgcpaulino/mountebank-client/actions/workflows/ci.yml/badge.svg)](https://github.com/vgcpaulino/mountebank-client/actions/workflows/ci.yml)
+[![Node](https://img.shields.io/node/v/mountebank-client)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/npm/l/mountebank-client)](https://github.com/vgcpaulino/mountebank-client/blob/main/LICENSE)
+
 Fluent TypeScript builders for [mountebank](https://www.mbtest.dev/), so you can fake HTTP and GraphQL APIs in your
 tests without writing mountebank's JSON by hand.
 
@@ -23,6 +29,21 @@ That one line produces the stub mountebank expects:
     ]
 }
 ```
+
+## Features
+
+- **Fluent, typed builders** for imposters, stubs, predicates, responses and behaviors, with friendly names (`status`,
+  not `statusCode`) and autocompletion everywhere.
+- **No Docker needed:** start mountebank inside your test process (`mountebank-client/server`), or point the client
+  at any server you already run (Docker, the `mb` CLI, another machine).
+- **Jest and Playwright helpers:** global setup and teardown, and a reset between tests, in a couple of lines.
+- **HTTP, HTTPS and GraphQL** imposters. GraphQL works with no extra setup once `mb-graphql` is installed.
+- **Faults and chaos:** delays, sequences of responses, and random errors and latency, also in front of a proxied
+  real service.
+- **Verify what your code sent:** record requests and filter them by method, path, query, headers or body.
+- **Errors that explain themselves:** every failure names the operation, the HTTP status and mountebank's own
+  message.
+- **Skills for AI coding agents**, so Claude Code, Cursor, Copilot and others write correct mountebank tests.
 
 ## Contents
 
