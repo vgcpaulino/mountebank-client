@@ -1,0 +1,99 @@
+name: Release
+
+# Publishes when package.json's version on main isn't on npm yet, normally after a release/vX.Y.Z pull request from
+# prepare-release.yml is merged. Runs every check, creates the vX.Y.Z tag and GitHub Release (notes from
+# CHANGELOG.md), then publishes to npm with trusted publishing (no npm token; see RELEASING.md for the setup).
+
+on:
+    push:
+        branches: [main]
+        paths: [package.json]
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: release
+    cancel-in-progress: false
+
+jobs:
+    decide:
+        name: Is there a new version?
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.check.outputs.version }}
+            publish: ${{ steps.check.outputs.publish }}
+        steps:
+            - uses: actions/checkout@v4
+            - id: check
+              run: |
+                  version=$(node -p "require('./package.json').version")
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  if npm view "mountebank-client@$version" version >/dev/null 2>&1; then
+                      echo "mountebank-client $version is already on npm: nothing to release."
+                      echo "publish=false" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "mountebank-client $version isn't on npm yet: releasing it."
+                      echo "publish=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    verify:
+        name: Checks
+        needs: decide
+        if: needs.decide.outputs.publish == 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
+            - run: yarn install --frozen-lockfile
+            - name: Release notes exist in CHANGELOG.md
+              env:
+                  VERSION: ${{ needs.decide.outputs.version }}
+              run: node --require ts-node/register/transpile-only scripts/release/cli.ts notes "$VERSION"
+            - run: npx tsc --noEmit -p .
+            - run: npx tsc --noEmit -p tsconfig.eslint.json
+            - run: yarn lint
+            - run: yarn format:check
+            - run: yarn test:unit
+            - run: yarn test:integration
+            - run: yarn test:playwright
+
+    publish:
+        name: Tag, GitHub Release, npm
+        needs: [decide, verify]
+        runs-on: ubuntu-latest
+        # Add required reviewers to this environment (Settings → Environments → npm) to approve each publish by hand.
+        environment: npm
+        permissions:
+            contents: write # the tag and the GitHub Release
+            id-token: write # npm trusted publishing and provenance
+        env:
+            VERSION: ${{ needs.decide.outputs.version }}
+            GH_TOKEN: ${{ github.token }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
+                  registry-url: https://registry.npmjs.org
+            # Trusted publishing needs npm 11.5.1 or later; Node 22 ships npm 10.
+            - run: npm install -g npm@11
+            - run: yarn install --frozen-lockfile
+
+            - name: GitHub Release v${{ env.VERSION }}
+              run: |
+                  if gh release view "v$VERSION" >/dev/null 2>&1; then
+                      echo "Release v$VERSION already exists (a re-run): keeping it."
+                  else
+                      node --require ts-node/register/transpile-only scripts/release/cli.ts notes "$VERSION" > notes.md
+                      gh release create "v$VERSION" --target "$GITHUB_SHA" --title "v$VERSION" --notes-file notes.md
+                  fi
+
+            # prepare (run by yarn install) already built dist/; npm publish runs it again.
+            - name: Publish to npm
+              run: npm publish --provenance --access public

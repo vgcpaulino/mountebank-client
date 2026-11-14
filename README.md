@@ -639,8 +639,8 @@ CI runs all of these, plus `yarn test:playwright`, on Node 20, 22 and 24 for eve
 free. Set `MB_TEST_PORT_OFFSET` (e.g. `1000`) to move the server and all
 imposters to other ports, for example when running a second copy of the tests.
 
-Planned work is in [TODO.md](TODO.md), and conventions for contributors (and coding agents) are in
-[CLAUDE.md](CLAUDE.md).
+Planned work is in [TODO.md](TODO.md), how releases work is in [RELEASING.md](RELEASING.md), and conventions for
+contributors (and coding agents) are in [CLAUDE.md](CLAUDE.md).
 
 ## License
 

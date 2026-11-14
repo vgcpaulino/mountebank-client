@@ -58,7 +58,8 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
 - `examples/users-service/` (`yarn start:dev`) and `examples/fuzzy-network/` (`yarn example:fuzzy`) — the tracked
   demos. Other files in `examples/` are personal and git-ignored. Never imported by `src/`, never shipped.
 - `scripts/` — dev tooling such as `start-mountebank.ts` (`yarn start`, and the separate server the lifecycle test
-  spawns). Not shipped: only `src/` is built into `dist/`.
+  spawns) and `release/` (the CHANGELOG and version steps the release workflows run). Not shipped: only `src/` is
+  built into `dist/`.
 - `tests/unit/` and `tests/integration/` — Jest (the integration server is started by the package's own
   `jestGlobalSetup`). `tests/playwright/` — tests for the Playwright helpers (`yarn test:playwright`, no browser).
   `tests/e2e/` — Playwright examples (not run).
@@ -151,7 +152,8 @@ A change is done only when **all** of these hold:
 4. New behavior and bug fixes come with tests that cover them.
 5. Skills and README match the change (see "Keeping the skills in sync"), or the change doesn't touch public
    behavior.
-6. User-visible changes have a CHANGELOG.md entry under "Unreleased", and breaking ones are under "Breaking".
+6. User-visible changes have a CHANGELOG.md entry under "Unreleased", and breaking ones are under "Breaking". Write
+   entries for users: on release they become the GitHub Release notes.
 
 If any of these can't be run, say so explicitly rather than claiming the change is done.
 
@@ -163,7 +165,10 @@ If any of these can't be run, say so explicitly rather than claiming the change 
   run them yourself before merging; don't rely on CI alone.
 - **Ask first:** adding, removing or upgrading dependencies; changing `package.json` metadata (name, version,
   license, entry points); deleting files that aren't clearly generated.
-- **Never:** commit or push to `main`, force-push, publish to npm, or bump versions for a release.
+- **Never:** commit or push to `main`, force-push, publish to npm, or bump versions for a release. That includes the
+  release automation ([RELEASING.md](RELEASING.md)): never run the Prepare release or Release workflows, never push to
+  or merge a `release/*` branch or pull request, and never create `v*` tags or GitHub Releases. A maintainer does all
+  of these.
 
 ## Conventions
 

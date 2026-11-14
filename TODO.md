@@ -97,7 +97,9 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       and add a `format:check` step.
 - [x] Add CI (GitHub Actions): type check, unit and integration tests on Node 20 (>= 20.19), 22 and 24.
       (`.github/workflows/ci.yml`: also lint, `format:check` and the Playwright helper tests.)
-- [ ] Add a release workflow. (CHANGELOG.md exists; the release moves its "Unreleased" section under the new version.)
+- [x] Add a release workflow. (CHANGELOG.md exists; the release moves its "Unreleased" section under the new version.)
+      (`prepare-release.yml` opens the release PR, `release.yml` tags, creates the GitHub Release and publishes with
+      npm trusted publishing; see RELEASING.md. Needs the one-time setup described there.)
 
 ## 7. Documentation
 

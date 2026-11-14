@@ -2,6 +2,7 @@
 
 User-visible changes to `mountebank-client`. The format follows [Keep a Changelog](https://keepachangelog.com/).
 The version of the next release is chosen when releasing; until then, changes collect under **Unreleased**.
+[RELEASING.md](RELEASING.md) explains how a release turns Unreleased into a version.
 
 ## Unreleased
 
