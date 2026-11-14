@@ -99,6 +99,9 @@ Changes since 1.0.2.
 - **`Config<State>`** types `config.state` in `decorate` functions (`Config<{ count?: number }>`); without a type
   argument, state still accepts any field. The request, response and logger types are exported as `DecorateRequest`,
   `DecorateResponse` and `DecorateLogger`.
+- **`logger` option on `createClient`**: gets a `debug` message for every call to mountebank (method, URL, status,
+  time). `createClient({ logger: console })` shows them.
+- **`client.imposter()` accepts an `ImposterBuilder`** as well as a port, so the port is written in one place.
 - **`allowCORS`** option on imposters.
 - **`ImposterBuilder.addStubs()`.**
 - **`MountebankError`** is exported, with `operation`, `status` and mountebank's `errors`.

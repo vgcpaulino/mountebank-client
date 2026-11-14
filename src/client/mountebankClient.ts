@@ -1,7 +1,9 @@
 import { Imposter, ImposterSummary, LogLevel, RecordedRequest, RequestFilter, Stub } from '../interfaces';
 import { matchesFilter, normalizeRequest } from './requestFilter';
 import { checkError, MountebankError } from './errorHelper';
-import { request } from './http';
+import { MountebankLogger, request } from './http';
+
+export type { MountebankLogger } from './http';
 
 export { MountebankError } from './errorHelper';
 export type { MountebankErrorDetail, MountebankOperation } from './errorHelper';
@@ -14,6 +16,12 @@ export function defaultMountebankUrl() {
 export interface ClientOptions {
     /** The mountebank server, e.g. `'http://localhost:2525'`. Defaults to `MOUNTEBANK_URL`, then `http://localhost:2525`. */
     url?: string;
+    /**
+     * Gets a `debug` message for every call to mountebank: method, URL, status and time taken, e.g.
+     * `mountebank-client: POST http://localhost:2525/imposters → 201 (12 ms)`. Pass `console` to see them. Off by
+     * default.
+     */
+    logger?: MountebankLogger;
 }
 
 /**
@@ -44,9 +52,15 @@ export interface MountebankLog {
 export class MountebankClient {
     /** The server's URL, without a trailing slash. */
     readonly url: string;
+    private readonly logger?: MountebankLogger;
 
-    constructor({ url = defaultMountebankUrl() }: ClientOptions = {}) {
+    constructor({ url = defaultMountebankUrl(), logger }: ClientOptions = {}) {
         this.url = url.replace(/\/+$/, '');
+        this.logger = logger;
+    }
+
+    private send(...[operation, method, url, body]: Parameters<typeof request>) {
+        return request(operation, method, url, body, this.logger);
     }
 
     /**
@@ -55,7 +69,7 @@ export class MountebankClient {
      */
     async createImposter(imposter: Imposter): Promise<ImposterClient> {
         const { port, protocol, name, schema, allowCORS, recordRequests, defaultResponse, stubs = [] } = imposter;
-        const response = await request('ADD_IMPOSTER', 'POST', `${this.url}/imposters`, {
+        const response = await this.send('ADD_IMPOSTER', 'POST', `${this.url}/imposters`, {
             port,
             protocol,
             name,
@@ -80,14 +94,21 @@ export class MountebankClient {
         return this.imposter(createdPort);
     }
 
-    /** A handle to the imposter on `port`. It makes no request; the imposter doesn't have to exist yet. */
-    imposter(port: number): ImposterClient {
-        return new ImposterClient(this.url, port);
+    /**
+     * A handle to an imposter: give its port, or the `ImposterBuilder` that defines it (its `port` is used). It makes
+     * no request; the imposter doesn't have to exist yet.
+     */
+    imposter(imposter: number | Pick<Imposter, 'port'>): ImposterClient {
+        const port = typeof imposter === 'number' ? imposter : imposter.port;
+        if (port === undefined) {
+            throw new Error('client.imposter() needs a port: this imposter definition has none');
+        }
+        return new ImposterClient(this.url, port, this.logger);
     }
 
     /** Lists every imposter on the server: its port, protocol, name and how many requests it received. */
     async getImposters(): Promise<ImposterSummary[]> {
-        const response = await request('GET_IMPOSTERS', 'GET', `${this.url}/imposters`);
+        const response = await this.send('GET_IMPOSTERS', 'GET', `${this.url}/imposters`);
 
         checkError({ errorCode: 'GET_IMPOSTERS', response });
 
@@ -105,7 +126,7 @@ export class MountebankClient {
      * start each test run (or test file) from a clean server.
      */
     async deleteImposters() {
-        const response = await request('DELETE_IMPOSTERS', 'DELETE', `${this.url}/imposters`);
+        const response = await this.send('DELETE_IMPOSTERS', 'DELETE', `${this.url}/imposters`);
 
         checkError({ errorCode: 'DELETE_IMPOSTERS', response });
     }
@@ -129,7 +150,7 @@ export class MountebankClient {
 
     /** mountebank's own log entries, oldest first. */
     async getLogs(): Promise<MountebankLog[]> {
-        const response = await request('GET_LOGS', 'GET', `${this.url}/logs`);
+        const response = await this.send('GET_LOGS', 'GET', `${this.url}/logs`);
 
         checkError({ errorCode: 'GET_LOGS', response });
 
@@ -143,8 +164,13 @@ export class ImposterClient {
     constructor(
         /** The mountebank server's URL. */
         readonly url: string,
-        readonly port: number
+        readonly port: number,
+        private readonly logger?: MountebankLogger
     ) {}
+
+    private send(...[operation, method, url, body]: Parameters<typeof request>) {
+        return request(operation, method, url, body, this.logger);
+    }
 
     private get path() {
         return `${this.url}/imposters/${this.port}`;
@@ -152,7 +178,7 @@ export class ImposterClient {
 
     /** The imposter as mountebank returns it, with its stubs and recorded requests. */
     async get(): Promise<ImposterDetails> {
-        const response = await request('GET_IMPOSTER', 'GET', this.path);
+        const response = await this.send('GET_IMPOSTER', 'GET', this.path);
 
         checkError({ errorCode: 'GET_IMPOSTER', response });
 
@@ -164,14 +190,14 @@ export class ImposterClient {
      * call before (re)creating an imposter.
      */
     async delete() {
-        const response = await request('DELETE_IMPOSTER', 'DELETE', this.path);
+        const response = await this.send('DELETE_IMPOSTER', 'DELETE', this.path);
 
         checkError({ errorCode: 'DELETE_IMPOSTER', response });
     }
 
     /** Adds a stub after the imposter's existing ones, so stubs added earlier match first. */
     async addStub(stub: Stub) {
-        const response = await request('ADD_STUB', 'POST', `${this.path}/stubs`, { stub: { ...stub } });
+        const response = await this.send('ADD_STUB', 'POST', `${this.path}/stubs`, { stub: { ...stub } });
 
         checkError({ errorCode: 'ADD_STUB', response });
     }
@@ -185,7 +211,7 @@ export class ImposterClient {
 
     /** Replaces all the imposter's stubs with `stubs`, in one call. */
     async replaceStubs(stubs: Stub[]) {
-        const response = await request('REPLACE_STUBS', 'PUT', `${this.path}/stubs`, { stubs });
+        const response = await this.send('REPLACE_STUBS', 'PUT', `${this.path}/stubs`, { stubs });
 
         checkError({ errorCode: 'REPLACE_STUBS', response });
     }
@@ -206,7 +232,7 @@ export class ImposterClient {
             });
         }
 
-        const response = await request('DELETE_STUB', 'DELETE', `${this.path}/stubs/${index}`);
+        const response = await this.send('DELETE_STUB', 'DELETE', `${this.path}/stubs/${index}`);
 
         checkError({ errorCode: 'DELETE_STUB', response });
     }
@@ -217,7 +243,7 @@ export class ImposterClient {
      * throws instead of returning an empty list.
      */
     async getRequests(filter?: RequestFilter): Promise<RecordedRequest[]> {
-        const response = await request('GET_REQUESTS', 'GET', this.path);
+        const response = await this.send('GET_REQUESTS', 'GET', this.path);
 
         checkError({ errorCode: 'GET_REQUESTS', response });
 
@@ -237,7 +263,7 @@ export class ImposterClient {
 
     /** Forgets the requests the imposter recorded, and resets its request count. */
     async clearRequests() {
-        const response = await request('CLEAR_REQUESTS', 'DELETE', `${this.path}/savedRequests`);
+        const response = await this.send('CLEAR_REQUESTS', 'DELETE', `${this.path}/savedRequests`);
 
         checkError({ errorCode: 'CLEAR_REQUESTS', response });
     }

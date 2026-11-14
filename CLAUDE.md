@@ -55,8 +55,8 @@ The planned work lives in [TODO.md](TODO.md). Check it before starting, and upda
   `src/testing/` — test helpers: `waitForMountebank` (exported from the root) and the `./jest` and
   `./playwright` entry points. The core never imports Jest or Playwright; `playwright.ts` only
   imports Playwright's types.
-- `examples/users-service/` — the tracked demo (`yarn start:dev`). Other files in `examples/` are personal and
-  git-ignored. Never imported by `src/`, never shipped.
+- `examples/users-service/` (`yarn start:dev`) and `examples/fuzzy-network/` (`yarn example:fuzzy`) — the tracked
+  demos. Other files in `examples/` are personal and git-ignored. Never imported by `src/`, never shipped.
 - `scripts/` — dev tooling such as `start-mountebank.ts` (`yarn start`, and the separate server the lifecycle test
   spawns). Not shipped: only `src/` is built into `dist/`.
 - `tests/unit/` and `tests/integration/` — Jest (the integration server is started by the package's own

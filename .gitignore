@@ -116,6 +116,7 @@ lib/*
 examples/*
 # Tracked demo; other examples/ files stay personal and ignored.
 !examples/users-service/
+!examples/fuzzy-network/
 pack-install/*
 
 # Playwright

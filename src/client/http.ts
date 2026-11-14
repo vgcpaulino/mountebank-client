@@ -1,5 +1,13 @@
 import { MountebankError, MountebankOperation } from './errorHelper';
 
+/**
+ * Where the client reports each call to mountebank. Anything with a `debug(message)` method works, e.g. `console`
+ * or a pino/winston logger.
+ */
+export interface MountebankLogger {
+    debug: (message: string) => void;
+}
+
 export interface HttpResponse {
     status: number;
     /** The body parsed as JSON when it is JSON, otherwise the text ('' when empty). */
@@ -14,8 +22,12 @@ export async function request(
     operation: MountebankOperation,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     url: string,
-    body?: unknown
+    body?: unknown,
+    logger?: MountebankLogger
 ): Promise<HttpResponse> {
+    const started = Date.now();
+    const log = (outcome: string) =>
+        logger?.debug(`mountebank-client: ${method} ${url} → ${outcome} (${Date.now() - started} ms)`);
     let response: Response;
     try {
         response = await fetch(url, {
@@ -27,12 +39,15 @@ export async function request(
             body: body === undefined ? undefined : JSON.stringify(body),
         });
     } catch (error) {
+        log(`failed: ${networkCause(error)}`);
         throw new MountebankError({
             operation,
             reason: `can't reach mountebank at ${new URL(url).origin} (${networkCause(error)})`,
         });
     }
-    return { status: response.status, data: parseBody(await response.text()) };
+    const data = parseBody(await response.text());
+    log(String(response.status));
+    return { status: response.status, data };
 }
 
 function parseBody(text: string): unknown {
