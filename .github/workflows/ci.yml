@@ -1,0 +1,48 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    checks:
+        name: Type check, lint, format
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
+            - run: yarn install --frozen-lockfile
+            - run: npx tsc --noEmit -p .
+            - run: npx tsc --noEmit -p tsconfig.eslint.json
+            - run: yarn lint
+            - run: yarn format:check
+
+    test:
+        name: Tests (Node ${{ matrix.node }})
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                # 20 resolves to the latest 20.x, which is above our 20.19 minimum.
+                node: [20, 22, 24]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: yarn
+            - run: yarn install --frozen-lockfile
+            - run: yarn test:unit
+            - run: yarn test:integration
+            - run: yarn test:playwright
