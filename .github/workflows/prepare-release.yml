@@ -1,0 +1,57 @@
+name: Prepare release
+
+# Started by hand (Actions → Prepare release → Run workflow). Bumps package.json, moves CHANGELOG.md's Unreleased
+# section under the new version, and opens a release/vX.Y.Z pull request. Merging it publishes (see release.yml).
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: 'major, minor, patch, or an exact version such as 2.0.0'
+                required: true
+                type: string
+
+permissions:
+    contents: write
+    pull-requests: write
+
+jobs:
+    prepare:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
+            - run: yarn install --frozen-lockfile
+
+            - name: Bump the version and the changelog
+              id: prepare
+              env:
+                  REQUESTED: ${{ inputs.version }}
+              run: |
+                  version=$(node --require ts-node/register/transpile-only scripts/release/cli.ts prepare "$REQUESTED")
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+
+            - name: Open the release pull request
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  VERSION: ${{ steps.prepare.outputs.version }}
+              run: |
+                  git config user.name 'github-actions[bot]'
+                  git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+                  git switch -c "release/v$VERSION"
+                  git commit -am "chore(release): $VERSION"
+                  git push origin "release/v$VERSION"
+                  node --require ts-node/register/transpile-only scripts/release/cli.ts notes "$VERSION" > notes.md
+                  {
+                      echo "Merging this publishes **mountebank-client $VERSION** to npm (see RELEASING.md)."
+                      echo
+                      echo "Check the version and the release notes below, which come from CHANGELOG.md."
+                      echo
+                      echo '---'
+                      echo
+                      cat notes.md
+                  } > body.md
+                  gh pr create --base main --head "release/v$VERSION" --title "chore(release): $VERSION" --body-file body.md
