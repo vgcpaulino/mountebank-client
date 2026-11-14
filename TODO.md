@@ -93,9 +93,10 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 - [ ] Move to TypeScript 7 once ts-jest (<7) and typescript-eslint (<6.1) support it.
 - [x] Clear the remaining `no-explicit-any` lint warnings: `Config` (with the typed `Config.state` item above) and
       `Behavior.decorate`.
-- [ ] Format the 3 files Prettier would still change (`src/index.ts`, `examples/users-service/{imposters,userBuilder}.ts`)
+- [x] Format the 3 files Prettier would still change (`src/index.ts`, `examples/users-service/{imposters,userBuilder}.ts`)
       and add a `format:check` step.
-- [ ] Add CI (GitHub Actions): type check, unit and integration tests on Node 20 (>= 20.19), 22 and 24.
+- [x] Add CI (GitHub Actions): type check, unit and integration tests on Node 20 (>= 20.19), 22 and 24.
+      (`.github/workflows/ci.yml`: also lint, `format:check` and the Playwright helper tests.)
 - [ ] Add a release workflow. (CHANGELOG.md exists; the release moves its "Unreleased" section under the new version.)
 
 ## 7. Documentation

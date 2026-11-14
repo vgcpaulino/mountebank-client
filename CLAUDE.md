@@ -80,7 +80,12 @@ yarn test:integration   # starts a real mountebank server on port 2525 (must be 
 yarn test:playwright    # Playwright helper tests; server on 2545
 yarn lint               # ESLint (strict, type-aware); `yarn lint:fix` for the auto-fixable rules
 yarn format             # Prettier: single quotes, 4-space indent, 120 columns
+yarn format:check       # what CI runs
 ```
+
+CI (`.github/workflows/ci.yml`) runs the type checks, lint, `format:check`, and the unit, integration and Playwright
+tests on Node 20, 22 and 24 for every PR and push to `main`. It doesn't replace running the checks locally before a
+merge (see "Definition of done").
 
 When port 2525 is already taken (a dev server, or a run from another worktree), shift every test port instead of
 stopping the other process: `MB_TEST_PORT_OFFSET=1000 yarn test:integration` runs the server on 3525 and imposter
@@ -140,7 +145,7 @@ When updating a skill:
 
 A change is done only when **all** of these hold:
 
-1. `npx tsc --noEmit -p .` is clean, and `yarn lint` has no errors (the `any` warnings are known).
+1. `npx tsc --noEmit -p .` is clean, `yarn lint` has no errors or warnings, and `yarn format:check` passes.
 2. `yarn test:unit` passes.
 3. `yarn test:integration` and `yarn test:playwright` pass.
 4. New behavior and bug fixes come with tests that cover them.

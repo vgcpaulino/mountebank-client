@@ -40,6 +40,7 @@
         "build": "npm run clean && tsc",
         "prepare": "npm run build",
         "format": "prettier --write \"{src,tests,scripts,examples/users-service}/**/*.ts\"",
+        "format:check": "prettier --check \"{src,tests,scripts,examples/users-service}/**/*.ts\"",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "example": "ts-node --files ./examples/dev.ts",

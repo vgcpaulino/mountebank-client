@@ -616,12 +616,15 @@ nvm use                    # Node 22, from .nvmrc
 yarn install
 npx tsc --noEmit -p .      # type check
 yarn lint                  # ESLint
+yarn format:check          # Prettier
 yarn test:unit
 yarn test:integration      # starts a real mountebank on port 2525
 ```
 
 `yarn start:dev` runs the users-service demo in [`examples/users-service`](./examples/users-service): mountebank on
 2525 and a fake users API on 8080 (`GET /users/me`, `PATCH /users/:id`) that remembers changes.
+
+CI runs all of these, plus `yarn test:playwright`, on Node 20, 22 and 24 for every pull request.
 
 `yarn test:playwright` runs the Playwright helper tests (no browser needed). `yarn test:integration` needs port 2525
 free. Set `MB_TEST_PORT_OFFSET` (e.g. `1000`) to move the server and all
