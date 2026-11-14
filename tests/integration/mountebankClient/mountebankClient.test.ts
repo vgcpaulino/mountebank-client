@@ -50,4 +50,35 @@ describe('Mountebank Client', () => {
         expect((await imposter.get()).stubs?.map((s) => s.stubID)).toEqual([kept.stubID]);
         await imposter.delete();
     });
+
+    test('imposter() also takes the ImposterBuilder, and uses its port', async () => {
+        const definition = new ImposterBuilder({ port: testPort(1126), protocol: 'http', name: 'by-builder' });
+        await mb.createImposter(definition);
+
+        const imposter = mb.imposter(definition);
+
+        expect(imposter.port).toBe(definition.port);
+        expect((await imposter.get()).name).toBe('by-builder');
+        await imposter.delete();
+        expect(() => mb.imposter({})).toThrow('client.imposter() needs a port');
+    });
+
+    test('a logger gets a debug message for every call, including ones that fail', async () => {
+        const messages: string[] = [];
+        const logger = { debug: (message: string) => messages.push(message) };
+
+        await createClient({ url: mountebankUrl, logger }).imposter(testPort(1127)).delete();
+        await createClient({ url: `http://localhost:${testPort(1149)}`, logger })
+            .getImposters()
+            .catch(() => undefined);
+
+        expect(messages).toEqual([
+            expect.stringMatching(
+                new RegExp(
+                    `^mountebank-client: DELETE ${mountebankUrl}/imposters/${testPort(1127)} → 200 \\(\\d+ ms\\)$`
+                )
+            ),
+            expect.stringMatching(/^mountebank-client: GET http:\/\/localhost:\d+\/imposters → failed: ECONNREFUSED/),
+        ]);
+    });
 });
