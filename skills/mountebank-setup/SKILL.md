@@ -203,4 +203,5 @@ console.log(JSON.stringify(await mb.imposter(8080).get(), null, 2)); // what stu
 console.log(await mb.getLogs());                                     // matches, errors, injection failures
 ```
 
-You can also open `http://localhost:2525/imposters/<port>` in a browser.
+You can also open `http://localhost:2525/imposters/<port>` in a browser. To see what the client sends, create it with
+a logger: `createClient({ logger: console })` logs each call's method, URL, status and time at `debug` level.

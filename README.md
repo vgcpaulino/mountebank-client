@@ -157,8 +157,13 @@ await users.delete();
 ```
 
 `mb.imposter(port)` gives a handle to an imposter that already exists, for example one `startMountebank` or the
-test setup created. Making the handle sends nothing, so it's fine to create it at the top of a test file. All the
-methods are listed in the [client reference](#client-reference).
+test setup created. It also takes the `ImposterBuilder` itself (`mb.imposter(usersApi)`), so the port is written in
+one place. Making the handle sends nothing, so it's fine to create it at the top of a test file. All the methods are
+listed in the [client reference](#client-reference).
+
+To see every call the client makes, pass a logger: `createClient({ logger: console })` logs lines such as
+`mountebank-client: POST http://localhost:2525/imposters → 201 (12 ms)` at `debug` level. Any object with a
+`debug(message)` method works.
 
 ## Imposters
 
@@ -518,13 +523,13 @@ setup), there's nothing else to set up: with `mb-graphql` installed, the package
 
 ## Client reference
 
-`createClient({ url })` returns a `MountebankClient`. `url` defaults to `MOUNTEBANK_URL`, then
-`http://localhost:2525`.
+`createClient({ url, logger })` returns a `MountebankClient`. `url` defaults to `MOUNTEBANK_URL`, then
+`http://localhost:2525`. `logger` (optional) gets a `debug` message for every call.
 
 | `MountebankClient` method   | What it does                                                                 |
 | --------------------------- | ---------------------------------------------------------------------------- |
 | `createImposter(imposter)`  | Creates an imposter from an `ImposterBuilder` and returns its handle.        |
-| `imposter(port)`            | A handle to the imposter on `port` (sends nothing).                          |
+| `imposter(port \| builder)`  | A handle to the imposter on that port (sends nothing).                       |
 | `getImposters()`            | Lists all imposters with their request counts.                              |
 | `deleteImposters()`         | Deletes every imposter.                                                     |
 | `resetImposters(imposters)` | Deletes and recreates these imposters from their definitions.               |
@@ -623,6 +628,10 @@ yarn test:integration      # starts a real mountebank on port 2525
 
 `yarn start:dev` runs the users-service demo in [`examples/users-service`](./examples/users-service): mountebank on
 2525 and a fake users API on 8080 (`GET /users/me`, `PATCH /users/:id`) that remembers changes.
+
+`yarn example:fuzzy` runs [`examples/fuzzy-network`](./examples/fuzzy-network/main.ts): a proxy on 8091 that delays
+every response by a random 100–1500 ms, so concurrent requests come back out of order. Set `BACKEND_URL` to put it in
+front of a real service, and `MIN_DELAY` / `MAX_DELAY` to change the range.
 
 CI runs all of these, plus `yarn test:playwright`, on Node 20, 22 and 24 for every pull request.
 

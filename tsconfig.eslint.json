@@ -5,6 +5,6 @@
         "rootDir": ".",
         "types": ["node", "jest"]
     },
-    "include": ["src", "tests", "scripts", "examples/users-service", "*.ts"],
+    "include": ["src", "tests", "scripts", "examples/users-service", "examples/fuzzy-network", "*.ts"],
     "exclude": ["node_modules", "dist", "temp"]
 }

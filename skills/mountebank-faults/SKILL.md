@@ -106,6 +106,19 @@ new StubBuilder()
   ```
 
   Random latency per request is a quick way to make responses arrive out of order and expose race conditions in a UI.
+  For a delay between a minimum and a maximum (chaos's is between 0 and `maxLatency`), use a `decorate` that returns a
+  Promise; write the numbers into its source, since it can't read outer variables:
+
+  ```ts
+  const randomDelay = (min: number, max: number) => `(config) => {
+      const delay = ${min} + Math.floor(Math.random() * ${max - min + 1});
+      return new Promise((resolve) => setTimeout(() => resolve(config.response), delay));
+  }`;
+
+  new StubBuilder()
+      .get('/', { operator: 'startsWith' })
+      .proxyResponse({ url: 'https://staging.example.com', proxyMode: 'proxyTransparent', decorate: randomDelay(100, 1500) });
+  ```
 
 ### Chaos on a proxy
 

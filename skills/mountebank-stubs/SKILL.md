@@ -20,8 +20,8 @@ which requests the application made (not just what the mock answered), see **mou
 - **Stub**: predicates (which requests it answers) plus responses (what it sends back). For each request, mountebank
   tries stubs **in order** and the **first match wins**.
 - **Client**: `createClient({ url })` talks to one server. Without `url` it uses `MOUNTEBANK_URL`, then
-  `http://localhost:2525` (the test helpers set `MOUNTEBANK_URL`). `client.imposter(port)` is a handle to one imposter;
-  making it sends nothing.
+  `http://localhost:2525` (the test helpers set `MOUNTEBANK_URL`). `client.imposter(port)` is a handle to one imposter
+  (it also takes the `ImposterBuilder`: `client.imposter(usersApi)`); making it sends nothing.
 - **Default response**: what the imposter sends when no stub matches. Without one, mountebank returns `200` with an
   empty body, which hides missing mocks. Set one.
 

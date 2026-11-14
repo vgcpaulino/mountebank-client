@@ -68,7 +68,7 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
       (Interfaces renamed; `proxyMode` keeps mountebank's values `proxyAlways` etc., since they match its docs.)
 - [x] Remove the deprecated `addDefaultReponse` alias (renamed on main without an alias).
 - [x] Type `Config.state` (generic parameter) instead of `any`. (`Config<State>`.)
-- [ ] Add a logger option (library code no longer uses `console.*`).
+- [x] Add a logger option (library code no longer uses `console.*`). (`createClient({ logger })`.)
 
 ## 4a. Keeping up with mountebank
 
@@ -112,7 +112,8 @@ Roughly in priority order. Boundaries and design rules are in [CLAUDE.md](CLAUDE
 
 ## 8. Examples
 
-- [ ] "Fuzzy network" example: proxy to a real backend and add a random delay between a min and max to each
+- [x] "Fuzzy network" example: proxy to a real backend and add a random delay between a min and max to each
       response, so responses come back out of order. Useful for seeing how an app behaves when several requests are
       in flight and a later one finishes first (stale data, extra re-renders, race conditions). The random delay
       likely needs mountebank's `wait` behavior as an injected function, which requires `allowInjection`.
+      (`examples/fuzzy-network`, `yarn example:fuzzy`: a `decorate` that returns a Promise.)

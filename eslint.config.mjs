@@ -15,6 +15,7 @@ export default defineConfig(
         'playwright-report/',
         'examples/*',
         '!examples/users-service/',
+        '!examples/fuzzy-network/',
     ]),
     js.configs.recommended,
     tseslint.configs.strictTypeChecked,
