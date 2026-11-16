@@ -74,6 +74,10 @@ jobs:
         env:
             VERSION: ${{ needs.decide.outputs.version }}
             GH_TOKEN: ${{ github.token }}
+            # setup-node's registry-url writes an .npmrc that reads ${NODE_AUTH_TOKEN}, and yarn 1 fails when that
+            # variable isn't set. The value is a placeholder, not a token: npm publishes through trusted publishing
+            # (OIDC), which it tries before any token.
+            NODE_AUTH_TOKEN: unused-trusted-publishing
         steps:
             - uses: actions/checkout@v7
             # No dependency cache in the job that publishes: a poisoned cache would end up in the package.
