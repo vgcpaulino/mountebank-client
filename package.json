@@ -1,6 +1,6 @@
 {
     "name": "mountebank-client",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "Fluent TypeScript builders for mountebank: fake HTTP, HTTPS and GraphQL APIs in your tests, with Jest and Playwright helpers",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
