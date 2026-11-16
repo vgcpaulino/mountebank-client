@@ -36,6 +36,8 @@ How a new version of `mountebank-client` gets from `main` to npm. Only maintaine
 
 If a step fails, fix the cause and re-run the workflow (Actions → Release → Re-run failed jobs, or Run workflow on
 `main`). Each step is safe to repeat: an existing GitHub Release is kept, and a version already on npm stops the run.
+A re-run uses the workflow files of the original run; when the fix was to a workflow, merge it, then use Run workflow
+on `main` instead.
 
 A publish that fails with `E404 Not Found - PUT https://registry.npmjs.org/mountebank-client` means npm rejected the
 trusted publisher: the configuration on npmjs.com is missing, doesn't match (owner, repository, workflow file name,
