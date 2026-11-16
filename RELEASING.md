@@ -25,14 +25,15 @@ How a new version of `mountebank-client` gets from `main` to npm. Only maintaine
    release workflow, which runs every check before publishing.
 3. **Merge.** Merging changes `package.json` on `main`, which starts **Release**
    ([release.yml](.github/workflows/release.yml)). It:
+
     1. checks that this version isn't on npm yet (otherwise it stops: nothing to do);
     2. runs the type checks, lint, format check, and the unit, integration and Playwright tests;
     3. waits for approval, if the `npm` environment requires reviewers;
     4. creates the `vx.y.z` tag and the GitHub Release, with the version's CHANGELOG section as notes;
     5. publishes to npm with provenance, through trusted publishing (no token).
 
-   The job logs `+ mountebank-client@x.y.z` when npm accepts the package. It becomes `latest` about a minute or two
-   later; nothing else needs approving.
+    The job logs `+ mountebank-client@x.y.z` when npm accepts the package. It becomes `latest` about a minute or two
+    later; nothing else needs approving.
 
 If a step fails, fix the cause and re-run the workflow (Actions → Release → Re-run failed jobs, or Run workflow on
 `main`). Each step is safe to repeat: an existing GitHub Release is kept, and a version already on npm stops the run.
