@@ -6,6 +6,12 @@ The version of the next release is chosen when releasing; until then, changes co
 
 ## Unreleased
 
+### Changed
+
+- The npm page has a clearer description, keywords that match what people search for (mock server, API mocking,
+  service virtualization, Jest, Playwright, GraphQL…), and a README that opens with badges and a feature list. No
+  code changes.
+
 ## [2.0.0] - 2026-11-14
 
 Changes since 1.0.2.
