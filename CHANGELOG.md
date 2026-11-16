@@ -6,6 +6,8 @@ The version of the next release is chosen when releasing; until then, changes co
 
 ## Unreleased
 
+## [2.0.1] - 2026-11-16
+
 ### Changed
 
 - The npm page has a clearer description, keywords that match what people search for (mock server, API mocking,
